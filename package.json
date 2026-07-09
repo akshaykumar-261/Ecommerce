@@ -9,7 +9,7 @@
     "server": "node config/server.js",
     "create_seeder": "npx sequelize-cli seed:generate --seeders-path dataBase/seeders --name",
     "run_seeder": "npx sequelize-cli db:seed --seed",
-    "seed_undo":"sequlize-cli db:seed:undo:all"
+    "seed_undo": "sequlize-cli db:seed:undo:all"
   },
   "keywords": [],
   "author": "",
@@ -23,7 +23,9 @@
     "joi": "^18.2.3",
     "jsonwebtoken": "^9.0.3",
     "multer": "^2.2.0",
+    "mysql2": "^3.22.6",
     "nodemon": "^3.1.14",
-    "path": "^0.12.7"
+    "path": "^0.12.7",
+    "sequelize": "^6.37.8"
   }
 }
