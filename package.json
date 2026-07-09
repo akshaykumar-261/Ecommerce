@@ -1,0 +1,29 @@
+{
+  "name": "ecommercebackend",
+  "version": "1.0.0",
+  "description": "",
+  "main": "config/server.js",
+  "type": "module",
+  "scripts": {
+    "start": "nodemon config/server.js",
+    "server": "node config/server.js",
+    "create_seeder": "npx sequelize-cli seed:generate --seeders-path dataBase/seeders --name",
+    "run_seeder": "npx sequelize-cli db:seed --seed",
+    "seed_undo":"sequlize-cli db:seed:undo:all"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "bcrypt": "^6.0.0",
+    "crypto": "^1.0.1",
+    "dotenv": "^17.4.2",
+    "express": "^5.2.1",
+    "http": "^0.0.1-security",
+    "joi": "^18.2.3",
+    "jsonwebtoken": "^9.0.3",
+    "multer": "^2.2.0",
+    "nodemon": "^3.1.14",
+    "path": "^0.12.7"
+  }
+}
