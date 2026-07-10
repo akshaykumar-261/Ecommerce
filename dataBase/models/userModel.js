@@ -1,0 +1,85 @@
+import { DataTypes } from "sequelize";
+import { sequelize } from "../../config/db.js";
+const UserModel = sequelize.define(
+  "user",
+  {
+    id: {
+      type: DataTypes.INTEGER,
+      primaryKey: true,
+      autoIncrement: true,
+    },
+    name: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
+    lastname: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
+    email: {
+      type: DataTypes.STRING,
+      allowNull: false,
+      unique: true,
+    },
+    password: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
+    address: {
+      type: DataTypes.STRING,
+    },
+    phoneNo: {
+      type: DataTypes.STRING,
+    },
+    avtar: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    otp: {
+      type: DataTypes.INTEGER,
+    },
+    otp_expire: {
+      type: DataTypes.DATE,
+    },
+    is_verified: {
+      type: DataTypes.BOOLEAN,
+      allowNull: false,
+      defaultValue: false,
+    },
+    role_Id: {
+      type: DataTypes.INTEGER,
+    },
+    is_mobile_notification_active: {
+      type: DataTypes.BOOLEAN,
+      allowNull: false,
+      defaultValue: true,
+    },
+    socail_id: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    otp_type: {
+      type: DataTypes.ENUM("EMAIL_VERIFICATION", "FORGOT_PASSWORD"),
+      allowNull: true,
+    },
+    provider: {
+      type: DataTypes.ENUM("LOCAL", "GOOGLE", "FACEBOOK", "GITHUB"),
+      defaultValue: "LOCAL",
+    },
+    deletedAt: {
+      type: DataTypes.DATE,
+      defaultValue: null,
+    },
+  },
+  {
+    timestamps: true,
+    hooks: {
+      beforeCreate: async (user) => {
+        if (user.password) {
+          user.password = await bcrypt.hash(user.password, 10);
+        }
+      },
+    },
+  },
+);
+export default UserModel;
