@@ -1,0 +1,3 @@
+npx sequelize-cli migration:generate --name name_of_your_migration  // generate empty migration
+
+ npx sequelize-cli db:migrate --migrations-path dataBase/migration --name 20260617063818-newNotificationModel.cjs   // run migration with particular name 
