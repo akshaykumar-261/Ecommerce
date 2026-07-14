@@ -1,7 +1,7 @@
 import UserModel from "../dataBase/models/userModel.js";
 import RoleModel from "../dataBase/models/roleModel.js";
 import UserDeviceModel from "../dataBase/models/user_deviceModel.js";
-UserModel.belongTo(RoleModel, {
+UserModel.belongsTo(RoleModel, {
   foreignKey: "role_Id",
 });
 RoleModel.hasMany(UserModel, {
