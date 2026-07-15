@@ -11,6 +11,7 @@ export const authMessage = {
   USER_NOT_FOUND: "this user not found or inactive",
   INVALID: "token is not valid",
   UN_AUTH: "Unauthorize user",
+  TOKEN_REQUIRED:"Authorization token is required"
 };
  export const userMessage = {
   USER_CREATED: "User created successfully",
@@ -45,5 +46,7 @@ export const authMessage = {
   SOCIAL_LOGIN_SUCEES: "Logged in successfully via social authentication.",
   PROVIDER_NOT_SUPPORT: "Provider is not supported yet",
   SESSION_EXPIRED: "Session expired or logged out from this device",
-  INVALID_SESSION: "Invalid session or logged out from this device",
+   INVALID_SESSION: "Invalid session or logged out from this device",
+   USER_VERIFY: "User Already Verify",
+  INVALID_TOKEN:"Invalid verification token"
 };

@@ -6,7 +6,7 @@ export default class UserServices {
 
   getByEmail = async (email) => {
     if (!email) return null;
-    return await this.Model.user.findOne({
+    return await this.Model.Users.findOne({
       where: {
         email: email.toLowerCase().trim(),
         deletedAt: null,
@@ -15,8 +15,8 @@ export default class UserServices {
   };
 
   createUser = async (payload) => {
-    const user = await this.Model.user.create(payload);
-    return await this.Model.user.findByPk(user.id, {
+    const user = await this.Model.Users.create(payload);
+    return await this.Model.Users.findByPk(user.id, {
       attributes: {
         exclude: [
           "password",
@@ -24,6 +24,9 @@ export default class UserServices {
           "updatedAt",
           "department_Id",
           "refreshToken",
+          "is_mobile_notification_active",
+          "socail_id",
+          "provider",
           "otp",
           "otp_expire",
           "otp_type",
@@ -31,6 +34,28 @@ export default class UserServices {
           "is_verified",
           "deletedAt",
         ],
+      },
+    });
+  };
+
+  async verifyUser(id) {
+    return await this.Model.Users.update(
+      {
+        is_verified: true,
+        otp: null,
+        otp_expire: null,
+      },
+      {
+        where: { id },
+      },
+    );
+  }
+ 
+    getUserById = async (id) => {
+    return this.Model.Users.findOne({
+      where: {
+        id: id,
+        deletedAt: null,
       },
     });
   };

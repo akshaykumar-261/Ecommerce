@@ -7,7 +7,7 @@ export const sendEmail = async ({ to, subject, htmlContent }) => {
   sendSmtpEmail.htmlContent = htmlContent;
 
   sendSmtpEmail.sender = {
-    name: "Support Managment System",
+    name: "Ecommerce Platform",
     email: process.env.EMAIL_FROM,
   };
 
@@ -16,7 +16,7 @@ export const sendEmail = async ({ to, subject, htmlContent }) => {
   try {
     const response = await brevoApiInstance.sendTransacEmail(sendSmtpEmail);
     return response;
-  } catch (error) {
-    throw new Error(error.response?.body || error.message);
-  }
+  }catch (error) {
+    console.dir(error.response?.body, { depth: null });
+}
 };

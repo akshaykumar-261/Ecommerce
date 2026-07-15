@@ -38,4 +38,4 @@ const authorize = async (req, res, next) => {
     return sendResponse(res, STATUS_CODE.SERVER_ERROR, authMessage.INVALID);
   }
 };
-export default authorize;
+export default authorize; 

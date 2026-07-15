@@ -13,7 +13,7 @@ export const sendForgotOtp = async (email, otp, name) => {
     <h1 style="color:#2563eb;">
       ${otp}
     </h1>
-
+    
     <p>
       This OTP will expire in 5 minutes.
     </p>
@@ -24,7 +24,7 @@ export const sendForgotOtp = async (email, otp, name) => {
     <br />
     <p>
       Regards,<br />
-      Support Management System
+      Ecommerce Platform
     </p>
   `;
 
