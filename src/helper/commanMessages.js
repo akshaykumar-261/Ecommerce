@@ -48,5 +48,7 @@ export const authMessage = {
   SESSION_EXPIRED: "Session expired or logged out from this device",
    INVALID_SESSION: "Invalid session or logged out from this device",
    USER_VERIFY: "User Already Verify",
-  INVALID_TOKEN:"Invalid verification token"
+   INVALID_TOKEN: "Invalid verification token",
+   USER_NOT_VERIFY: "Please verify your account first.",
+   TOKEN_EXPIRED:"Token is expire"
 };

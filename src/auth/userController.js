@@ -37,10 +37,7 @@ export default class userController {
     const sessionId = uuidv4();
     const accessToken = commanFunction.generateAccessToken(user, sessionId);
     const refreshToken = commanFunction.generateRefreshToken(user, sessionId);
-    await this.Models.user_devices.create({
-      user_Id: user.id,
-      session_id: sessionId,
-    });
+    await this.service.createSession(user.id, sessionId);
     const abc = await emailQueue.add("registration", {
       email: user.email,
       otp,
@@ -49,6 +46,7 @@ export default class userController {
     return sendResponse(res, STATUS_CODE.CREATED, userMessage.USER_CREATED, {
       user,
       accessToken,
+      refreshToken,
     });
   }
 
@@ -102,5 +100,179 @@ export default class userController {
     }
     await this.service.verifyUser(user.id);
     return sendResponse(res, STATUS_CODE.SUCCESS, userMessage.OTP_VERIFIED);
+  }
+
+  async resendOtpVerifyUser(req, res) {
+    const authHeader = req.headers.authorization;
+    if (!authHeader) {
+      return sendResponse(
+        res,
+        STATUS_CODE.BAD_REQUEST,
+        authMessage.TOKEN_REQUIRED,
+      );
+    }
+    const token = authHeader.split(" ")[1];
+    const decode = jwt.verify(token, process.env.JWT_SECRET);
+    const user = await this.service.getUserById(decode.id);
+    if (!user) {
+      return sendResponse(
+        res,
+        STATUS_CODE.NOT_FOUND,
+        userMessage.USER_NOT_FOUND,
+      );
+    }
+    const otp = commanFunction.generateOtp(6);
+    await this.service.updateOtp(user.id, otp);
+    await emailQueue.add("registration", {
+      email: user.email,
+      otp,
+      name: user.name,
+    });
+    const sessionId = uuidv4();
+    const accessToken = commanFunction.generateAccessToken(user, sessionId);
+    const refreshToken = commanFunction.generateRefreshToken(user, sessionId);
+    await this.service.updateSession(decode.sessionId, sessionId);
+    return sendResponse(res, STATUS_CODE.SUCCESS, userMessage.OTP_SENT, {
+      accessToken,
+      refreshToken,
+    });
+  }
+
+  async forgotPassword(req, res) {
+    const { email } = req.body;
+    const user = await this.service.getByEmail(email);
+    if (!user) {
+      return sendResponse(
+        res,
+        STATUS_CODE.BAD_REQUEST,
+        userMessage.USER_NOT_FOUND,
+      );
+    }
+    if (!user.is_verified) {
+      return sendResponse(
+        res,
+        STATUS_CODE.BAD_REQUEST,
+        userMessage.USER_NOT_VERIFY,
+      );
+    }
+    const otp = commanFunction.generateOtp(6);
+    await this.service.updateOtp(user.id, otp);
+    await emailQueue.add("forgot-password", {
+      email: user.email,
+      otp,
+      name: user.name,
+    });
+    const sessionId = uuidv4();
+    const accessToken = commanFunction.generateAccessToken(user, sessionId);
+    const refreshToken = commanFunction.generateRefreshToken(user, sessionId);
+    return sendResponse(res, STATUS_CODE.SUCCESS, userMessage.OTP_SENT, {
+      accessToken,
+      refreshToken,
+    });
+  }
+
+  async verifyForgotOtp(req, res) {
+    const { otp } = req.body;
+    const authHeader = req.headers.authorization;
+    if (!authHeader) {
+      return sendResponse(
+        res,
+        STATUS_CODE.BAD_REQUEST,
+        authMessage.TOKEN_REQUIRED,
+      );
+    }
+    const token = authHeader.split(" ")[1];
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    if (!decoded) {
+      return sendResponse(
+        res,
+        STATUS_CODE.BAD_REQUEST,
+        userMessage.INVALID_TOKEN,
+      );
+    }
+    const user = await this.service.getUserById(decoded.id);
+    if (!user) {
+      return sendResponse(
+        res,
+        STATUS_CODE.NOT_FOUND,
+        userMessage.USER_NOT_FOUND,
+      );
+    }
+    if (user.otp_expire < new Date()) {
+      return sendResponse(
+        res,
+        STATUS_CODE.BAD_REQUEST,
+        userMessage.OTP_EXPIRED,
+      );
+    }
+    if (user.otp != otp) {
+      return sendResponse(
+        res,
+        STATUS_CODE.BAD_REQUEST,
+        userMessage.INVALID_OTP,
+      );
+    }
+    await this.service.verifyUser(user.id);
+    const sessionId = uuidv4();
+    const accessToken = commanFunction.generateAccessToken(user, sessionId);
+    const refreshToken = commanFunction.generateRefreshToken(user, sessionId);
+    return sendResponse(res, STATUS_CODE.SUCCESS, userMessage.OTP_VERIFIED, {
+      accessToken,
+      refreshToken,
+    });
+  }
+
+  async resetPassword(req, res) {
+    const { newPassword } = req.body;
+    const user = req.user;
+    if (!user) {
+      return sendResponse(
+        res,
+        STATUS_CODE.BAD_REQUEST,
+        userMessage.USER_NOT_FOUND,
+      );
+    }
+    await this.service.updateUser(user.id, { password: newPassword });
+    return sendResponse(
+      res,
+      STATUS_CODE.SUCCESS,
+      userMessage.PASSWORD_RESET_SUCCESS,
+    );
+  }
+
+  async resendOtpVerifyUser(req, res) {
+    const authHeader = req.headers.authorization;
+    if (!authHeader) {
+      return sendResponse(
+        res,
+        STATUS_CODE.BAD_REQUEST,
+        authMessage.TOKEN_REQUIRED,
+      );
+    }
+    const token = authHeader.split(" ")[1];
+    const decode = jwt.verify(token, process.env.JWT_SECRET);
+    const user = await this.service.getUserById(decode.id);
+    if (!user) {
+      return sendResponse(
+        res,
+        STATUS_CODE.NOT_FOUND,
+        userMessage.USER_NOT_FOUND,
+      );
+    }
+    const otp = commanFunction.generateOtp(6);
+    await this.service.updateOtp(user.id, otp);
+    await emailQueue.add("registration", {
+      email: user.email,
+      otp,
+      name: user.name,
+    });
+    const sessionId = uuidv4();
+    const accessToken = commanFunction.generateAccessToken(user, sessionId);
+    const refreshToken = commanFunction.generateRefreshToken(user, sessionId);
+    await this.service.updateSession(decode.sessionId, sessionId);
+    return sendResponse(res, STATUS_CODE.SUCCESS, userMessage.OTP_SENT, {
+      accessToken,
+      refreshToken,
+    });
   }
 }

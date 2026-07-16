@@ -1,4 +1,4 @@
-import { Op } from "sequelize";
+import { Op, where } from "sequelize";
 export default class UserServices {
   async init(db) {
     this.Model = db.models;
@@ -50,8 +50,8 @@ export default class UserServices {
       },
     );
   }
- 
-    getUserById = async (id) => {
+
+  getUserById = async (id) => {
     return this.Model.Users.findOne({
       where: {
         id: id,
@@ -59,4 +59,44 @@ export default class UserServices {
       },
     });
   };
+
+  async createSession(userId, sessionId) {
+    return await this.Model.UserDevices.create({
+      user_Id: userId,
+      session_id: sessionId,
+    });
+  }
+
+  async updateOtp(userId, otp) {
+    return await this.Model.Users.update(
+      {
+        otp,
+        otp_expire: new Date(Date.now() + 10 * 60 * 1000),
+      },
+      {
+        where: {
+          id: userId,
+        },
+      },
+    );
+  }
+  async updateSession(oldSessionId, newSessionId) {
+    return await this.Model.UserDevices.update(
+      {
+        session_id: newSessionId,
+      },
+      {
+        where: {
+          session_id: oldSessionId,
+        },
+      },
+    );
+  }
+  async updateUser(userId, payload) {
+    return await this.Model.Users.update(payload, {
+      where: {
+        id: userId,
+      },
+    });
+  }
 }

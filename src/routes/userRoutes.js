@@ -5,6 +5,8 @@ import upload from "../middleweare/uploadFile.js";
 import { sequelize } from "../../config/db.js";
 import Users from "../../dataBase/models/userModel.js";
 import Roles from "../../dataBase/models/roleModel.js";
+import UserDevices from "../../dataBase/models/user_deviceModel.js";
+import authorize from "../middleweare/authmiddleweare.js";
 import {
   validateRequest,
   createUserSchema,
@@ -13,7 +15,7 @@ import {
 const router = express.Router();
 const userController = new UserController();
 await userController.init(sequelize);
-userController.init({ models: { Users, Roles } });
+userController.init({ models: { Users, Roles,UserDevices } });
 router.post(
   "/create",
   upload.any(),
@@ -25,4 +27,21 @@ router.post(
   validateRequest(verifyUserSchema),
   asyncHandler(userController.verifyUser.bind(userController)),
 );
+router.post(
+  "/resend-otp-verifyUser",
+  asyncHandler(userController.resendOtpVerifyUser.bind(userController))
+)
+router.post(
+  "/forgot-password",
+  asyncHandler(userController.forgotPassword.bind(userController))
+)
+router.post(
+  "/verify-forgotOtp",
+  asyncHandler(userController.verifyForgotOtp.bind(userController))
+)
+router.post(
+  "/reset-password",
+  authorize,
+  asyncHandler(userController.resetPassword.bind(userController))
+)
 export default router;
