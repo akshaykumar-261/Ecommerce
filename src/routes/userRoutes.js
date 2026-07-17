@@ -11,11 +11,15 @@ import {
   validateRequest,
   createUserSchema,
   verifyUserSchema,
+  forgotPasswordSchema,
+  verifyForgotOtpSchema,
+  resetPasswordSchema,
+  updateUserSchema,
 } from "../auth/userValidation.js";
 const router = express.Router();
 const userController = new UserController();
 await userController.init(sequelize);
-userController.init({ models: { Users, Roles,UserDevices } });
+userController.init({ models: { Users, Roles, UserDevices } });
 router.post(
   "/create",
   upload.any(),
@@ -24,24 +28,53 @@ router.post(
 );
 router.post(
   "/verify-user",
+  authorize,
   validateRequest(verifyUserSchema),
   asyncHandler(userController.verifyUser.bind(userController)),
 );
 router.post(
   "/resend-otp-verifyUser",
-  asyncHandler(userController.resendOtpVerifyUser.bind(userController))
-)
+  authorize,
+  asyncHandler(userController.resendOtpVerifyUser.bind(userController)),
+);
 router.post(
   "/forgot-password",
-  asyncHandler(userController.forgotPassword.bind(userController))
-)
+  validateRequest(forgotPasswordSchema),
+  asyncHandler(userController.forgotPassword.bind(userController)),
+);
 router.post(
   "/verify-forgotOtp",
-  asyncHandler(userController.verifyForgotOtp.bind(userController))
-)
+  authorize,
+  validateRequest(verifyForgotOtpSchema),
+  asyncHandler(userController.verifyForgotOtp.bind(userController)),
+);
 router.post(
   "/reset-password",
   authorize,
-  asyncHandler(userController.resetPassword.bind(userController))
-)
+  validateRequest(resetPasswordSchema),
+  asyncHandler(userController.resetPassword.bind(userController)),
+);
+router.post(
+  "/resend-otp-forgotPassword",
+  authorize,
+  asyncHandler(userController.resendOtpForgotPassword.bind(userController)),
+);
+router.put(
+  "/update-user/:id",
+  upload.single("avtar"),
+  authorize,
+  validateRequest(updateUserSchema),
+  asyncHandler(userController.updateUser.bind(userController)),
+);
+router.post(
+  "/refresh-token",
+  authorize,
+  asyncHandler(userController.refreshToken.bind(userController)),
+);
+router.get(
+  "/get-User",
+  authorize,
+  asyncHandler(userController.getUserProfile.bind(userController)),
+);
+router.post("/login", asyncHandler(userController.login.bind(userController)));
 export default router;

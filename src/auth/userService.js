@@ -57,6 +57,24 @@ export default class UserServices {
         id: id,
         deletedAt: null,
       },
+      attributes: {
+        exclude: [
+          "password",
+          "createdAt",
+          "updatedAt",
+          "department_Id",
+          "refreshToken",
+          "is_mobile_notification_active",
+          "socail_id",
+          "provider",
+          "otp",
+          "otp_expire",
+          "otp_type",
+          "is_active",
+          "is_verified",
+          "deletedAt",
+        ],
+      },
     });
   };
 
@@ -96,6 +114,14 @@ export default class UserServices {
     return await this.Model.Users.update(payload, {
       where: {
         id: userId,
+      },
+    });
+  }
+  async getSessionBySessionId(sessionId) {
+    return await this.Model.UserDevices.findOne({
+      where: {
+        session_id: sessionId,
+        //  is_login: true,
       },
     });
   }

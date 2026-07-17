@@ -50,5 +50,6 @@ export const authMessage = {
    USER_VERIFY: "User Already Verify",
    INVALID_TOKEN: "Invalid verification token",
    USER_NOT_VERIFY: "Please verify your account first.",
-   TOKEN_EXPIRED:"Token is expire"
+   TOKEN_EXPIRED: "Token is expire",
+  ACCESS_TOKEN_GENERATED: "Access token generated successfully."
 };

@@ -67,9 +67,17 @@ const UserModel = sequelize.define(
       type: DataTypes.ENUM("LOCAL", "GOOGLE", "FACEBOOK", "GITHUB"),
       defaultValue: "LOCAL",
     },
+    is_active: {
+      type: DataTypes.BOOLEAN,
+      defaultValue: true,
+    },
     deletedAt: {
       type: DataTypes.DATE,
       defaultValue: null,
+    },
+    avatar_public_id: {
+      type: DataTypes.STRING,
+      allowNull: true,
     },
   },
   {

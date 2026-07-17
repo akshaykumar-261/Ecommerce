@@ -15,9 +15,9 @@ const authorize = async (req, res, next) => {
       return sendResponse(res, STATUS_CODE.BAD_REQUEST, authMessage.UN_AUTH);
     }
     const token = authHeader.split(" ")[1];
-    const decode = jwt.verify(token, process.env.JWT_SECRET);
-    console.log("====>", decode);
-    if (!decode) {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    console.log("====>", decoded);
+    if (!decoded) {
       return sendResponse(
         res,
         STATUS_CODE.BAD_REQUEST,
@@ -26,8 +26,8 @@ const authorize = async (req, res, next) => {
     }
     const user = await UserModel.findOne({
       where: {
-        id: decode.id,
-        //is_active: 1,
+        id: decoded.id,
+        is_active: 1,
       },
       include: [
         {
@@ -36,7 +36,6 @@ const authorize = async (req, res, next) => {
         },
       ],
     });
-    console.log("====>", user);
     if (!user) {
       return sendResponse(
         res,
@@ -45,31 +44,11 @@ const authorize = async (req, res, next) => {
       );
     }
     req.user = user;
+    req.sessionId = decoded.sessionId;
     next();
   } catch (error) {
-    if (error.name === "TokenExpiredError") {
-      return sendResponse(
-        res,
-        STATUS_CODE.UNAUTHORIZED,
-        authMessage.TOKEN_EXPIRED
-      );
-    }
-
-    if (error.name === "JsonWebTokenError") {
-      return sendResponse(
-        res,
-        STATUS_CODE.UNAUTHORIZED,
-        authMessage.INVALID_TOKEN
-      );
-    }
-
     console.error(error);
-
-    return sendResponse(
-      res,
-      STATUS_CODE.SERVER_ERROR,
-      authMessage.INVALID
-    );
-};
+    return sendResponse(res, STATUS_CODE.SERVER_ERROR, authMessage.INVALID);
+  }
 };
 export default authorize;
