@@ -45,7 +45,7 @@ export const createUserSchema = Joi.object({
       "string.pattern.base":
         "Password must contain 8 characters(1 uppercase, lowercase, number, and special character).",
     }),
-  role_Id: Joi.number().valid(3).default(3),
+  role_Id: Joi.number().valid(2).default(2),
   department: Joi.forbidden(),
   avtar: Joi.any().optional(),
 });

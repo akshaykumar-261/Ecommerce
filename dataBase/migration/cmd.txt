@@ -1,3 +1,10 @@
 npx sequelize-cli migration:generate --name name_of_your_migration  // generate empty migration
+npx sequelize-cli db:migrate --migrations-path dataBase/migration --name 20260617063818-newNotificationModel.cjs   // run migration with particular name     
 
- npx sequelize-cli db:migrate --migrations-path dataBase/migration --name 20260617063818-newNotificationModel.cjs   // run migration with particular name 
+creatig empty seeder 
+1. npx sequelize-cli seed:generate --name demo-user
+Run particular seeder name 
+
+2. npx sequelize-cli db:seed --seed 20231024-user-seeder.js
+// generate empty seeder
+

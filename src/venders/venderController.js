@@ -16,7 +16,6 @@ export default class userController {
   async init(db) {
     this.service = new UserServices();
     this.Models = db.models;
-
     await this.service.init(db);
   }
   //************* Creating User  ******** */
@@ -35,7 +34,7 @@ export default class userController {
     const user = await this.service.createUser({
       ...req.body,
       avtar: avatar,
-      role_Id: ROLE.CUSTOMER,
+      role_Id: ROLE.VENDER,
       otp,
       is_verified: false,
       otp_expire: new Date(Date.now() + 10 * 60 * 1000),

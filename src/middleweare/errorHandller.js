@@ -4,18 +4,19 @@ import { respnseHandler } from "../helper/responseHandler.js";
 import * as commanFunction from "../helper/commonFunction.js";
 import { serverFile } from "../helper/commanMessages.js";
 const erroHandler = (err, req, res, next) => {
-  console.error("Error stack:", err.stack || err);
-  try {
-    console.error("Request path:", req.method, req.originalUrl);
-    console.error("Request body:", req.body);
-    console.error("Request params:", req.params);
-  } catch (e) {
-    // ignore logging errors
+  console.error("========== ERROR ==========");
+  console.error("Name:", err.name);
+  console.error("Message:", err.message);
+  console.error("Stack:", err.stack);
+  if (err.parent) {
+    console.error("SQL Message:", err.parent.sqlMessage);
+    console.error("SQL Code:", err.parent.code);
+    console.error("SQL No:", err.parent.errno);
+    console.error("SQL State:", err.parent.sqlState);
   }
-  // If the error is related to file upload, delete the uploaded file
-  if (req.file) {
-    commanFunction.deleteFile(req.file.path);
-  }
+  console.error("SQL:", err.sql);
+  console.error("Request path:", req.method, req.originalUrl);
+  console.error("Request body:", req.body);
   return respnseHandler(
     res,
     STATUS_CODE.SERVER_ERROR,

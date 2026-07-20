@@ -46,10 +46,10 @@ export const authMessage = {
   SOCIAL_LOGIN_SUCEES: "Logged in successfully via social authentication.",
   PROVIDER_NOT_SUPPORT: "Provider is not supported yet",
   SESSION_EXPIRED: "Session expired or logged out from this device",
-   INVALID_SESSION: "Invalid session or logged out from this device",
-   USER_VERIFY: "User Already Verify",
-   INVALID_TOKEN: "Invalid verification token",
-   USER_NOT_VERIFY: "Please verify your account first.",
-   TOKEN_EXPIRED: "Token is expire",
+  INVALID_SESSION: "Invalid session or logged out from this device",
+  USER_VERIFY: "User Already Verify",
+  INVALID_TOKEN: "Invalid verification token",
+  USER_NOT_VERIFY: "Please verify your account first.",
+  TOKEN_EXPIRED: "Token is expire",
   ACCESS_TOKEN_GENERATED: "Access token generated successfully."
-};
+ };
