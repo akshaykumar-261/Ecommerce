@@ -53,3 +53,13 @@ export const authMessage = {
   TOKEN_EXPIRED: "Token is expire",
   ACCESS_TOKEN_GENERATED: "Access token generated successfully."
  };
+ 
+export const storeMessages = {
+  STORE_CREATED: "Store created successfully.",
+  STORE_ALREADY_EXIST: "Store already exists.",
+  STORE_NOT_FOUND: "Store not found.",
+  STORE_UPDATED: "Store updated successfully.",
+  STORE_DELETED: "Store deleted successfully.",
+  STORE_FETCHED: "Store fetched successfully.",
+  STORE_LIST: "Store list fetched successfully.",
+};

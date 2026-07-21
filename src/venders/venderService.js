@@ -1,128 +1,60 @@
 import { Op, where } from "sequelize";
-export default class UserServices {
+export default class StoreService {
   async init(db) {
     this.Model = db.models;
   }
 
-  getByEmail = async (email) => {
-    if (!email) return null;
-    return await this.Model.Users.findOne({
-      where: {
-        email: email.toLowerCase().trim(),
-        deletedAt: null,
-      },
-    });
-  };
-
-  createUser = async (payload) => {
-    const user = await this.Model.Users.create(payload);
-    return await this.Model.Users.findByPk(user.id, {
+  async createStore(payload) {
+    const store = await this.Model.Store.create(payload);
+    return await this.Model.Store.findByPk(store.id, {
       attributes: {
         exclude: [
-          "password",
-          "createdAt",
+          "user_id",
           "updatedAt",
-          "department_Id",
-          "refreshToken",
-          "is_mobile_notification_active",
-          "socail_id",
-          "provider",
-          "otp",
-          "otp_expire",
-          "otp_type",
+          "total_products",
+          "total_orders",
+          "is_verified",
           "is_active",
+          "rating",
+          "updatedAt",
+          "createdAt",
           "is_verified",
           "deletedAt",
         ],
       },
     });
-  };
-
-  async verifyUser(id) {
-    return await this.Model.Users.update(
-      {
-        is_verified: true,
-        otp: null,
-        otp_expire: null,
-      },
-      {
-        where: { id },
-      },
-    );
   }
 
-  getUserById = async (id) => {
-    return this.Model.Users.findOne({
+  async getBySlug(slug) {
+    return await this.Model.Store.findOne({
       where: {
-        id: id,
+        slug,
         deletedAt: null,
       },
-      attributes: {
-        exclude: [
-          "password",
-          "createdAt",
-          "updatedAt",
-          "department_Id",
-          "refreshToken",
-          "is_mobile_notification_active",
-          "socail_id",
-          "provider",
-          "otp",
-          "otp_expire",
-          "otp_type",
-          "is_active",
-          "is_verified",
-          "deletedAt",
-        ],
-      },
-    });
-  };
-
-  async createSession(userId, sessionId) {
-    return await this.Model.UserDevices.create({
-      user_Id: userId,
-      session_id: sessionId,
     });
   }
 
-  async updateOtp(userId, otp) {
-    return await this.Model.Users.update(
-      {
-        otp,
-        otp_expire: new Date(Date.now() + 10 * 60 * 1000),
-      },
-      {
-        where: {
-          id: userId,
-        },
-      },
-    );
+  async updateStore(id, payload) {
+    return await this.Model.Store.update(payload, {
+      where: { id },
+    });
   }
-  async updateSession(oldSessionId, newSessionId) {
-    return await this.Model.UserDevices.update(
-      {
-        session_id: newSessionId,
-      },
-      {
-        where: {
-          session_id: oldSessionId,
-        },
-      },
-    );
+
+  async deleteStore(id) {
+    return await this.Model.Store.destroy({
+      where: { id },
+    });
   }
-  async updateUser(userId, payload) {
-    return await this.Model.Users.update(payload, {
+
+  async getStoreByUserId(userId) {
+    return await this.Model.Store.findOne({
       where: {
-        id: userId,
+        user_id: userId,
       },
     });
   }
-  async getSessionBySessionId(sessionId) {
-    return await this.Model.UserDevices.findOne({
-      where: {
-        session_id: sessionId,
-         is_login: true,
-      },
-    });
+
+  async createProduct(payload) {
+    return await this.Model.Product.create(payload);
   }
 }

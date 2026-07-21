@@ -108,6 +108,15 @@ const StoreModel = sequelize.define(
       type: DataTypes.DATE,
       allowNull: true,
     },
+
+    store_banner_public_id: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    store_logo_public_id: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
   },
   {
     timestamps: true,
@@ -116,4 +125,3 @@ const StoreModel = sequelize.define(
 );
 
 export default StoreModel;
-

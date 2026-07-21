@@ -98,6 +98,7 @@ export default class UserServices {
       },
     );
   }
+
   async updateSession(oldSessionId, newSessionId) {
     return await this.Model.UserDevices.update(
       {
@@ -117,6 +118,7 @@ export default class UserServices {
       },
     });
   }
+  
   async getSessionBySessionId(sessionId) {
     return await this.Model.UserDevices.findOne({
       where: {
