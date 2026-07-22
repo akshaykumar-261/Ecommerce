@@ -1,41 +1,36 @@
 import { DataTypes } from "sequelize";
 import { sequelize } from "../../config/db.js";
-const ProductModel = sequelize.define(
-  "product",
+const ProductMediaModel = sequelize.define(
+  "product_media",
   {
     id: {
       type: DataTypes.INTEGER,
       primaryKey: true,
       autoIncrement: true,
     },
-    store_id: {
+    product_id: {
       type: DataTypes.INTEGER,
       allowNull: false,
     },
-    category_id: {
-      type: DataTypes.INTEGER,
+    media_type: {
+      type: DataTypes.ENUM("images", "video"),
       allowNull: false,
     },
-    pro_name: {
-      type: DataTypes.STRING(200),
-      allowNull: false,
-    },
-    description: {
+    media_url: {
       type: DataTypes.STRING(500),
-      allowNull: true,
+      allowNull: false,
     },
-    quantity: {
+    public_id: {
+      type: DataTypes.STRING(250),
+      allowNull: false,
+    },
+    is_primary: {
+      type: DataTypes.BOOLEAN,
+      defaultValue: false,
+    },
+    sort_order: {
       type: DataTypes.INTEGER,
-      allowNull: false,
-      defaultValue: 0,
-    },
-    price: {
-      type: DataTypes.DECIMAL(10, 2),
-      allowNull: false,
-    },
-    discount_price: {
-      type: DataTypes.DECIMAL(10, 2),
-      allowNull: false,
+      defaultValue: 1,
     },
     status: {
       type: DataTypes.BOOLEAN,
@@ -48,6 +43,7 @@ const ProductModel = sequelize.define(
   },
   {
     timestamps: true,
+    paranoid: true,
   },
 );
-export default ProductModel;
+export default ProductMediaModel;

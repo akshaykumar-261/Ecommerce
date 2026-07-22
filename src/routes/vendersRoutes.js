@@ -5,6 +5,8 @@ import upload from "../middleweare/uploadFile.js";
 import { sequelize } from "../../config/db.js";
 import authorize from "../middleweare/authmiddleweare.js";
 import Store from "../../dataBase/models/storeModel.js";
+import Product from "../../dataBase/models/productModel.js";
+import ProductMediaModel from "../../dataBase/models/productMedia.js";
 import {
   createStoreSchema,
   updateStoreSchema,
@@ -13,7 +15,7 @@ import {
 const router = express.Router();
 const venderController = new VenderController();
 await venderController.init(sequelize);
-venderController.init({ models: { Store } });
+venderController.init({ models: { Store, Product, ProductMediaModel } });
 router.post(
   "/create-store",
   authorize,
@@ -44,7 +46,21 @@ router.get(
 router.post(
   "/add-product",
   authorize,
-  upload.fields([{ name: "product_images" }, { name: "product_videos" }]),
+  upload.fields([
+    {
+      name: "product_images",
+      maxCount: 10,
+    },
+    {
+      name: "product_videos",
+      maxCount: 2,
+    },
+  ]),
+  asyncHandler(venderController.addProduct.bind(venderController)),
+);
+router.patch(
+  "/products-quantity/:id",
+  authorize,
   asyncHandler(venderController.addProduct.bind(venderController)),
 );
 export default router;

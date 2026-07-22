@@ -11,6 +11,7 @@ const startServer = (server) => {
       });
       start.on("error", () => {
         console.log(serverFile.SERVER_ERROR);
+        console.error(error);
       });
     })
     .catch((error) => {

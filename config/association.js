@@ -5,6 +5,7 @@ import StoreModel from "../dataBase/models/storeModel.js";
 import ProductModel from "../dataBase/models/productModel.js";
 import CategoryModel from "../dataBase/models/categoryModel.js";
 import AddressModel from "../dataBase/models/addressModel.js";
+import ProductMediaModel from "../dataBase/models/productMedia.js";
 UserModel.belongsTo(RoleModel, {
   foreignKey: "role_Id",
 });
@@ -39,4 +40,10 @@ UserModel.hasMany(AddressModel, {
 });
 AddressModel.belongsTo(UserModel, {
   foreignKey: "user_id",
+});
+ProductMediaModel.belongsTo(ProductModel, {
+  foreignKey: "product_id",
+});
+ProductModel.hasMany(ProductMediaModel, {
+  foreignKey: "product_id",
 });

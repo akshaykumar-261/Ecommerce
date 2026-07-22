@@ -37,12 +37,6 @@ module.exports = {
         type: Sequelize.STRING(200),
         allowNull: false,
       },
-
-      pro_images: {
-        type: Sequelize.STRING(400),
-        allowNull: false,
-      },
-
       description: {
         type: Sequelize.STRING(500),
         allowNull: true,

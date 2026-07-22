@@ -140,46 +140,78 @@ export default class StoreController {
     const payload = {
       ...req.body,
     };
-    const store = await this.storeService.getStoreByUserId(req.user.id);
+    const store = await this.services.getStoreByUserId(req.user.id);
     if (!store) {
       return sendResponse(res, STATUS_CODE.NOT_FOUND, "Store not found.");
     }
-
     payload.store_id = store.id;
-    const images = [];
-    const imagePublicIds = [];
-
-    if (req.files?.product_images) {
+    const mediaData = [];
+    // Images
+    if (req.files?.product_images?.length > 0) {
       for (const file of req.files.product_images) {
         const result = await uploadToCloudinary(file, "products/images");
 
-        images.push(result.secure_url);
-        imagePublicIds.push(result.public_id);
+        mediaData.push({
+          media_type: "images",
+          media_url: result.secure_url,
+          public_id: result.public_id,
+        });
       }
     }
-
-    payload.pro_images = images;
-    payload.pro_image_public_ids = imagePublicIds;
-    const videos = [];
-    const videoPublicIds = [];
-
-    if (req.files?.product_videos) {
+    // Videos
+    if (req.files?.product_videos?.length > 0) {
       for (const file of req.files.product_videos) {
         const result = await uploadToCloudinary(file, "products/videos");
-        videos.push(result.secure_url);
-        videoPublicIds.push(result.public_id);
+
+        mediaData.push({
+          media_type: "video",
+          media_url: result.secure_url,
+          public_id: result.public_id,
+        });
       }
     }
-
-    payload.pro_videos = videos;
-    payload.pro_video_public_ids = videoPublicIds;
-    const product = await this.service.createProduct(payload);
+    const product = await this.services.createProduct(payload, mediaData);
     return sendResponse(
       res,
       STATUS_CODE.CREATED,
       "Product created successfully.",
       {
         product,
+      },
+    );
+  }
+
+  async updateProductQuantity(req, res) {
+    const { id } = req.params;
+    const { quantity } = req.body;
+    const store = await this.services.getStoreByUserId(req.user.id);
+    if (!store) {
+      return sendResponse(
+        res,
+        STATUS_CODE.NOT_FOUND,
+        storeMessages.STORE_NOT_FOUND,
+      );
+    }
+    const product = await this.services.getProductById(id);
+    if (!product) {
+      return sendResponse(res, STATUS_CODE.NOT_FOUND, "Product not found.");
+    }
+    if (product.store_id !== store.id) {
+      return sendResponse(
+        res,
+        STATUS_CODE.FORBIDDEN,
+        "You are not allowed to update this product.",
+      );
+    }
+    await this.services.updateProductQuantity(id, quantity);
+    const updateProduct = await this.services.getProductById(id);
+
+    return sendResponse(
+      res,
+      STATUS_CODE.SUCCESS,
+      "Product quantity updated successfully.",
+      {
+        product: updatedProduct,
       },
     );
   }
