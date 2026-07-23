@@ -11,6 +11,7 @@ import { sendResponse } from "../helper/responseHandler.js";
 const authorize = async (req, res, next) => {
   try {
     const authHeader = req.headers.authorization;
+    console.log("===========>", authHeader);
     if (!authHeader) {
       return sendResponse(res, STATUS_CODE.BAD_REQUEST, authMessage.UN_AUTH);
     }

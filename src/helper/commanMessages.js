@@ -1,29 +1,29 @@
 export const serverFile = {
-    DB_CONNECTION: "Data Base Connected Successfully",
-    RUNNING_PORT: "Server is running on port",
-    SERVER_ERROR: "Something went wrong, please try again later",
-    DB_FAILED: "Database Connection Failed",
-    DB_CLOSE: "Database connection closed",
-    DB_CLOSING_ERROR: "Database Closing Error",
-    ERROR: "Error connecting to the database:"
+  DB_CONNECTION: "Data Base Connected Successfully",
+  RUNNING_PORT: "Server is running on port",
+  SERVER_ERROR: "Something went wrong, please try again later",
+  DB_FAILED: "Database Connection Failed",
+  DB_CLOSE: "Database connection closed",
+  DB_CLOSING_ERROR: "Database Closing Error",
+  ERROR: "Error connecting to the database:",
 };
 export const authMessage = {
   USER_NOT_FOUND: "this user not found or inactive",
   INVALID: "token is not valid",
   UN_AUTH: "Unauthorize user",
-  TOKEN_REQUIRED:"Authorization token is required"
+  TOKEN_REQUIRED: "Authorization token is required",
 };
- export const userMessage = {
+export const userMessage = {
   USER_CREATED: "User created successfully",
   USER_EXIST: "User already exists",
   USER_NOT_FOUND: "User not found",
   INVALID_CREDENTIALS: "Invalid email or password",
   OTP_SENT: "OTP sent to your email",
   OTP_INVALID: "Invalid OTP",
-  INVALID_OTP:"Invalid OTP",
+  INVALID_OTP: "Invalid OTP",
   OTP_NOT_FOUND: "OTP_NOT_FOUND",
-  VERIFY_EMAIL:"Please verify your email before login",
-  INVALID_TYPE:"Invalid OTP type",
+  VERIFY_EMAIL: "Please verify your email before login",
+  INVALID_TYPE: "Invalid OTP type",
   OTP_EXPIRED: "OTP has expired",
   OTP_VERIFIED: "OTP verified successfully",
   PASSWORD_RESET_SUCCESS: "Password reset successfully",
@@ -51,9 +51,9 @@ export const authMessage = {
   INVALID_TOKEN: "Invalid verification token",
   USER_NOT_VERIFY: "Please verify your account first.",
   TOKEN_EXPIRED: "Token is expire",
-  ACCESS_TOKEN_GENERATED: "Access token generated successfully."
- };
- 
+  ACCESS_TOKEN_GENERATED: "Access token generated successfully.",
+};
+
 export const storeMessages = {
   STORE_CREATED: "Store created successfully.",
   STORE_ALREADY_EXIST: "Store already exists.",
@@ -62,4 +62,15 @@ export const storeMessages = {
   STORE_DELETED: "Store deleted successfully.",
   STORE_FETCHED: "Store fetched successfully.",
   STORE_LIST: "Store list fetched successfully.",
+};
+
+export const productMessage = {
+  PRODUCT_NOT_FOUND: "Product not found.",
+  PRODUCT_CREATED: "Product created successfully.",
+  PRODUCT_QUANTITY: "Product quantity updated successfully.",
+  PRODUCT_UPDATED: "Product updated successfully.",
+  NOT_ALLOW: "You are not allowed to update this product.",
+  MEDIA_UPLOAD: "Product media uploaded successfully.",
+  MEDIA_NOT_FOUND: "Media not found.",
+  MEDIA_DELETED: "Media deleted successfully.",
 };

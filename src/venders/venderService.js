@@ -110,4 +110,28 @@ export default class StoreService {
   async getProductById(id) {
     return await this.Model.Product.findByPk(id);
   }
+
+  async addProductMedia(mediaData) {
+    return await this.Model.ProductMediaModel.bulkCreate(mediaData);
+  }
+
+  async getMediaById(id) {
+    return await this.Model.ProductMediaModel.findByPk(id);
+  }
+
+  async deleteMedia(id) {
+    return await this.Model.ProductMediaModel.destroy({
+      where: {
+        id,
+      },
+    });
+  }
+
+  async updateProduct(id, payload) {
+    return await this.Model.Product.update(payload, {
+      where: {
+        id,
+      },
+    });
+  }
 }

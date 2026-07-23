@@ -61,6 +61,31 @@ router.post(
 router.patch(
   "/products-quantity/:id",
   authorize,
-  asyncHandler(venderController.addProduct.bind(venderController)),
+  asyncHandler(venderController.updateProductQuantity.bind(venderController)),
+);
+router.post(
+  "/products-media/:id",
+  authorize,
+  upload.fields([
+    {
+      name: "product_images",
+      maxCount: 10,
+    },
+    {
+      name: "product_videos",
+      maxCount: 2,
+    },
+  ]),
+  asyncHandler(venderController.addProductMedia.bind(venderController)),
+);
+router.delete(
+  "/product-media-delete/:mediaId",
+  authorize,
+  asyncHandler(venderController.deleteProductMedia.bind(venderController)),
+);
+router.put(
+  "/update-product-details/:id",
+  authorize,
+  asyncHandler(venderController.updateProduct.bind(venderController)),
 );
 export default router;

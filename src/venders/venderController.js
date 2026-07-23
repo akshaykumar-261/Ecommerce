@@ -1,7 +1,7 @@
 import StoreService from "./venderService.js";
 import { STATUS_CODE } from "../helper/statusCode.js";
 import { sendResponse } from "../helper/responseHandler.js";
-import { storeMessages } from "../helper/commanMessages.js";
+import { storeMessages, productMessage } from "../helper/commanMessages.js";
 import { ROLE } from "../helper/roleBase.js";
 import slugify from "slugify";
 import {
@@ -92,8 +92,6 @@ export default class StoreController {
       payload.store_banner = banner.secure_url;
       payload.store_banner_public_id = banner.public_id;
     }
-    console.log("Store Logo Public ID:", store.store_logo_public_id);
-    console.log("Store Banner Public ID:", store.store_banner_public_id);
     await this.services.updateStore(store.id, payload);
     const updateStore = await this.services.getStoreByUserId(userId);
     return sendResponse(res, STATUS_CODE.SUCCESS, storeMessages.STORE_UPDATED, {
@@ -142,7 +140,11 @@ export default class StoreController {
     };
     const store = await this.services.getStoreByUserId(req.user.id);
     if (!store) {
-      return sendResponse(res, STATUS_CODE.NOT_FOUND, "Store not found.");
+      return sendResponse(
+        res,
+        STATUS_CODE.NOT_FOUND,
+        storeMessages.STORE_NOT_FOUND,
+      );
     }
     payload.store_id = store.id;
     const mediaData = [];
@@ -174,7 +176,7 @@ export default class StoreController {
     return sendResponse(
       res,
       STATUS_CODE.CREATED,
-      "Product created successfully.",
+      productMessage.PRODUCT_CREATED,
       {
         product,
       },
@@ -194,14 +196,14 @@ export default class StoreController {
     }
     const product = await this.services.getProductById(id);
     if (!product) {
-      return sendResponse(res, STATUS_CODE.NOT_FOUND, "Product not found.");
-    }
-    if (product.store_id !== store.id) {
       return sendResponse(
         res,
-        STATUS_CODE.FORBIDDEN,
-        "You are not allowed to update this product.",
+        STATUS_CODE.NOT_FOUND,
+        productMessage.PRODUCT_NOT_FOUND,
       );
+    }
+    if (product.store_id !== store.id) {
+      return sendResponse(res, STATUS_CODE.FORBIDDEN, productMessage.NOT_ALLOW);
     }
     await this.services.updateProductQuantity(id, quantity);
     const updateProduct = await this.services.getProductById(id);
@@ -209,10 +211,122 @@ export default class StoreController {
     return sendResponse(
       res,
       STATUS_CODE.SUCCESS,
-      "Product quantity updated successfully.",
+      productMessage.PRODUCT_QUANTITY,
       {
-        product: updatedProduct,
+        product: updateProduct,
       },
     );
   }
+
+  async addProductMedia(req, res) {
+    const { id } = req.params;
+    const store = await this.services.getStoreByUserId(req.user.id);
+    if (!store) {
+      return sendResponse(
+        res,
+        STATUS_CODE.NOT_FOUND,
+        storeMessages.STORE_NOT_FOUND,
+      );
+    }
+    const product = await this.services.getProductById(id);
+    if (!product) {
+      return sendResponse(
+        res,
+        STATUS_CODE.NOT_FOUND,
+        productMessage.PRODUCT_NOT_FOUND,
+      );
+    }
+    if (product.store_id !== store.id) {
+      return sendResponse(res, STATUS_CODE.FORBIDDEN, productMessage.NOT_ALLOW);
+    }
+    const mediaData = [];
+    // images
+    if (req.files?.product_images?.length > 0) {
+      for (const file of req.files.product_images) {
+        const result = await uploadToCloudinary(file, "products/images");
+        mediaData.push({
+          product_id: product.id,
+          media_type: "images",
+          media_url: result.secure_url,
+          public_id: result.public_id,
+        });
+      }
+    }
+    // videos
+    if (req.files?.product_videos?.length > 0) {
+      for (const file of req.files.product_videos) {
+        const result = await uploadToCloudinary(file, "products/videos");
+        mediaData.push({
+          product_id: product.id,
+          media_type: "video",
+          media_url: result.secure_url,
+          public_id: result.public_id,
+        });
+      }
+    }
+    await this.services.addProductMedia(mediaData);
+    return sendResponse(res, STATUS_CODE.SUCCESS, productMessage.MEDIA_UPLOAD);
+  }
+
+  async deleteProductMedia(req, res) {
+    const { mediaId } = req.params;
+    console.log("Params:", req.params);
+    const media = await this.services.getMediaById(mediaId);
+    console.log("===>", media);
+    if (!media) {
+      return sendResponse(
+        res,
+        STATUS_CODE.NOT_FOUND,
+        productMessage.MEDIA_NOT_FOUND,
+      );
+    }
+    const product = await this.services.getProductById(media.product_id);
+    const store = await this.services.getStoreByUserId(req.user.id);
+    if (!store || product.store_id !== store.id) {
+      return sendResponse(res, STATUS_CODE.FORBIDDEN, productMessage.NOT_ALLOW);
+    }
+    await deleteFromCloudinary(media.public_id);
+    await this.services.deleteMedia(mediaId);
+    return sendResponse(res, STATUS_CODE.SUCCESS, productMessage.MEDIA_DELETED);
+  }
+
+  async updateProduct(req, res) {
+    const { id } = req.params;
+    const payload = {
+      ...req.body,
+    };
+    const store = await this.services.getStoreByUserId(req.user.id);
+    if (!store) {
+      return sendResponse(
+        res,
+        STATUS_CODE.NOT_FOUND,
+        storeMessages.STORE_NOT_FOUND,
+      );
+    }
+    const product = await this.services.getProductById(id);
+    if (!product) {
+      return sendResponse(
+        res,
+        STATUS_CODE.NOT_FOUND,
+        productMessage.PRODUCT_NOT_FOUND,
+      );
+    }
+    if (product.store_id !== store.id) {
+      return sendResponse(res, STATUS_CODE.FORBIDDEN, productMessage.NOT_ALLOW);
+    }
+    await this.services.updateProduct(id, payload);
+    const updateProduct = await this.services.getProductById(id);
+    return sendResponse(
+      res,
+      STATUS_CODE.SUCCESS,
+      productMessage.PRODUCT_UPDATED,
+      {
+        product: updateProduct,
+      },
+    );
+  }
+  
+  
+
+
 }
