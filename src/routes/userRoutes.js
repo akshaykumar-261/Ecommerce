@@ -16,6 +16,7 @@ import {
   resetPasswordSchema,
   updateUserSchema,
   loginSchema,
+  createVendorSchema,
 } from "../auth/userValidation.js";
 const router = express.Router();
 const userController = new UserController();
@@ -26,6 +27,12 @@ router.post(
   upload.any(),
   validateRequest(createUserSchema),
   asyncHandler(userController.userCreate.bind(userController)),
+);
+router.post(
+  "/createVendor",
+  upload.any(),
+  validateRequest(createVendorSchema),
+  asyncHandler(userController.userVendor.bind(userController)),
 );
 router.post(
   "/verify-user",

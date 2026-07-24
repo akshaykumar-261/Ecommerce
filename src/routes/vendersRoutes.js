@@ -88,4 +88,34 @@ router.put(
   authorize,
   asyncHandler(venderController.updateProduct.bind(venderController)),
 );
+router.get(
+  "/get-products",
+  authorize,
+  asyncHandler(venderController.getAllProducts.bind(venderController)),
+);
+router.patch(
+  "/change-product-status/:id",
+  authorize,
+  asyncHandler(venderController.changeProductStatus.bind(venderController)),
+);
+router.get(
+  "/outOf-Stock-Product",
+  authorize,
+  asyncHandler(venderController.getOutOfStockProducts.bind(venderController)),
+);
+router.post(
+  "/setPrimary-image/:mediaId",
+  authorize,
+  asyncHandler(venderController.setPrimaryImages.bind(venderController)),
+);
+router.get(
+  "/get-product-dashboard",
+  authorize,
+  asyncHandler(venderController.venderDashboard.bind(venderController)),
+);
+router.get(
+  "get-productById/:id",
+  authorize,
+  asyncHandler(venderController.get)
+)
 export default router;

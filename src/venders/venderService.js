@@ -134,4 +134,151 @@ export default class StoreService {
       },
     });
   }
+
+  async getAllProducts(storeId, query) {
+    const whereCondition = {
+      store_id: storeId,
+    };
+    if (query.search) {
+      whereCondition[Op.or] = [
+        {
+          pro_name: {
+            [Op.like]: `%${query.search}%`,
+          },
+        },
+        {
+          description: {
+            [Op.like]: `${query.search}`,
+          },
+        },
+      ];
+    }
+    return await this.Model.Product.findAndCountAll({
+      where: whereCondition,
+      include: [
+        {
+          model: this.Model.ProductMediaModel,
+        },
+      ],
+      limit: query.limit,
+      offset: query.offset,
+      order: [["createdAt", "DESC"]],
+    });
+  }
+
+  async changeProductStatus(id, status) {
+    return await this.Model.Product.update(
+      { status },
+      {
+        where: {
+          id,
+        },
+      },
+    );
+  }
+
+  async getOutOfStockProducts(stroreId, query) {
+    const whereCondition = {
+      store_id: stroreId,
+      quantity: 0,
+    };
+    if (query.search) {
+      whereCondition[Op.or] = [
+        {
+          pro_name: {
+            [Op.like]: `%${query.search}%`,
+          },
+        },
+        {
+          description: {
+            [Op.like]: `%${query.search}%`,
+          },
+        },
+      ];
+    }
+    return await this.Model.Product.findAndCountAll({
+      where: whereCondition,
+      include: [
+        {
+          model: this.Model.ProductMediaModel,
+        },
+      ],
+      limit: query.limit,
+      offset: query.offset,
+      order: [["createdAt", "DESC"]],
+    });
+  }
+
+  async removePrimaryImage(productId) {
+    return await this.Model.ProductMediaModel.update(
+      {
+        is_primary: false,
+      },
+      {
+        where: {
+          product_id: productId,
+          media_type: "images",
+        },
+      },
+    );
+  }
+
+  async setPrimaryImage(mediaId) {
+    return await this.Model.ProductMediaModel.update(
+      {
+        is_primary: true,
+      },
+      {
+        where: {
+          id: mediaId,
+        },
+      },
+    );
+  }
+
+  async venderDashboard(storeId) {
+    const [totalProduct, active, inactive, outOfStock, lowStock] =
+      await Promise.all([
+        this.Model.Product.count({
+          where: {
+            store_id: storeId,
+          },
+        }),
+        this.Model.Product.count({
+          where: {
+            store_id: storeId,
+            status: 1,
+          },
+        }),
+        this.Model.Product.count({
+          where: {
+            store_id: storeId,
+            status: 0,
+          },
+        }),
+        this.Model.Product.count({
+          where: {
+            store_id: storeId,
+            quantity: {
+              [Op.between]: [1, 5],
+            },
+          },
+        }),
+      ]);
+    return {
+      totalProduct,
+      active,
+      inactive,
+      outOfStock,
+      lowStock,
+    };
+  }
+
+  async getProduct(id) {
+    return await this.Model.Product.findByPk(id, {
+      include: {
+        model: this.Model.ProductMediaModel,
+      },
+    });
+  }
 }

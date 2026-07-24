@@ -56,6 +56,42 @@ export default class userController {
     });
   }
 
+  async userVendor(req, res) {
+    const { email } = req.body;
+    const existingUser = await this.service.getByEmail(email);
+    if (existingUser) {
+      return sendResponse(res, STATUS_CODE.BAD_REQUEST, userMessage.USER_EXIST);
+    }
+    let avatar = null;
+    if (req.files && req.files.length > 0) {
+      const result = await uploadToCloudinary(req.files[0], "users/avatar");
+      avatar = result.secure_url;
+    }
+    const otp = commanFunction.generateOtp(6);
+    const user = await this.service.createUser({
+      ...req.body,
+      avtar: avatar,
+      role_Id: ROLE.VENDER,
+      otp,
+      is_verified: false,
+      otp_expire: new Date(Date.now() + 10 * 60 * 1000),
+    });
+    const sessionId = uuidv4();
+    const accessToken = commanFunction.generateAccessToken(user, sessionId);
+    const refreshToken = commanFunction.generateRefreshToken(user, sessionId);
+    await this.service.createSession(user.id, sessionId);
+    await emailQueue.add("registration", {
+      email: user.email,
+      otp,
+      name: user.name,
+    });
+    return sendResponse(res, STATUS_CODE.CREATED, userMessage.USER_CREATED, {
+      user,
+      accessToken,
+      refreshToken,
+    });
+  }
+
   async verifyUser(req, res) {
     const { otp } = req.body;
     const users = req.user;
@@ -112,7 +148,7 @@ export default class userController {
     const accessToken = commanFunction.generateAccessToken(user, sessionId);
     const refreshToken = commanFunction.generateRefreshToken(user, sessionId);
     await this.service.updateSession(req.sessionId, sessionId);
-      return sendResponse(res, STATUS_CODE.SUCCESS, userMessage.OTP_SENT, {
+    return sendResponse(res, STATUS_CODE.SUCCESS, userMessage.OTP_SENT, {
       accessToken,
       refreshToken,
     });
@@ -395,13 +431,3 @@ export default class userController {
     return sendResponse(res, STATUS_CODE.SUCCESS, userMessage.LOGOUT_SUCCESS);
   }
 }
-
-    
-
-
-
-
-
-
-
-  

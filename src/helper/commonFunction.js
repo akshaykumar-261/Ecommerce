@@ -10,7 +10,7 @@ export const generateAccessToken = (user, sessionId) => {
     },
     process.env.JWT_SECRET,
     {
-      expiresIn: "30m",
+      expiresIn: "1h",
     },
   );
 };
@@ -40,5 +40,25 @@ export const generateOtp = (length = 6) => {
 export const asyncHandler = (fn) => {
   return (req, res, next) => {
     Promise.resolve(fn(req, res, next)).catch(next);
+  };
+};
+
+export const pagignation = (page = 1, limit = 10, data = null) => {
+  page = parseInt(page) || 1;
+  limit = parseInt(limit) || 10;
+  const offset = (page - 1) * limit;
+  if (!data) {
+    return {
+      page,
+      limit,
+      offset,
+    };
+  }
+  return {
+    totalRecords: data.count,
+    totalPages: Math.ceil(data.count / limit),
+    currcurrentPage: page,
+    pageSize: limit,
+    data: data.rows,
   };
 };

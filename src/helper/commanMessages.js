@@ -68,9 +68,13 @@ export const productMessage = {
   PRODUCT_NOT_FOUND: "Product not found.",
   PRODUCT_CREATED: "Product created successfully.",
   PRODUCT_QUANTITY: "Product quantity updated successfully.",
+  PRODUCT_FETCHED: "Product fetched successfully",
+  DASHBOARD_FETECH:  "Dashboard fetched successfully",
   PRODUCT_UPDATED: "Product updated successfully.",
   NOT_ALLOW: "You are not allowed to update this product.",
   MEDIA_UPLOAD: "Product media uploaded successfully.",
   MEDIA_NOT_FOUND: "Media not found.",
   MEDIA_DELETED: "Media deleted successfully.",
+  ONLY_PRODUCT_IMAGE: "Only image can be set as primary",
+  PRIMARY_IMAGE: "Primary image updated successfully."
 };
