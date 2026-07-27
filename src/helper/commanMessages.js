@@ -69,12 +69,43 @@ export const productMessage = {
   PRODUCT_CREATED: "Product created successfully.",
   PRODUCT_QUANTITY: "Product quantity updated successfully.",
   PRODUCT_FETCHED: "Product fetched successfully",
-  DASHBOARD_FETECH:  "Dashboard fetched successfully",
+  DASHBOARD_FETECH: "Dashboard fetched successfully",
   PRODUCT_UPDATED: "Product updated successfully.",
   NOT_ALLOW: "You are not allowed to update this product.",
   MEDIA_UPLOAD: "Product media uploaded successfully.",
   MEDIA_NOT_FOUND: "Media not found.",
   MEDIA_DELETED: "Media deleted successfully.",
   ONLY_PRODUCT_IMAGE: "Only image can be set as primary",
-  PRIMARY_IMAGE: "Primary image updated successfully."
+  PRIMARY_IMAGE: "Primary image updated successfully.",
+  OUT_OF_STOCK: "This product is currently out of stock.",
+};
+
+export const cartMessage = {
+  ITEM_ADDED: "Item added to cart successfully.",
+  ITEM_UPDATED: "Cart item quantity updated successfully.",
+  ITEM_REMOVED: "Item removed from cart successfully.",
+  CART_CLEARED: "Cart cleared successfully.",
+  ADDTO_CART: "Product added to cart successfully.",
+  NOT_FOUND: "Cart Not Found",
+  CART_ITEM_NOT_FOUND: "Cart item not found",
+  REMOVE_FROM_CART: "Product Reove from cart",
+
+  // Fetch / Get
+  CART_FETCHED: "Cart items fetched successfully.",
+  CART_EMPTY: "Your cart is empty.",
+
+  // Validation & Errors
+  ITEM_NOT_FOUND: "Item not found in cart.",
+  PRODUCT_OUT_OF_STOCK: "Product is out of stock.",
+  EXCEEDS_STOCK: "Requested quantity exceeds available stock.",
+  MIN_QUANTITY_ERROR: "Quantity must be at least 1.",
+  MAX_QUANTITY_REACHED: "Maximum allowed quantity reached for this item.",
+  INVALID_CART: "Invalid cart details provided.",
+
+  // Coupon / Discount related to Cart
+  COUPON_APPLIED: "Coupon code applied successfully.",
+  COUPON_REMOVED: "Coupon code removed successfully.",
+  INVALID_COUPON: "Invalid or expired coupon code.",
+  COUPON_MIN_AMOUNT:
+    "Cart total does not meet the minimum amount for this coupon.",
 };

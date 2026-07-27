@@ -114,8 +114,13 @@ router.get(
   asyncHandler(venderController.venderDashboard.bind(venderController)),
 );
 router.get(
-  "get-productById/:id",
+  "/get-productById/:id",
   authorize,
-  asyncHandler(venderController.get)
-)
+  asyncHandler(venderController.getProductWithId.bind(venderController)),
+);
+router.get(
+  "/products",
+  authorize,
+  asyncHandler(venderController.getAllUserProduct.bind(venderController)),
+);
 export default router;

@@ -435,7 +435,6 @@ export default class StoreController {
       );
     }
     const product = await this.services.getProductById(media.product_id);
-    console.log("=====>", product);
     const store = await this.services.getStoreByUserId(req.user.id);
     if (!store || product.store_id !== store.id) {
       return sendResponse(res, STATUS_CODE.FORBIDDEN, productMessage.NOT_ALLOW);
@@ -459,7 +458,7 @@ export default class StoreController {
       res,
       STATUS_CODE.SUCCESS,
       productMessage.DASHBOARD_FETECH,
-      {dashboard}
+      { dashboard },
     );
   }
 
@@ -467,20 +466,47 @@ export default class StoreController {
     const { id } = req.params;
     const store = await this.services.getStoreByUserId(id);
     if (!store) {
-      return sendResponse(res,STATUS_CODE.NOT_FOUND,storeMessages.STORE_NOT_FOUND)
+      return sendResponse(
+        res,
+        STATUS_CODE.NOT_FOUND,
+        storeMessages.STORE_NOT_FOUND,
+      );
     }
     const product = await this.services.getProduct(id);
     if (!product) {
-      return sendResponse(res,STATUS_CODE.NOT_FOUND,productMessage.PRODUCT_NOT_FOUND)
+      return sendResponse(
+        res,
+        STATUS_CODE.NOT_FOUND,
+        productMessage.PRODUCT_NOT_FOUND,
+      );
     }
     if (product.store_id !== store.id) {
-      return sendResponse(res,STATUS_CODE.FORBIDDEN,productMessage.NOT_ALLOW)
+      return sendResponse(res, STATUS_CODE.FORBIDDEN, productMessage.NOT_ALLOW);
     }
-      return sendResponse(
-    res,
-    STATUS_CODE.SUCCESS,
-    productMessage.PRODUCT_FETCHED,
-    { product }
-  );
+    return sendResponse(
+      res,
+      STATUS_CODE.SUCCESS,
+      productMessage.PRODUCT_FETCHED,
+      { product },
+    );
+  }
+
+  async getAllUserProduct(req, res) {
+    const { page, limit, offset } = commanFunction.pagignation(
+      req.query.page,
+      req.query.limit,
+    );
+    const result = await this.services.getAllUserProducts({
+      search: req.query.search,
+      limit,
+      offset,
+    });
+    const response = commanFunction.pagignation(page, limit, result);
+    return sendResponse(
+      res,
+      STATUS_CODE.SUCCESS,
+      productMessage.PRODUCT_FETCHED,
+      response,
+    );
   }
 }

@@ -16,7 +16,6 @@ export default class userController {
   async init(db) {
     this.service = new UserServices();
     this.Models = db.models;
-
     await this.service.init(db);
   }
   //************* Creating User  ******** */

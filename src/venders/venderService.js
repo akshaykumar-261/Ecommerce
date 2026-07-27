@@ -281,4 +281,41 @@ export default class StoreService {
       },
     });
   }
+
+  async getAllUserProducts(query) {
+    const whereCondition = {
+      status: true,
+      quantity: {
+        [Op.gt]: 0,
+      },
+      deletedAt: null,
+    };
+
+    if (query.search) {
+      whereCondition[Op.or] = [
+        {
+          pro_name: {
+            [Op.like]: `%${query.search}%`,
+          },
+        },
+        {
+          description: {
+            [Op.like]: `%${query.search}%`,
+          },
+        },
+      ];
+    }
+
+    return await this.Model.Product.findAndCountAll({
+      where: whereCondition,
+      include: [
+        {
+          model: this.Model.ProductMediaModel,
+        },
+      ],
+      limit: query.limit,
+      offset: query.offset,
+      order: [["createdAt", "DESC"]],
+    });
+  }
 }

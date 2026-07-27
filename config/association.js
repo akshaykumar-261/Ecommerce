@@ -6,6 +6,8 @@ import ProductModel from "../dataBase/models/productModel.js";
 import CategoryModel from "../dataBase/models/categoryModel.js";
 import AddressModel from "../dataBase/models/addressModel.js";
 import ProductMediaModel from "../dataBase/models/productMedia.js";
+import CartModel from "../dataBase/models/cartModel.js";
+import CartItemModel from "../dataBase/models/cartItemModel.js";
 UserModel.belongsTo(RoleModel, {
   foreignKey: "role_Id",
 });
@@ -45,5 +47,25 @@ ProductMediaModel.belongsTo(ProductModel, {
   foreignKey: "product_id",
 });
 ProductModel.hasMany(ProductMediaModel, {
+  foreignKey: "product_id",
+});
+CartModel.belongsTo(UserModel, {
+  foreignKey: "user_id",
+});
+UserModel.hasOne(CartModel, {
+  foreignKey: "user_id",
+});
+CartItemModel.belongsTo(CartModel, {
+  foreignKey: "cart_id",
+});
+CartModel.hasMany(CartItemModel, {
+  foreignKey: "cart_id",
+});
+
+CartItemModel.belongsTo(ProductModel, {
+  foreignKey: "product_id",
+});
+
+ProductModel.hasMany(CartItemModel, {
   foreignKey: "product_id",
 });
