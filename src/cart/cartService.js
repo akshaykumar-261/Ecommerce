@@ -83,7 +83,7 @@ export default class CartServices {
         quantity,
         price,
       },
-      {
+      { 
         where: {
           id,
         },
@@ -95,6 +95,14 @@ export default class CartServices {
     return await this.Model.CartItem.destroy({
       where: {
         id,
+      },
+    });
+  }
+
+  async getCartCount(cartId) {
+    return await this.Model.CartItem.count({
+      where: {
+        cart_id: cartId,
       },
     });
   }

@@ -12,12 +12,24 @@ const AddressModel = sequelize.define(
       type: DataTypes.INTEGER,
       allowNull: false,
     },
+    // User_name
     name: {
       type: DataTypes.STRING(20),
       allowNull: true,
     },
-    address: {
-      type: DataTypes.STRING(200),
+    // Contact Number
+    phone_no: {
+      type: DataTypes.STRING(15),
+      allowNull: false,
+    },
+    house_no: {
+      type: DataTypes.STRING(100),
+      allowNull: false,
+    },
+
+    // Road / Area / Colony
+    road_area_colony: {
+      type: DataTypes.STRING(255),
       allowNull: false,
     },
     city: {
@@ -28,6 +40,8 @@ const AddressModel = sequelize.define(
       type: DataTypes.STRING(40),
       allowNull: false,
     },
+
+    // Nearby Famous Place / Shop / School
     landmark: {
       type: DataTypes.STRING(200),
       allowNull: true,

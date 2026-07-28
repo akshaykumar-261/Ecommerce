@@ -24,6 +24,16 @@ router.get(
 router.put(
   "/update-quantity/:cartItemId",
   authorize,
-  asyncHandler(cartController.updateCartQuantity.bind(cartController)),
+  asyncHandler(cartController.updateCartItemQuantity.bind(cartController)),
 );
+router.get(
+  "/get-cart-count",
+  authorize,
+  asyncHandler(cartController.getCartCount.bind(cartController))
+)
+router.delete(
+  "/remove-product/:product_id",
+  authorize,
+  asyncHandler(cartController.removeCartItem.bind(cartController))
+)
 export default router;

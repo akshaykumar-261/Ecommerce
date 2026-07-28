@@ -7,12 +7,14 @@ export const serverFile = {
   DB_CLOSING_ERROR: "Database Closing Error",
   ERROR: "Error connecting to the database:",
 };
+
 export const authMessage = {
   USER_NOT_FOUND: "this user not found or inactive",
   INVALID: "token is not valid",
   UN_AUTH: "Unauthorize user",
   TOKEN_REQUIRED: "Authorization token is required",
 };
+
 export const userMessage = {
   USER_CREATED: "User created successfully",
   USER_EXIST: "User already exists",
@@ -89,11 +91,13 @@ export const cartMessage = {
   NOT_FOUND: "Cart Not Found",
   CART_ITEM_NOT_FOUND: "Cart item not found",
   REMOVE_FROM_CART: "Product Reove from cart",
-
+  QUANTITY: "Quantity must be greater than 0",
+  CART_UPDATED: "Cart Updated Successfully",
   // Fetch / Get
   CART_FETCHED: "Cart items fetched successfully.",
   CART_EMPTY: "Your cart is empty.",
-
+  CART_COUNT: "Cart item count is 0.",
+  CART_COUNT_FETCH: "Cart item count fetched successfully.",
   // Validation & Errors
   ITEM_NOT_FOUND: "Item not found in cart.",
   PRODUCT_OUT_OF_STOCK: "Product is out of stock.",
@@ -101,11 +105,19 @@ export const cartMessage = {
   MIN_QUANTITY_ERROR: "Quantity must be at least 1.",
   MAX_QUANTITY_REACHED: "Maximum allowed quantity reached for this item.",
   INVALID_CART: "Invalid cart details provided.",
-
   // Coupon / Discount related to Cart
   COUPON_APPLIED: "Coupon code applied successfully.",
   COUPON_REMOVED: "Coupon code removed successfully.",
   INVALID_COUPON: "Invalid or expired coupon code.",
   COUPON_MIN_AMOUNT:
     "Cart total does not meet the minimum amount for this coupon.",
+};
+
+export const addressMessages = {
+  ADDRESS_CREATED: "Address added successfully.",
+  ADDRESS_UPDATED: "Address updated successfully.",
+  ADDRESS_FETCHED: "Addresses fetched successfully.",
+  ADDRESS_NOT_FOUND: "Address not found.",
+  UNAUTHORIZED_ADDRESS: "You are not authorized to update this address.",
+  ADDRESS_DELETED: "Address Deleted Successfully",
 };
