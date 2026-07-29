@@ -10,6 +10,7 @@ import CartModel from "../dataBase/models/cartModel.js";
 import CartItemModel from "../dataBase/models/cartItemModel.js";
 import OrderItemModel from "../dataBase/models/orderItem.js";
 import OrderModel from "../dataBase/models/orderModel.js";
+import PaymentModel from "../dataBase/models/paymetModel.js";
 UserModel.belongsTo(RoleModel, {
   foreignKey: "role_Id",
 });
@@ -83,7 +84,7 @@ OrderModel.hasMany(OrderItemModel, {
   foreignKey: "order_id",
 });
 
- // OrderItemModel
+// OrderItemModel
 OrderItemModel.belongsTo(OrderModel, {
   foreignKey: "order_id",
 });
@@ -91,3 +92,9 @@ OrderItemModel.belongsTo(ProductModel, {
   foreignKey: "product_id",
 });
 
+PaymentModel.belongsTo(OrderModel, {
+  foreignKey: "order_id",
+});
+OrderModel.hasOne(PaymentModel, {
+  foreignKey: "order_id",
+});

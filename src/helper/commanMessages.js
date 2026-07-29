@@ -121,3 +121,14 @@ export const addressMessages = {
   UNAUTHORIZED_ADDRESS: "You are not authorized to update this address.",
   ADDRESS_DELETED: "Address Deleted Successfully",
 };
+
+export const orderMessages = {
+  ORDER_PLACED: "Order placed successfully.",
+  ORDER_FETCHED: "Orders fetched successfully.",
+  ORDER_CANCELLED: "Order cancelled successfully.",
+  ORDER_NOT_FOUND: "Order not found.",
+  ORDER_CANNOT_CANCEL: "This order cannot be cancelled.",
+  CART_EMPTY: "Your cart is empty.",
+  ADDRESS_NOT_FOUND: "Address not found.",
+  UNAUTHORIZED: "You are not authorized to access this order.",
+};
