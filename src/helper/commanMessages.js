@@ -131,4 +131,5 @@ export const orderMessages = {
   CART_EMPTY: "Your cart is empty.",
   ADDRESS_NOT_FOUND: "Address not found.",
   UNAUTHORIZED: "You are not authorized to access this order.",
+  ORDER_CREATED:"Order created successfully.",
 };

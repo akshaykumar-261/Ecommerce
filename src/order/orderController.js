@@ -12,23 +12,18 @@ export default class OrderController {
   async placeOrder(req, res) {
     const transaction = await sequelize.transaction();
     const { address_id } = req.body;
-
     // Check Address
     const address = await this.services.getAddress(address_id, req.user.id);
-
     if (!address) {
       await transaction.rollback();
-
       return sendResponse(
         res,
         STATUS_CODE.NOT_FOUND,
         orderMessages.ADDRESS_NOT_FOUND,
       );
     }
-
     // Get Cart
     const cart = await this.services.getCart(req.user.id);
-
     if (!cart || cart.cartItems.length === 0) {
       await transaction.rollback();
 
@@ -38,10 +33,8 @@ export default class OrderController {
         orderMessages.CART_EMPTY,
       );
     }
-
     // Calculate Total
     let grandTotal = 0;
-
     for (const item of cart.cartItems) {
       if (item.product.quantity < item.quantity) {
         await transaction.rollback();
@@ -52,10 +45,8 @@ export default class OrderController {
           `${item.product.pro_name} is out of stock`,
         );
       }
-
       grandTotal += Number(item.price);
     }
-
     // Create Order
     const order = await this.services.createOrder(
       {
@@ -68,7 +59,6 @@ export default class OrderController {
       },
       transaction,
     );
-
     // Create Order Items
     for (const item of cart.cartItems) {
       await this.services.createOrderItem(
@@ -82,68 +72,45 @@ export default class OrderController {
         transaction,
       );
     }
-
-    // Create Payment Row
-    const payment = await this.services.createPayment(
-      {
-        order_id: order.id,
-        transaction_id: null,
-        payment_method: "Card",
-        payment_provider: "Stripe",
-        amount: grandTotal,
-        status: "Pending",
-      },
-      transaction,
-    );
-
     // Commit DB Transaction
     await transaction.commit();
-
-    // Create Stripe PaymentIntent
+    // creating paymentIntent
     const paymentIntent = await stripe.paymentIntents.create({
       amount: Math.round(grandTotal * 100),
       currency: "inr",
       automatic_payment_methods: {
         enabled: true,
+        allow_redirects: "never",
       },
       metadata: {
         order_id: order.id,
-        payment_id: payment.id,
         user_id: req.user.id,
       },
+      description: `Payment for Order #${order.order_number}`,
     });
-
-    // Save Stripe Transaction Id
-    await this.services.updatePayment(payment.id, {
+    const payment = await this.services.createPayment({
+      order_id: order.id,
       transaction_id: paymentIntent.id,
+      amount: grandTotal,
+      payment_method: "Card",
+      payment_provider: "Stripe",
+      payment_status: "Pending",
     });
-
-    return sendResponse(
-      res,
-      STATUS_CODE.CREATED,
-      "Order created successfully. Complete payment.",
-      {
-        order_id: order.id,
-        amount: grandTotal,
-        clientSecret: paymentIntent.client_secret,
-        paymentIntentId: paymentIntent.id,
-      },
-    );
+    return sendResponse(res, STATUS_CODE.CREATED, orderMessages.ORDER_CREATED, {
+      order,
+      payment_intent_id: paymentIntent.id,
+    });
   }
 
   async getMyOrders(req, res) {
     const orders = await this.services.getOrder(req.user.id);
-    return sendResponse(
-      res,
-      STATUS_CODE.SUCCESS,
-      orderMessages.ORDER_FETCHED,
+    return sendResponse(res, STATUS_CODE.SUCCESS, orderMessages.ORDER_FETCHED, {
       orders,
-    );
+    });
   }
 
   async confirmPayment(req, res) {
     const { paymentIntentId } = req.body;
-
     if (!paymentIntentId) {
       return sendResponse(
         res,
@@ -151,38 +118,31 @@ export default class OrderController {
         "paymentIntentId is required",
       );
     }
-
-    // Confirm payment using Stripe test card
-    const paymentIntent = await stripe.paymentIntents.confirm(paymentIntentId, {
+    let paymentIntent;
+    paymentIntent = await stripe.paymentIntents.confirm(paymentIntentId, {
       payment_method: "pm_card_visa",
     });
-
     // Payment Success
     if (paymentIntent.status === "succeeded") {
-      const paymentId = paymentIntent.metadata.payment_id;
+      const payment = await this.services.getPaymentByTransactionId(
+        paymentIntent.id,
+      );
       const orderId = paymentIntent.metadata.order_id;
-
-      await this.services.updatePayment(paymentId, {
-        status: "Paid",
+      await this.services.updatePayment(payment.id, {
+        status: "success",
       });
-
       await this.services.updateOrder(orderId, {
         payment_status: "Paid",
         order_status: "Confirmed",
       });
-
       const order = await this.services.getOrderById(orderId);
-
-      for (const item of order.OrderItems) {
+      for (const item of order.orderItems) {
         await this.services.reduceStock(item.product_id, item.quantity);
       }
-
       const cart = await this.services.getCart(req.user.id);
-
       if (cart) {
         await this.services.clearCart(cart.id);
       }
-
       return sendResponse(
         res,
         STATUS_CODE.SUCCESS,
@@ -190,7 +150,6 @@ export default class OrderController {
         paymentIntent,
       );
     }
-
     return sendResponse(
       res,
       STATUS_CODE.BAD_REQUEST,

@@ -3,3 +3,7 @@ export const ROLE = {
   VENDER: 2,
   CUSTOMER: 3,
 };
+
+export const PAYMENT_STATUS = {
+  
+};

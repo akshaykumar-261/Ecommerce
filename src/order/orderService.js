@@ -128,4 +128,12 @@ export default class OrderService {
       ],
     });
   }
+
+  async getPaymentByTransactionId(transactionId) {
+    return await this.Model.Payment.findOne({
+      where: {
+        transaction_id: transactionId,
+      },
+    });
+  }
 }
