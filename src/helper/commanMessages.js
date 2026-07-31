@@ -1,3 +1,4 @@
+
 export const serverFile = {
   DB_CONNECTION: "Data Base Connected Successfully",
   RUNNING_PORT: "Server is running on port",
@@ -131,5 +132,18 @@ export const orderMessages = {
   CART_EMPTY: "Your cart is empty.",
   ADDRESS_NOT_FOUND: "Address not found.",
   UNAUTHORIZED: "You are not authorized to access this order.",
-  ORDER_CREATED:"Order created successfully.",
+  ORDER_CREATED: "Order created successfully.",
+  NOT_CANCEL_ORDER: "You are not allowed to cancel this order.",
+  ORDER_ALREADY_CANCELLED: "Order already cancelled.",
+  ORDER_STATUS: "Order status cannot be changed.",
+  ORDER_STATUS_UPDATE:  "Order status updated successfully."
 };
+
+export const paymentMessage = {
+  PAYMENTINTENT_REQUIRE: "paymentIntentId is required",
+  PAYMENT_SUCCESS: "Payment successful completed.",
+  PAYMENT_NOT_COMPETE: "Payment not completed.",
+  PAYMENT_NOT_FOUND: "Payment not found.",
+  PAYMENT_REFUND_FAIL: "Refund failed.",
+  ORDER_REFUND:"Order cancelled & refunded successfully"
+}

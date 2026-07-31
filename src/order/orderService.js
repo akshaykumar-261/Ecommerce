@@ -47,11 +47,17 @@ export default class OrderService {
     });
   }
 
-  async restoreStock(productId, qty) {
+  async restoreStock(productId, qty, transaction) {
+    //4
     const product = await this.Model.Product.findByPk(productId);
-    await product.update({
-      quantity: product.quantity + qty,
-    });
+    await product.update(
+      {
+        quantity: product.quantity + qty,
+      },
+      {
+        transaction,
+      },
+    );
   }
 
   async clearCart(cartId) {
@@ -62,7 +68,7 @@ export default class OrderService {
     });
   }
 
-  async getOrder(userId) {
+  async getOrderUserId(userId) {
     return await this.Model.Order.findAll({
       where: {
         user_id: userId,
@@ -103,19 +109,23 @@ export default class OrderService {
       transaction,
     });
   }
-  async updatePayment(id, payload) {
+  async updatePayment(id, payload, transaction) {
+    // 1
     return await this.Model.Payment.update(payload, {
       where: {
         id,
       },
+      transaction,
     });
   }
 
-  async updateOrder(orderId, payload) {
+  async updateOrder(orderId, payload, transaction) {
+    //2
     return await this.Model.Order.update(payload, {
       where: {
         id: orderId,
       },
+      transaction,
     });
   }
 
@@ -134,6 +144,36 @@ export default class OrderService {
       where: {
         transaction_id: transactionId,
       },
+    });
+  }
+
+  async getOrderWithPayment(orderId) {
+    return await this.Model.Order.findByPk(orderId, {
+      include: [
+        {
+          model: this.Model.OrderItem,
+        },
+        {
+          model: this.Model.Payment,
+        },
+      ],
+    });
+  }
+
+  async trackOrder(orderId, userId) {
+    return await this.Model.Order.findOne({
+      where: {
+        id: orderId,
+        user_id: userId,
+      },
+      attributes: [
+        "id",
+        "order_number",
+        "order_status",
+        "payment_status",
+        "createdAt",
+        "updatedAt",
+      ],
     });
   }
 }

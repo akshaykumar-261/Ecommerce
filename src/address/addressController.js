@@ -29,7 +29,6 @@ export default class AddressController {
   async updateAddress(req, res) {
     const { addressId } = req.params;
     const address = await this.services.getAddressById(addressId);
-    console.log("=====>", address);
     if (!address) {
       return sendResponse(
         res,
