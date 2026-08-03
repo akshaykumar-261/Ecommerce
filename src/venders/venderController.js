@@ -1,7 +1,7 @@
 import StoreService from "./venderService.js";
 import { STATUS_CODE } from "../helper/statusCode.js";
 import { sendResponse } from "../helper/responseHandler.js";
-import { storeMessages, productMessage } from "../helper/commanMessages.js";
+import { storeMessages, productMessage,userMessage } from "../helper/commanMessages.js";
 import { ROLE } from "../helper/roleBase.js";
 import slugify from "slugify";
 import {
@@ -9,11 +9,125 @@ import {
   uploadToCloudinary,
 } from "../../utility/ cloudinaryUpload.js";
 import * as commanFunction from "../helper/commonFunction.js";
+import stripe from "../../config/stripe.js";
+import { emailQueue } from "../../utility/queue/emailQueue.js";
+import { v4 as uuidv4 } from "uuid";
 export default class StoreController {
   async init(db) {
     this.services = new StoreService();
     await this.services.init(db);
   }
+  async userVendor(req, res) {
+    const { email } = req.body;
+    const existingUser = await this.services.getByEmail(email);
+    if (existingUser) {
+      return sendResponse(res, STATUS_CODE.BAD_REQUEST, userMessage.USER_EXIST);
+    }
+    let avatar = null;
+    if (req.files && req.files.length > 0) {
+      const result = await uploadToCloudinary(req.files[0], "users/avatar");
+      avatar = result.secure_url;
+    }
+    const otp = commanFunction.generateOtp(6);
+    const user = await this.services.createUser({
+      ...req.body,
+      avtar: avatar,
+      role_Id: ROLE.VENDER,
+      otp,
+      is_verified: false,
+      otp_expire: new Date(Date.now() + 10 * 60 * 1000),
+    });
+    const stripeAccount = await stripe.accounts.create({
+      country: "AU",
+      email: user.email,
+      controller: {
+        fees: {
+          payer: "application",
+        },
+        losses: {
+          payments: "application",
+        },
+        stripe_dashboard: {
+          type: "express",
+        },
+      },
+    });
+    await this.services.updateUser(user.id, {
+      stripe_account_id: stripeAccount.id,
+    });
+    const sessionId = uuidv4();
+    const accessToken = commanFunction.generateAccessToken(user, sessionId);
+    const refreshToken = commanFunction.generateRefreshToken(user, sessionId);
+    await this.services.createSession(user.id, sessionId);
+    await emailQueue.add("registration", {
+      email: user.email,
+      otp,
+      name: user.name,
+    });
+    return sendResponse(res, STATUS_CODE.CREATED, userMessage.USER_CREATED, {
+      user,
+      stripeAccount,
+      accessToken,
+      refreshToken,
+    });
+  }
+
+    async createOnboardingLink(req, res) {
+    const user = await this.services.getUserById(req.user.id);
+    if (!user.stripe_account_id) {
+      return sendResponse(
+        res,
+        STATUS_CODE.BAD_REQUEST,
+        userMessage.STRIPE_ACCOUNT_NOT_FOUND,
+      );
+    }
+    const accountLink = await stripe.accountLinks.create({
+      account: user.stripe_account_id,
+      refresh_url: "https://example.com/reauth",
+      return_url: "https://example.com/return",
+      type: "account_onboarding",
+    });
+    return sendResponse(
+      res,
+      STATUS_CODE.SUCCESS,
+      userMessage.STRIPE_ACCOUNT_CONNECTED,
+      {
+        url: accountLink.url,
+      },
+    );
+  }
+
+  async getStripeAccountStatus(req, res) {
+    const user = await this.services.getUserById(req.user.id);
+    if (!user) {
+      return sendResponse(
+        res,
+        STATUS_CODE.NOT_FOUND,
+        userMessage.USER_NOT_FOUND,
+      );
+    }
+    if (!user.stripe_account_id) {
+      return sendResponse(
+        res,
+        STATUS_CODE.BAD_REQUEST,
+        userMessage.STRIPE_ACCOUNT_NOT_FOUND,
+      );
+    }
+    const account = await stripe.account.retrieve(user.stripe_account_id);
+    return sendResponse(
+      res,
+      STATUS_CODE.SUCCESS,
+      userMessage.STRIPE_ACCOUNT_FETCHED,
+      {
+        stripe_account_id: account.id,
+        details_submitted: account.details_submitted,
+        charges_enabled: account.charges_enabled,
+        payouts_enabled: account.payouts_enabled,
+        requirements: account.requirements,
+      },
+    );
+  }
+
   async createStore(req, res) {
     const payload = { ...req.body };
     payload.user_id = req.user.id;

@@ -8,6 +8,7 @@ import venderRoutes from "../src/routes/vendersRoutes.js"
 import cartRoutes from "../src/routes/cartRoutes.js";
 import addressRoutes from "../src/routes/addresRoutes.js";
 import orderRoutes from "../src/routes/orderRoutes.js";
+import adminRoutes from "../src/routes/adminRoutes.js";
 import "./association.js";
 import "../utility/queue/emailWorkers.js"
 import "./cloudnary.js";
@@ -18,6 +19,7 @@ app.use("/venders", venderRoutes);
 app.use("/cart", cartRoutes);
 app.use("/address", addressRoutes);
 app.use("/order", orderRoutes);
+app.use("/admin",adminRoutes);
 const server = http.createServer(app);
 app.use(erroHandler);
 const PORT = process.env.PORT;

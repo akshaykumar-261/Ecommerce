@@ -3,6 +3,7 @@ import { authMessage, userMessage } from "../helper/commanMessages.js";
 import { sendResponse } from "../helper/responseHandler.js";
 import { STATUS_CODE } from "../helper/statusCode.js";
 import * as commanFunction from "../helper/commonFunction.js";
+import stripe from "../../config/stripe.js";
 import bcrypt from "bcrypt";
 import {
   deleteFromCloudinary,
@@ -54,7 +55,6 @@ export default class userController {
       refreshToken,
     });
   }
-
   async userVendor(req, res) {
     const { email } = req.body;
     const existingUser = await this.service.getByEmail(email);
@@ -75,6 +75,24 @@ export default class userController {
       is_verified: false,
       otp_expire: new Date(Date.now() + 10 * 60 * 1000),
     });
+    const stripeAccount = await stripe.accounts.create({
+      country: "AU",
+      email: user.email,
+      controller: {
+        fees: {
+          payer: "application",
+        },
+        losses: {
+          payments: "application",
+        },
+        stripe_dashboard: {
+          type: "express",
+        },
+      },
+    });
+    await this.service.updateUser(user.id, {
+      stripe_account_id: stripeAccount.id,
+    });
     const sessionId = uuidv4();
     const accessToken = commanFunction.generateAccessToken(user, sessionId);
     const refreshToken = commanFunction.generateRefreshToken(user, sessionId);
@@ -86,6 +104,7 @@ export default class userController {
     });
     return sendResponse(res, STATUS_CODE.CREATED, userMessage.USER_CREATED, {
       user,
+      stripeAccount,
       accessToken,
       refreshToken,
     });
@@ -313,7 +332,6 @@ export default class userController {
     }
     await this.service.updateUser(id, payload);
     const updatedUser = await this.service.getUserById(id);
-    console.log("===>", updatedUser);
     return sendResponse(
       res,
       STATUS_CODE.SUCCESS,

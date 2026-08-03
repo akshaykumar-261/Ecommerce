@@ -7,6 +7,7 @@ import Users from "../../dataBase/models/userModel.js";
 import Roles from "../../dataBase/models/roleModel.js";
 import UserDevices from "../../dataBase/models/user_deviceModel.js";
 import authorize from "../middleweare/authmiddleweare.js";
+import checkRole from "../middleweare/roleBasemiddleweare.js";
 import {
   validateRequest,
   createUserSchema,
@@ -16,9 +17,9 @@ import {
   resetPasswordSchema,
   updateUserSchema,
   loginSchema,
-  createVendorSchema,
 } from "../auth/userValidation.js";
 const router = express.Router();
+const role = checkRole("User");
 const userController = new UserController();
 await userController.init(sequelize);
 userController.init({ models: { Users, Roles, UserDevices } });
@@ -27,12 +28,6 @@ router.post(
   upload.any(),
   validateRequest(createUserSchema),
   asyncHandler(userController.userCreate.bind(userController)),
-);
-router.post(
-  "/createVendor",
-  upload.any(),
-  validateRequest(createVendorSchema),
-  asyncHandler(userController.userVendor.bind(userController)),
 );
 router.post(
   "/verify-user",
@@ -91,4 +86,5 @@ router.post(
   validateRequest(loginSchema),
   asyncHandler(userController.logout.bind(userController)),
 );
+
 export default router;

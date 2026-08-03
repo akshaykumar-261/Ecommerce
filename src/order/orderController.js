@@ -330,7 +330,7 @@ export default class OrderController {
         orderMessages.ORDER_NOT_FOUND,
       );
     }
-    return sendResponse(res, STATUS_CODE.SUCCESS, orderMessages.ORDER_FETCHED, {
+    return sendResponse(res, STATUS_CODE.SUCCESS, orderMessages.ORDER_FETCHED,{
       order_id: order.id,
       order_number: order.order_number,
       order_status: order.order_status,
