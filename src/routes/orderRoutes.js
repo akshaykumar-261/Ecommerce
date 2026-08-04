@@ -10,11 +10,21 @@ import OrderItem from "../../dataBase/models/orderItem.js";
 import Product from "../../dataBase/models/productModel.js";
 import authorize from "../middleweare/authmiddleweare.js";
 import Payment from "../../dataBase/models/paymetModel.js";
+import Store from "../../dataBase/models/storeModel.js";
 const router = express.Router();
 const orderController = new OrderController();
 await orderController.init(sequelize);
 orderController.init({
-  models: { Address, Cart, CartItem, Order, OrderItem, Product, Payment },
+  models: {
+    Address,
+    Cart,
+    CartItem,
+    Order,
+    OrderItem,
+    Product,
+    Payment,
+    Store,
+  },
 });
 router.post(
   "/placeOrder",

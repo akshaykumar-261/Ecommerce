@@ -176,4 +176,34 @@ export default class OrderService {
       ],
     });
   }
+
+  async getVendorByStoreId(storeId) {
+    return await this.Model.Store.findOne({});
+  }
+
+  async getOrderByOrderId(orderId) {
+    return await this.Model.Order.findByPk(orderId, {
+      include: [
+        {
+          model: this.Model.OrderItem,
+          include: [
+            {
+              model: this.Model.Product,
+              include: [
+                {
+                  model: this.Model.Store,
+                  include: [
+                    {
+                      model: this.Model.User,
+                      attributes: ["id", "stripe_account_id", "name", "email"],
+                    },
+                  ],
+                },
+              ],
+            },
+          ],
+        },
+      ],
+    });
+  }
 }

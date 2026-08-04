@@ -257,6 +257,7 @@ export default class userController {
       userMessage.PASSWORD_RESET_SUCCESS,
     );
   }
+
   async resendOtpForgotPassword(req, res) {
     const user = req.user;
     if (!user) {
@@ -392,9 +393,6 @@ export default class userController {
       userInDb,
       sessionId,
     );
-    console.log(userInDb);
-    console.log(userInDb.id);
-    console.log(userInDb.user_id);
     const existingDevice = await this.Models.UserDevices.findOne({
       where: {
         user_Id: userInDb.id,
@@ -426,6 +424,7 @@ export default class userController {
       refreshToken,
     });
   }
+
   async logout(req, res) {
     const user = req.user;
     if (!user) {

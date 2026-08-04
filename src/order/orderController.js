@@ -279,9 +279,7 @@ export default class OrderController {
         transaction,
       );
     }
-
     await transaction.commit();
-
     return sendResponse(
       res,
       STATUS_CODE.SUCCESS,

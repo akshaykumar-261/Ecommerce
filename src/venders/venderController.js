@@ -1,7 +1,11 @@
 import StoreService from "./venderService.js";
 import { STATUS_CODE } from "../helper/statusCode.js";
 import { sendResponse } from "../helper/responseHandler.js";
-import { storeMessages, productMessage,userMessage } from "../helper/commanMessages.js";
+import {
+  storeMessages,
+  productMessage,
+  userMessage,
+} from "../helper/commanMessages.js";
 import { ROLE } from "../helper/roleBase.js";
 import slugify from "slugify";
 import {
@@ -72,7 +76,7 @@ export default class StoreController {
     });
   }
 
-    async createOnboardingLink(req, res) {
+  async createOnboardingLink(req, res) {
     const user = await this.services.getUserById(req.user.id);
     if (!user.stripe_account_id) {
       return sendResponse(
@@ -84,7 +88,7 @@ export default class StoreController {
     const accountLink = await stripe.accountLinks.create({
       account: user.stripe_account_id,
       refresh_url: "https://example.com/reauth",
-      return_url: "https://example.com/return",
+      return_url: `http://localhost:8089/venders/stripeAccountDetails?userId=${user.id}`,
       type: "account_onboarding",
     });
     return sendResponse(
@@ -98,7 +102,11 @@ export default class StoreController {
   }
 
   async getStripeAccountStatus(req, res) {
-    const user = await this.services.getUserById(req.user.id);
+    const { userId } = req.query;
+    if (!userId) {
+      return sendResponse(res, STATUS_CODE.BAD_REQUEST, "User id is required");
+    }
+    const user = await this.services.getUserById(userId);
     if (!user) {
       return sendResponse(
         res,
@@ -113,7 +121,16 @@ export default class StoreController {
         userMessage.STRIPE_ACCOUNT_NOT_FOUND,
       );
     }
-    const account = await stripe.account.retrieve(user.stripe_account_id);
+    const account = await stripe.accounts.retrieve(user.stripe_account_id);
+    if (
+      account.details_submitted &&
+      account.charges_enabled &&
+      account.payouts_enabled
+    ) {
+      await this.services.updateUser(user.id, {
+        is_account_enabled: true,
+      });
+    }
     return sendResponse(
       res,
       STATUS_CODE.SUCCESS,

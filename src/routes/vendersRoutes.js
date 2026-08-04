@@ -38,10 +38,11 @@ router.get(
 );
 router.get(
   "/stripeAccountDetails",
-  authorize,
-  checkRole("Vendors"),
+  //authorize,
+ // checkRole("Vendors"),
   asyncHandler(venderController.getStripeAccountStatus.bind(venderController)),
 );
+
 router.post(
   "/create-store",
   authorize,

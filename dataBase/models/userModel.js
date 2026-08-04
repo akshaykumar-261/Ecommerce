@@ -82,7 +82,11 @@ const UserModel = sequelize.define(
     stripe_account_id: {
       type: DataTypes.STRING,
       allowNull: true,
-    }
+    },
+    is_account_enabled: {
+      type: DataTypes.BOOLEAN,
+      defaultValue: false,
+    },
   },
   {
     timestamps: true,

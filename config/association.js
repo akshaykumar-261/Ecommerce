@@ -22,11 +22,16 @@ UserDeviceModel.belongsTo(UserModel, {
 });
 StoreModel.hasOne(StoreModel, {
   foreignKey: "user_id",
-  as: "user",
 });
 StoreModel.belongsTo(UserModel, {
   foreignKey: "user_id",
-  as: "users",
+});
+UserModel.hasOne(StoreModel, {
+  foreignKey: "user_id",
+});
+
+StoreModel.belongsTo(UserModel, {
+  foreignKey: "user_id",
 });
 StoreModel.hasMany(ProductModel, {
   foreignKey: "store_id",
