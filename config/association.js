@@ -11,6 +11,7 @@ import CartItemModel from "../dataBase/models/cartItemModel.js";
 import OrderItemModel from "../dataBase/models/orderItem.js";
 import OrderModel from "../dataBase/models/orderModel.js";
 import PaymentModel from "../dataBase/models/paymetModel.js";
+import VendorPayoutModel from "../dataBase/models/vendor_payouts.js";
 UserModel.belongsTo(RoleModel, {
   foreignKey: "role_Id",
 });
@@ -26,10 +27,6 @@ StoreModel.hasOne(StoreModel, {
 StoreModel.belongsTo(UserModel, {
   foreignKey: "user_id",
 });
-UserModel.hasOne(StoreModel, {
-  foreignKey: "user_id",
-});
-
 StoreModel.belongsTo(UserModel, {
   foreignKey: "user_id",
 });
@@ -103,3 +100,28 @@ PaymentModel.belongsTo(OrderModel, {
 OrderModel.hasOne(PaymentModel, {
   foreignKey: "order_id",
 });
+
+// VendorPayoutModel Associations
+VendorPayoutModel.belongsTo(OrderModel,{
+    foreignKey:"order_id"
+})
+
+OrderModel.hasOne(VendorPayoutModel,{
+    foreignKey:"order_id"
+})
+
+VendorPayoutModel.belongsTo(PaymentModel,{
+    foreignKey:"payment_id"
+})
+
+PaymentModel.hasOne(VendorPayoutModel,{
+    foreignKey:"payment_id"
+})
+
+VendorPayoutModel.belongsTo(UserModel,{
+    foreignKey:"vendor_id"
+})
+
+UserModel.hasMany(VendorPayoutModel,{
+    foreignKey:"vendor_id"
+})

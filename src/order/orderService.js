@@ -23,7 +23,21 @@ export default class OrderService {
       include: [
         {
           model: this.Model.CartItem,
-          include: [this.Model.Product],
+          include: [
+            {
+              model: this.Model.Product,
+              include: [
+                {
+                  model: this.Model.Store,
+                  include: [
+                    {
+                      model: this.Model.Users || this.Model.User, // ya Users (neeche dekho)
+                    },
+                  ],
+                },
+              ],
+            },
+          ],
         },
       ],
     });
@@ -36,6 +50,11 @@ export default class OrderService {
   }
   async createOrderItem(payload, transaction) {
     return await this.Model.OrderItem.create(payload, {
+      transaction,
+    });
+  }
+  async createVenderPayout(payload, transaction) {
+    return await this.Model.VendorPayout.create(payload, {
       transaction,
     });
   }
@@ -194,7 +213,7 @@ export default class OrderService {
                   model: this.Model.Store,
                   include: [
                     {
-                      model: this.Model.User,
+                      model: this.Model.Users,
                       attributes: ["id", "stripe_account_id", "name", "email"],
                     },
                   ],
@@ -204,6 +223,26 @@ export default class OrderService {
           ],
         },
       ],
+    });
+  }
+
+  async getVendorById(vendorId) {
+    return await this.Model.Users.findByPk(vendorId, {
+      attributes: [
+        "id",
+        "name",
+        "email",
+        "stripe_account_id",
+        "is_account_enabled",
+      ],
+    });
+  }
+
+  async updateVendorPayout(orderId, payload) {
+    return await this.Model.VendorPayout.update(payload, {
+      where: {
+        order_id: orderId,
+      },
     });
   }
 }

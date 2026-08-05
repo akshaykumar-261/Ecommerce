@@ -31,15 +31,29 @@ export default class OrderController {
         orderMessages.ADDRESS_NOT_FOUND,
       );
     }
-    // Get Cart
     const cart = await this.services.getCart(req.user.id);
     if (!cart || cart.cartItems.length === 0) {
       await transaction.rollback();
-
       return sendResponse(
         res,
         STATUS_CODE.BAD_REQUEST,
         orderMessages.CART_EMPTY,
+      );
+    }
+    const vendorId = cart.cartItems[0].product.store.user_id;
+    const vendor = await this.services.getVendorById(vendorId);
+    if (!vendor || !vendor.stripe_account_id) {
+      return sendResponse(
+        res,
+        STATUS_CODE.BAD_REQUEST,
+        orderMessages.VENDER_NO_SRIPE_ACCOUNT,
+      );
+    }
+    if (!vendor.is_account_enabled) {
+      return sendResponse(
+        res,
+        STATUS_CODE.BAD_REQUEST,
+        orderMessages.VENDER_SRIPE_ACCOUNT_NOT_ENABLED,
       );
     }
     // Calculate Total
@@ -82,29 +96,53 @@ export default class OrderController {
       );
     }
     // Commit DB Transaction
-    await transaction.commit();
+
     // creating paymentIntent
+    const commission = Math.round(grandTotal * 0.1 * 100); // cents
     const paymentIntent = await stripe.paymentIntents.create({
-      amount: Math.round(grandTotal * 100),
-      currency: "inr",
+      amount: Math.round(grandTotal * 100), // Total Amount
+      currency: "usd",
       automatic_payment_methods: {
         enabled: true,
         allow_redirects: "never",
       },
+      transfer_data: {
+        destination: vendor.stripe_account_id,
+      },
+      application_fee_amount: commission,
+
       metadata: {
         order_id: order.id,
+        vendor_id: vendor.id,
         user_id: req.user.id,
       },
       description: `Payment for Order #${order.order_number}`,
     });
-    const payment = await this.services.createPayment({
-      order_id: order.id,
-      transaction_id: paymentIntent.id,
-      amount: grandTotal,
-      payment_method: "Card",
-      payment_provider: "Stripe",
-      payment_status: PAYMENT_RECORD_STATUS.PENDING,
-    });
+    const payment = await this.services.createPayment(
+      {
+        order_id: order.id,
+        transaction_id: paymentIntent.id,
+        amount: grandTotal,
+        payment_method: "Card",
+        payment_provider: "Stripe",
+        payment_status: PAYMENT_RECORD_STATUS.PENDING,
+      },
+      transaction,
+    );
+    await this.services.createVenderPayout(
+      {
+        order_id: order.id,
+        payment_id: payment.id,
+        vendor_id: vendor.id,
+        stripe_account_id: vendor.stripe_account_id,
+        gross_amount: grandTotal,
+        platform_fee: grandTotal * 0.1,
+        vendor_amount: grandTotal - grandTotal * 0.1,
+        payout_status: "pending",
+      },
+      transaction,
+    );
+    await transaction.commit();
     return sendResponse(res, STATUS_CODE.CREATED, orderMessages.ORDER_CREATED, {
       order,
       payment_intent_id: paymentIntent.id,
@@ -118,6 +156,14 @@ export default class OrderController {
         res,
         STATUS_CODE.BAD_REQUEST,
         paymentMessage.PAYMENTINTENT_REQUIRE,
+      );
+    }
+    const paymentConfirm = await stripe.paymentIntents.retrieve(paymentIntentId);
+    if (paymentConfirm.status === "succeeded") {
+      return sendResponse(
+        res,
+        STATUS_CODE.BAD_REQUEST,
+        "Payment already confirmed",
       );
     }
     let paymentIntent;
@@ -145,6 +191,10 @@ export default class OrderController {
       if (cart) {
         await this.services.clearCart(cart.id);
       }
+      await this.services.updateVendorPayout(orderId, {
+        payout_status: "paid",
+        transfer_id: paymentIntent.transfer,
+      });
       return sendResponse(
         res,
         STATUS_CODE.SUCCESS,
@@ -195,7 +245,6 @@ export default class OrderController {
         orderMessages.ORDER_NOT_FOUND,
       );
     }
-
     // Order Owner Check
     if (order.user_id !== req.user.id) {
       await transaction.rollback();
@@ -206,11 +255,9 @@ export default class OrderController {
         productMessage.NOT_ALLOW,
       );
     }
-
     // Already Cancelled?
     if (order.order_status === ORDER_STATUS.CANCELLED) {
       await transaction.rollback();
-
       return sendResponse(
         res,
         STATUS_CODE.BAD_REQUEST,
@@ -288,6 +335,7 @@ export default class OrderController {
     );
   }
   async updateOrderStatus(req, res) {
+    // Admin Api
     const { orderId } = req.params;
     const { order_status } = req.body;
     const order = await this.services.getOrderById(orderId);
@@ -328,7 +376,7 @@ export default class OrderController {
         orderMessages.ORDER_NOT_FOUND,
       );
     }
-    return sendResponse(res, STATUS_CODE.SUCCESS, orderMessages.ORDER_FETCHED,{
+    return sendResponse(res, STATUS_CODE.SUCCESS, orderMessages.ORDER_FETCHED, {
       order_id: order.id,
       order_number: order.order_number,
       order_status: order.order_status,

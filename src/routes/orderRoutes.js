@@ -11,6 +11,8 @@ import Product from "../../dataBase/models/productModel.js";
 import authorize from "../middleweare/authmiddleweare.js";
 import Payment from "../../dataBase/models/paymetModel.js";
 import Store from "../../dataBase/models/storeModel.js";
+import Users from "../../dataBase/models/userModel.js";
+import VendorPayout from "../../dataBase/models/vendor_payouts.js";
 const router = express.Router();
 const orderController = new OrderController();
 await orderController.init(sequelize);
@@ -24,6 +26,8 @@ orderController.init({
     Product,
     Payment,
     Store,
+    Users,
+    VendorPayout,
   },
 });
 router.post(

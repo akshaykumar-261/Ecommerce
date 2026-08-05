@@ -9,9 +9,9 @@ const startServer = (server) => {
       const start = server.listen(envPort, () => {
         console.log(serverFile.RUNNING_PORT, `${envPort}`);
       });
-      start.on("error", () => {
+      start.on("error", function (error) {
         console.log(serverFile.SERVER_ERROR);
-        console.error(error);
+        console.error(error.message);
       });
     })
     .catch((error) => {

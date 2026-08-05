@@ -158,7 +158,9 @@ export const orderMessages = {
   NOT_CANCEL_ORDER: "You are not allowed to cancel this order.",
   ORDER_ALREADY_CANCELLED: "Order already cancelled.",
   ORDER_STATUS: "Order status cannot be changed.",
-  ORDER_STATUS_UPDATE:  "Order status updated successfully."
+  ORDER_STATUS_UPDATE: "Order status updated successfully.",
+  VENDER_NO_SRIPE_ACCOUNT: "Vendor Stripe account not connected",
+   VENDER_SRIPE_ACCOUNT_NOT_ENABLED: "Vendor Stripe account is not enabled",
 };
 
 export const paymentMessage = {
