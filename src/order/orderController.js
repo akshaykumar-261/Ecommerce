@@ -110,7 +110,6 @@ export default class OrderController {
         destination: vendor.stripe_account_id,
       },
       application_fee_amount: commission,
-
       metadata: {
         order_id: order.id,
         vendor_id: vendor.id,
@@ -193,7 +192,6 @@ export default class OrderController {
       }
       await this.services.updateVendorPayout(orderId, {
         payout_status: "paid",
-        transfer_id: paymentIntent.transfer,
       });
       return sendResponse(
         res,

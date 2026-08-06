@@ -48,12 +48,7 @@ const VendorPayoutModel = sequelize.define(
       type: DataTypes.STRING,
       defaultValue: "usd",
     },
-
-    transfer_id: {
-      type: DataTypes.STRING,
-      allowNull: true,
-    },
-
+    
     payout_status: {
       type: DataTypes.ENUM("pending", "paid", "failed", "refunded"),
       defaultValue: "pending",

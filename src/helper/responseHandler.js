@@ -4,7 +4,6 @@ export const sendResponse = (res, statusCode, message, data = null) => {
     data,
   });
 };
-
 export const respnseHandler = sendResponse;
 
 class ApiError extends Error {

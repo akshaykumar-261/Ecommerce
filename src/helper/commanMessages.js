@@ -77,6 +77,13 @@ export const userMessage = {
   STRIPE_ACCOUNT_NOT_CONNECTED: "Stripe account is not connected.",
   STRIPE_ACCOUNT_CONNECTED: "Stripe account connected successfully.",
   STRIPE_ACCOUNT_FETCHED: "Stripe account fetched successfully.",
+  INVALID_ACTION: "Invalid action. Allowed actions are: approve, reject, block, unblock, delete.",
+  VENDER_APPROVED: "Vendor approved successfully.",
+  VENDER_REJECTED: "Vendor rejected successfully.",
+  VENDER_BLOCKED: "Vendor blocked successfully.",
+  VENDER_UNBLOCKED: "Vendor unblocked successfully.",
+  VENDER_DELETED: "Vendor deleted successfully.",
+  USER_PROFILE_FETCHED: "User profile fetched successfully.",
 };
 
 export const storeMessages = {
