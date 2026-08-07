@@ -6,13 +6,16 @@ import Store from "../../dataBase/models/storeModel.js";
 import Products from "../../dataBase/models/productModel.js";
 import Order from "../../dataBase/models/orderModel.js";
 import OrderItems from "../../dataBase/models/orderItem.js";
+import VendorPayout from "../../dataBase/models/vendor_payouts.js";
+import Address from "../../dataBase/models/addressModel.js";
+import Payment from "../../dataBase/models/paymetModel.js";
 import authorize from "../middleweare/authmiddleweare.js";
 const router = express.Router();
 const adminController = new AdminController();
 const role = checkRole("Super Admin");
 import checkRole from "../middleweare/roleBasemiddleweare.js";
 await adminController.init({
-  models: { Users, Store, Products, Order, OrderItems },
+  models: { Users, Store, Products, Order, OrderItems, VendorPayout,Address,Payment},
 });
 router.get(
   "/admin-profile",
@@ -44,4 +47,29 @@ router.get(
   role,
   asyncHandler(adminController.getAllUsers.bind(adminController)),
 );
+router.get(
+  "/vendor/store/:id",
+  authorize,
+  role,
+  asyncHandler(adminController.getVendorStoreDetails.bind(adminController)),
+);
+router.get(
+  "/vendor-payouts",
+  authorize,
+  role,
+  asyncHandler(adminController.getAllVendorPayouts.bind(adminController)),
+);
+router.get(
+  "/vendor-payouts/summary",
+  authorize,
+  role,
+  asyncHandler(adminController.getVendorPayoutSummary.bind(adminController)),
+);
+router.get(
+  "/admin/orders",
+  authorize,
+  role,
+  asyncHandler(adminController.getAllOrders.bind(adminController)),
+);
+
 export default router;

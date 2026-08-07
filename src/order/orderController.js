@@ -95,8 +95,6 @@ export default class OrderController {
         transaction,
       );
     }
-    // Commit DB Transaction
-
     // creating paymentIntent
     const commission = Math.round(grandTotal * 0.1 * 100); // cents
     const paymentIntent = await stripe.paymentIntents.create({

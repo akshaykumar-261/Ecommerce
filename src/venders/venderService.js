@@ -389,4 +389,150 @@ export default class StoreService {
       },
     });
   };
+
+  async getVendorOrders(storeId, query) {
+    const productWhere = {
+      store_id: storeId,
+      deletedAt: null,
+    };
+    const orderWhere = {};
+    // Order status filter
+    if (query.status) {
+      orderWhere.order_status = query.status;
+    }
+    // Search by order number
+    if (query.search) {
+      orderWhere.order_number = {
+        [Op.like]: `%${query.search}%`,
+      };
+    }
+    return await this.Model.OrderItems.findAndCountAll({
+      where: {},
+      include: [
+        {
+          model: this.Model.Product,
+          where: productWhere,
+          attributes: ["id", "pro_name", "price", "discount_price"],
+          include: [
+            {
+              model: this.Model.ProductMediaModel,
+              attributes: ["id", "media_type", "media_url", "is_primary"],
+            },
+          ],
+        },
+        {
+          model: this.Model.Order,
+          where: orderWhere,
+          attributes: [
+            "id",
+            "order_number",
+            "user_id",
+            "grand_total",
+            "payment_status",
+            "order_status",
+            "createdAt",
+          ],
+          include: [
+            {
+              model: this.Model.Users,
+              attributes: ["id", "name", "lastname", "email"],
+            },
+          ],
+        },
+      ],
+      limit: query.limit,
+      offset: query.offset,
+      order: [["createdAt", "DESC"]],
+      distinct: true,
+    });
+  }
+
+  async getVendorPayouts(storeId, query) {
+    const whereCondition = {};
+
+    // Payout status filter
+    if (query.status) {
+      whereCondition.payout_status = query.status;
+    }
+
+    return await this.Model.VendorPayout.findAll({
+      where: whereCondition,
+
+      include: [
+        {
+          model: this.Model.Order,
+          required: true,
+          attributes: [
+            "id",
+            "order_number",
+            "grand_total",
+            "payment_status",
+            "order_status",
+            "createdAt",
+          ],
+
+          // include: [
+          //   {
+          //     model: this.Model.OrderItems,
+          //     required: true,
+
+          //     include: [
+          //       {
+          //         model: this.Model.Product,
+          //         where: {
+          //           store_id: storeId,
+          //           deletedAt: null,
+          //         },
+          //         attributes: ["id", "pro_name", "price", "discount_price"],
+          //       },
+          //     ],
+          //   },
+          // ],
+        },
+      ],
+
+      order: [["createdAt", "DESC"]],
+    });
+  }
+
+  async getLowStockProducts(storeId, query) {
+    const whereCondition = {
+      store_id: storeId,
+      quantity: {
+        [Op.between]: [1, 5],
+      },
+      deletedAt: null,
+    };
+
+    if (query.search) {
+      whereCondition[Op.or] = [
+        {
+          pro_name: {
+            [Op.like]: `%${query.search}%`,
+          },
+        },
+        {
+          description: {
+            [Op.like]: `%${query.search}%`,
+          },
+        },
+      ];
+    }
+
+    return await this.Model.Product.findAndCountAll({
+      where: whereCondition,
+      include: [
+        {
+          model: this.Model.ProductMediaModel,
+          attributes: ["id", "media_type", "media_url", "is_primary"],
+        },
+      ],
+      limit: query.limit,
+      offset: query.offset,
+      order: [
+        ["quantity", "ASC"],
+        ["createdAt", "DESC"],
+      ],
+    });
+  }
 }

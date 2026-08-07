@@ -84,6 +84,10 @@ export const userMessage = {
   VENDER_UNBLOCKED: "Vendor unblocked successfully.",
   VENDER_DELETED: "Vendor deleted successfully.",
   USER_PROFILE_FETCHED: "User profile fetched successfully.",
+  VENDER_ORDER_NOT_FOUND: "Vendor orders not found.",
+  VENDER_ORDER_FETCH: "Vendor orders fetched successfully.",
+  PAYOUT_NOT_FOUND: "Vendor payouts not found.",
+  PAYOUT_FETCH:"Vendor payouts fetched successfully."
 };
 
 export const storeMessages = {
@@ -110,6 +114,8 @@ export const productMessage = {
   ONLY_PRODUCT_IMAGE: "Only image can be set as primary",
   PRIMARY_IMAGE: "Primary image updated successfully.",
   OUT_OF_STOCK: "This product is currently out of stock.",
+  NO_LOW_STOCK: "Low stock products not found.",
+  LOW_STOCK_FETCH: "Low stock products fetched successfully."
 };
 
 export const cartMessage = {
@@ -177,4 +183,11 @@ export const paymentMessage = {
   PAYMENT_NOT_FOUND: "Payment not found.",
   PAYMENT_REFUND_FAIL: "Refund failed.",
   ORDER_REFUND:"Order cancelled & refunded successfully"
+}
+
+export const adminMessage = {
+  ORDER_NOT_FOUND: "Orders not found.",
+  ORDER_FETCHED: "Orders fetched successfully.",
+  VENDER_PAYOUT_FETCH: "Vendor payout summary fetched successfully.",
+  VENDER_DAHBOARD_FETCH:"Vendor dashboard fetched successfully."
 }

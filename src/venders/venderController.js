@@ -640,4 +640,107 @@ export default class StoreController {
       response,
     );
   }
+
+  async getVendorOrders(req, res) {
+    const { page = 1, limit = 10, status, search = "" } = req.query;
+    const store = await this.services.getStoreByUserId(req.user.id);
+    if (!store) {
+      return sendResponse(
+        res,
+        STATUS_CODE.NOT_FOUND,
+        storeMessages.STORE_NOT_FOUND,
+      );
+    }
+    const {
+      page: currentPage,
+      limit: currentLimit,
+      offset,
+    } = commanFunction.pagignation(page, limit);
+    const result = await this.services.getVendorOrders(store.id, {
+      status,
+      search,
+      limit: currentLimit,
+      offset,
+    });
+    if (result.count === 0) {
+      return sendResponse(
+        res,
+        STATUS_CODE.NOT_FOUND,
+        userMessage.VENDER_ORDER_NOT_FOUND,
+      );
+    }
+    const response = commanFunction.pagignation(
+      currentPage,
+      currentLimit,
+      result,
+    );
+    return sendResponse(
+      res,
+      STATUS_CODE.SUCCESS,
+      userMessage.VENDER_ORDER_FETCH,
+      response,
+    );
+  }
+
+  async getVendorPayouts(req, res) {
+    const { status } = req.query;
+    // Logged-in vendor ki store find karo
+    const store = await this.services.getStoreByUserId(req.user.id);
+    if (!store) {
+      return sendResponse(
+        res,
+        STATUS_CODE.NOT_FOUND,
+        storeMessages.STORE_NOT_FOUND,
+      );
+    }
+    const payouts = await this.services.getVendorPayouts(store.id, {
+      status,
+    });
+
+    if (!payouts || payouts.length === 0) {
+      return sendResponse(
+        res,
+        STATUS_CODE.NOT_FOUND,
+        userMessage.PAYOUT_NOT_FOUND,
+      );
+    }
+
+    return sendResponse(res, STATUS_CODE.SUCCESS, userMessage.PAYOUT_FETCH, {
+      payouts,
+    });
+  }
+
+  async getLowStockProducts(req, res) {
+    const store = await this.services.getStoreByUserId(req.user.id);
+    if (!store) {
+      return sendResponse(
+        res,
+        STATUS_CODE.NOT_FOUND,
+        storeMessages.STORE_NOT_FOUND,
+      );
+    }
+    const { page, limit, offset } = commanFunction.pagignation(
+      req.query.page,
+      req.query.limit,
+    );
+    const result = await this.services.getLowStockProducts(store.id, {
+      search: req.query.search,
+      limit,
+      offset,
+    });
+    if (result.count === 0) {
+      return sendResponse(
+        res,
+        STATUS_CODE.NOT_FOUND,
+        productMessage.NO_LOW_STOCK,
+      );
+    }
+    const response = commanFunction.pagignation(page, limit, result);
+    return sendResponse(
+      res,
+      STATUS_CODE.SUCCESS,
+      productMessage.LOW_STOCK_FETCH,
+      response,
+    );
+  }
 }

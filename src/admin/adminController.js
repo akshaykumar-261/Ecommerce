@@ -1,5 +1,5 @@
 import AdminService from "./adminService.js";
-import { authMessage, userMessage } from "../helper/commanMessages.js";
+import { authMessage, userMessage,adminMessage, orderMessages} from "../helper/commanMessages.js";
 import { sendResponse } from "../helper/responseHandler.js";
 import { STATUS_CODE } from "../helper/statusCode.js";
 import { emailQueue } from "../../utility/queue/emailQueue.js";
@@ -118,7 +118,7 @@ export default class AdminController {
     return sendResponse(
       res,
       STATUS_CODE.SUCCESS,
-      "Vendor dashboard fetched successfully.",
+      adminMessage.VENDER_DAHBOARD_FETCH,
       dashboard,
     );
   }
@@ -141,4 +141,79 @@ export default class AdminController {
       paginationData,
     );
   }
+
+  async getVendorStoreDetails(req, res) {
+    const { id } = req.params;
+    const { search = "" } = req.query;
+    const vendor = await this.service.getVenderById(id);
+    if (!vendor) {
+      return sendResponse(
+        res,
+        STATUS_CODE.NOT_FOUND,
+        userMessage.VENDER_NOT_FOUND,
+      );
+    }
+    const data = await this.service.getVendorStoreDetail(id, search);
+    if (!data) {
+      return sendResponse(res, STATUS_CODE.NOT_FOUND, "Store Not Found");
+    }
+    return sendResponse(
+      res,
+      STATUS_CODE.SUCCESS,
+      "Vendor store fetched successfully.",
+      data,
+    );
+  }
+
+  async getAllVendorPayouts(req, res) {
+    const { page = 1, limit = 10, status, vendor_id, order_id } = req.query;
+    const payouts = await this.service.getAllVendorsPayouts(
+      page,
+      limit,
+      status,
+      vendor_id,
+      order_id,
+    );
+    if (payouts.count === 0) {
+      return sendResponse(
+        res,
+        STATUS_CODE.NOT_FOUND,
+        "Vendor payouts not found.",
+      );
+    }
+    const pagignationData = commanFunction.pagignation(page, limit, payouts);
+    return sendResponse(
+      res,
+      STATUS_CODE.SUCCESS,
+      orderMessages.VENDER_PAYOUT_FETCH,
+      pagignationData,
+    );
+  }
+
+  async getVendorPayoutSummary(req, res) {
+    const summary = await this.service.getVendorPayoutSummary();
+    return sendResponse(
+      res,
+      STATUS_CODE.SUCCESS,
+      orderMessages.VENDER_PAYOUT_FETCH,
+      summary,
+    );
+  }
+
+  async getAllOrders(req, res) {
+    const { page = 1, limit = 10, status, serach = "" } = req.query;
+    const orders = await this.service.getAllOrders(page, limit, status, serach);
+    if (orders.count === 0) {
+      return sendResponse(res, STATUS_CODE.NOT_FOUND, orderMessages.ORDER_NOT_FOUND);
+    }
+    const pagignationData = commanFunction.pagignation(page, limit, orders);
+    return sendResponse(
+      res,
+      STATUS_CODE.SUCCESS,
+      orderMessages.ORDER_FETCHED,
+       pagignationData,
+    );
+  }
+
+  
 }

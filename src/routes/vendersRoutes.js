@@ -9,6 +9,9 @@ import Product from "../../dataBase/models/productModel.js";
 import ProductMediaModel from "../../dataBase/models/productMedia.js";
 import Users from "../../dataBase/models/userModel.js";
 import UserDevices from "../../dataBase/models/user_deviceModel.js";
+import Order from "../../dataBase/models/orderModel.js";
+import OrderItems from "../../dataBase/models/orderItem.js";
+import VendorPayout from "../../dataBase/models/vendor_payouts.js";
 import checkRole from "../middleweare/roleBasemiddleweare.js";
 import {
   createStoreSchema,
@@ -21,7 +24,16 @@ const venderController = new VenderController();
 const role = checkRole("Vendors");
 await venderController.init(sequelize);
 venderController.init({
-  models: { Store, Product, ProductMediaModel, Users, UserDevices },
+  models: {
+    Store,
+    Product,
+    ProductMediaModel,
+    Users,
+    UserDevices,
+    Order,
+    OrderItems,
+    VendorPayout,
+  },
 });
 
 router.post(
@@ -33,13 +45,13 @@ router.post(
 router.get(
   "/onboardingLink",
   authorize,
-  checkRole("Vendors"),
+  role,
   asyncHandler(venderController.createOnboardingLink.bind(venderController)),
 );
 router.get(
   "/stripeAccountDetails",
   //authorize,
- // checkRole("Vendors"),
+  // checkRole("Vendors"),
   asyncHandler(venderController.getStripeAccountStatus.bind(venderController)),
 );
 
@@ -121,6 +133,7 @@ router.delete(
 router.put(
   "/update-product-details/:id",
   authorize,
+  role,
   asyncHandler(venderController.updateProduct.bind(venderController)),
 );
 router.get(
@@ -164,5 +177,23 @@ router.get(
   authorize,
   role,
   asyncHandler(venderController.getAllUserProduct.bind(venderController)),
+);
+router.get(
+  "/orders",
+  authorize,
+  role,
+  asyncHandler(venderController.getVendorOrders.bind(venderController)),
+);
+router.get(
+  "/payouts",
+  authorize,
+  role,
+  asyncHandler(venderController.getVendorPayouts.bind(venderController)),
+);
+router.get(
+  "/products/low-stock",
+  authorize,
+  role,
+  asyncHandler(venderController.getLowStockProducts.bind(venderController)),
 );
 export default router;
