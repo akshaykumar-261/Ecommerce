@@ -13,6 +13,7 @@ import Payment from "../../dataBase/models/paymetModel.js";
 import Store from "../../dataBase/models/storeModel.js";
 import Users from "../../dataBase/models/userModel.js";
 import VendorPayout from "../../dataBase/models/vendor_payouts.js";
+import AdminCongiguration from "../../dataBase/models/adminConfigration.js";
 const router = express.Router();
 const orderController = new OrderController();
 await orderController.init(sequelize);
@@ -28,6 +29,7 @@ orderController.init({
     Store,
     Users,
     VendorPayout,
+    AdminCongiguration,
   },
 });
 router.post(

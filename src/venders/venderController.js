@@ -1,10 +1,12 @@
 import StoreService from "./venderService.js";
 import { STATUS_CODE } from "../helper/statusCode.js";
 import { sendResponse } from "../helper/responseHandler.js";
+import { ORDER_STATUS } from "../helper/constants.js";
 import {
   storeMessages,
   productMessage,
   userMessage,
+  orderMessages
 } from "../helper/commanMessages.js";
 import { ROLE } from "../helper/roleBase.js";
 import slugify from "slugify";
@@ -741,6 +743,74 @@ export default class StoreController {
       STATUS_CODE.SUCCESS,
       productMessage.LOW_STOCK_FETCH,
       response,
+    );
+  }
+
+  async updateOrderStatus(req, res) {
+    const { orderId } = req.params;
+    const { status } = req.body;
+    const allowedStatus = [
+      ORDER_STATUS.PENDING,
+      ORDER_STATUS.CONFIRMED,
+      ORDER_STATUS.PACKED,
+      ORDER_STATUS.SHIPPED,
+      ORDER_STATUS.DELIVERED,
+      ORDER_STATUS.CANCELLED,
+    ];
+    if (!status) {
+      return sendResponse(
+        res,
+        STATUS_CODE.BAD_REQUEST,
+        orderMessages.ORDER_STATUS
+      );
+    }
+    if (!allowedStatus.includes(status)) {
+      return sendResponse(
+        res,
+        STATUS_CODE.BAD_REQUEST,
+        `Invalid order status. Allowed statuses: ${allowedStatuses.join(", ")}`,
+      );
+    }
+    const store = await this.services.getStoreByUserId(req.user.id);
+
+    if (!store) {
+      return sendResponse(
+        res,
+        STATUS_CODE.NOT_FOUND,
+        storeMessages.STORE_NOT_FOUND,
+      );
+    }
+    const order = await this.services.getVendorOrderById(orderId, store.id);
+
+    if (!order) {
+      return sendResponse(
+        res,
+        STATUS_CODE.NOT_FOUND,
+        userMessage.VENDER_ORDER_NOT_FOUND,
+      );
+    }
+    if (
+      order.order_status === ORDER_STATUS.DELIVERED ||
+      order.order_status === ORDER_STATUS.CANCELLED
+    ) {
+      return sendResponse(
+        res,
+        STATUS_CODE.BAD_REQUEST,
+        `Order is already ${order.order_status} and cannot be updated`,
+      );
+    }
+    await this.services.updateOrderStatus(orderId, status);
+
+    // Get updated order
+    const updatedOrder = await this.services.getOrderById(orderId);
+
+    return sendResponse(
+      res,
+      STATUS_CODE.SUCCESS,
+      orderMessages.STATUS_UPDATE,
+      {
+        order: updatedOrder,
+      },
     );
   }
 }

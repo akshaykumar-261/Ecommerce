@@ -40,6 +40,24 @@ export default class userController {
       is_verified: false,
       otp_expire: new Date(Date.now() + 10 * 60 * 1000),
     });
+
+    let stripeCustomerId = user.stripe_customer_id;
+    // Only create Stripe customer if not already present
+    if (!stripeCustomerId && !user.customer_account_enabled) {
+      const stripeCustomer = await stripe.customers.create({
+        email: user.email,
+        name: user.name,
+        metadata: {
+          user_id: String(user.id),
+        },
+      });
+      stripeCustomerId = stripeCustomer.id;
+      // Save Stripe customer ID + enable customer account
+      await user.update({
+        stripe_customer_id: stripeCustomer.id,
+        customer_account_enabled: true,
+      });
+    }
     const sessionId = uuidv4();
     const accessToken = commanFunction.generateAccessToken(user, sessionId);
     const refreshToken = commanFunction.generateRefreshToken(user, sessionId);
@@ -55,60 +73,60 @@ export default class userController {
       refreshToken,
     });
   }
-  async userVendor(req, res) {
-    const { email } = req.body;
-    const existingUser = await this.service.getByEmail(email);
-    if (existingUser) {
-      return sendResponse(res, STATUS_CODE.BAD_REQUEST, userMessage.USER_EXIST);
-    }
-    let avatar = null;
-    if (req.files && req.files.length > 0) {
-      const result = await uploadToCloudinary(req.files[0], "users/avatar");
-      avatar = result.secure_url;
-    }
-    const otp = commanFunction.generateOtp(6);
-    const user = await this.service.createUser({
-      ...req.body,
-      avtar: avatar,
-      role_Id: ROLE.VENDER,
-      otp,
-      is_verified: false,
-      otp_expire: new Date(Date.now() + 10 * 60 * 1000),
-    });
-    const stripeAccount = await stripe.accounts.create({
-      country: "AU",
-      email: user.email,
-      controller: {
-        fees: {
-          payer: "application",
-        },
-        losses: {
-          payments: "application",
-        },
-        stripe_dashboard: {
-          type: "express",
-        },
-      },
-    });
-    await this.service.updateUser(user.id, {
-      stripe_account_id: stripeAccount.id,
-    });
-    const sessionId = uuidv4();
-    const accessToken = commanFunction.generateAccessToken(user, sessionId);
-    const refreshToken = commanFunction.generateRefreshToken(user, sessionId);
-    await this.service.createSession(user.id, sessionId);
-    await emailQueue.add("registration", {
-      email: user.email,
-      otp,
-      name: user.name,
-    });
-    return sendResponse(res, STATUS_CODE.CREATED, userMessage.USER_CREATED, {
-      user,
-      stripeAccount,
-      accessToken,
-      refreshToken,
-    });
-  }
+  // async userVendor(req, res) {
+  //   const { email } = req.body;
+  //   const existingUser = await this.service.getByEmail(email);
+  //   if (existingUser) {
+  //     return sendResponse(res, STATUS_CODE.BAD_REQUEST, userMessage.USER_EXIST);
+  //   }
+  //   let avatar = null;
+  //   if (req.files && req.files.length > 0) {
+  //     const result = await uploadToCloudinary(req.files[0], "users/avatar");
+  //     avatar = result.secure_url;
+  //   }
+  //   const otp = commanFunction.generateOtp(6);
+  //   const user = await this.service.createUser({
+  //     ...req.body,
+  //     avtar: avatar,
+  //     role_Id: ROLE.VENDER,
+  //     otp,
+  //     is_verified: false,
+  //     otp_expire: new Date(Date.now() + 10 * 60 * 1000),
+  //   });
+  //   const stripeAccount = await stripe.accounts.create({
+  //     country: "INR",
+  //     email: user.email,
+  //     controller: {
+  //       fees: {
+  //         payer: "application",
+  //       },
+  //       losses: {
+  //         payments: "application",
+  //       },
+  //       stripe_dashboard: {
+  //         type: "express",
+  //       },
+  //     },
+  //   });
+  //   await this.service.updateUser(user.id, {
+  //     stripe_account_id: stripeAccount.id,
+  //   });
+  //   const sessionId = uuidv4();
+  //   const accessToken = commanFunction.generateAccessToken(user, sessionId);
+  //   const refreshToken = commanFunction.generateRefreshToken(user, sessionId);
+  //   await this.service.createSession(user.id, sessionId);
+  //   await emailQueue.add("registration", {
+  //     email: user.email,
+  //     otp,
+  //     name: user.name,
+  //   });
+  //   return sendResponse(res, STATUS_CODE.CREATED, userMessage.USER_CREATED, {
+  //     user,
+  //     stripeAccount,
+  //     accessToken,
+  //     refreshToken,
+  //   });
+  // }
 
   async verifyUser(req, res) {
     const { otp } = req.body;

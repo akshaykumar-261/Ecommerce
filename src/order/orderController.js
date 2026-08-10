@@ -5,6 +5,8 @@ import {
   orderMessages,
   paymentMessage,
   productMessage,
+  adminMessage,
+  userMessage,
 } from "../helper/commanMessages.js";
 import {
   PAYMENT_STATUS,
@@ -40,6 +42,23 @@ export default class OrderController {
         orderMessages.CART_EMPTY,
       );
     }
+    const user = await this.services.getUserById(req.user.id);
+    if (!user) {
+      await transaction.rollback();
+      return sendResponse(
+        res,
+        STATUS_CODE.NOT_FOUND,
+        userMessage.USER_NOT_FOUND,
+      );
+    }
+    if (!user.customer_account_enabled || !user.stripe_customer_id) {
+      await transaction.rollback();
+      return sendResponse(
+        res,
+        STATUS_CODE.BAD_REQUEST,
+        "Customer Stripe account is not enabled",
+      );
+    }
     const vendorId = cart.cartItems[0].product.store.user_id;
     const vendor = await this.services.getVendorById(vendorId);
     if (!vendor || !vendor.stripe_account_id) {
@@ -61,7 +80,6 @@ export default class OrderController {
     for (const item of cart.cartItems) {
       if (item.product.quantity < item.quantity) {
         await transaction.rollback();
-
         return sendResponse(
           res,
           STATUS_CODE.BAD_REQUEST,
@@ -96,10 +114,25 @@ export default class OrderController {
       );
     }
     // creating paymentIntent
-    const commission = Math.round(grandTotal * 0.1 * 100); // cents
+    const adminConfiguration = await this.services.getAdminConfiguration();
+    if (!adminConfiguration) {
+      await transaction.rollback();
+      return sendResponse(
+        res,
+        STATUS_CODE.BAD_REQUEST,
+        adminMessage.ADMIN_CONFIGURATION,
+      );
+    }
+    const commissionPercentage = Number(
+      adminConfiguration.commission_percentage,
+    );
+    const platformFee = grandTotal * (commissionPercentage / 100);
+    const commission = Math.round(platformFee * 100);
+    const vendorAmount = grandTotal - platformFee;
     const paymentIntent = await stripe.paymentIntents.create({
       amount: Math.round(grandTotal * 100), // Total Amount
-      currency: "usd",
+      currency: "inr",
+      customer: user.stripe_customer_id,
       automatic_payment_methods: {
         enabled: true,
         allow_redirects: "never",
@@ -112,6 +145,7 @@ export default class OrderController {
         order_id: order.id,
         vendor_id: vendor.id,
         user_id: req.user.id,
+        stripe_customer_id: user.stripe_customer_id,
       },
       description: `Payment for Order #${order.order_number}`,
     });
@@ -133,8 +167,8 @@ export default class OrderController {
         vendor_id: vendor.id,
         stripe_account_id: vendor.stripe_account_id,
         gross_amount: grandTotal,
-        platform_fee: grandTotal * 0.1,
-        vendor_amount: grandTotal - grandTotal * 0.1,
+        platform_fee: platformFee,
+        vendor_amount: vendorAmount,
         payout_status: "pending",
       },
       transaction,
@@ -155,12 +189,35 @@ export default class OrderController {
         paymentMessage.PAYMENTINTENT_REQUIRE,
       );
     }
-    const paymentConfirm = await stripe.paymentIntents.retrieve(paymentIntentId);
+    const user = await this.services.getUserById(req.user.id);
+    if (!user) {
+      return sendResponse(
+        res,
+        STATUS_CODE.NOT_FOUND,
+        userMessage.USER_NOT_FOUND,
+      );
+    }
+    if (!user.stripe_customer_id || !user.customer_account_enabled) {
+      return sendResponse(
+        res,
+        STATUS_CODE.BAD_REQUEST,
+        "Customer Stripe account is not enabled",
+      );
+    }
+    const paymentConfirm =
+      await stripe.paymentIntents.retrieve(paymentIntentId);
     if (paymentConfirm.status === "succeeded") {
       return sendResponse(
         res,
         STATUS_CODE.BAD_REQUEST,
         "Payment already confirmed",
+      );
+    }
+    if (paymentConfirm.customer !== user.stripe_customer_id) {
+      return sendResponse(
+        res,
+        STATUS_CODE.BAD_REQUEST,
+        "Payment does not belong to this customer",
       );
     }
     let paymentIntent;
@@ -172,6 +229,13 @@ export default class OrderController {
       const payment = await this.services.getPaymentByTransactionId(
         paymentIntent.id,
       );
+      if (!payment) {
+        return sendResponse(
+          res,
+          STATUS_CODE.NOT_FOUND,
+          "Payment record not found",
+        );
+      }
       const orderId = paymentIntent.metadata.order_id;
       await this.services.updatePayment(payment.id, {
         status: PAYMENT_RECORD_STATUS.SUCCESS,
@@ -279,6 +343,26 @@ export default class OrderController {
         orderMessages.ORDER_CANCELLED,
       );
     }
+    const user = await this.services.getUserById(req.user.id);
+    if (!user) {
+      await transaction.rollback();
+
+      return sendResponse(
+        res,
+        STATUS_CODE.NOT_FOUND,
+        userMessage.USER_NOT_FOUND,
+      );
+    }
+    if (!user.stripe_customer_id || !user.customer_account_enabled) {
+      await transaction.rollback();
+
+      return sendResponse(
+        res,
+        STATUS_CODE.BAD_REQUEST,
+        "Customer Stripe account is not enabled",
+      );
+    }
+
     const payment = order.payment;
     if (!payment) {
       await transaction.rollback();
@@ -286,6 +370,18 @@ export default class OrderController {
         res,
         STATUS_CODE.NOT_FOUND,
         paymentMessage.PAYMENT_NOT_FOUND,
+      );
+    }
+    const paymentIntent = await stripe.paymentIntents.retrieve(
+      payment.transaction_id,
+    );
+    if (paymentIntent.customer !== user.stripe_customer_id) {
+      await transaction.rollback();
+
+      return sendResponse(
+        res,
+        STATUS_CODE.BAD_REQUEST,
+        "Payment does not belong to this customer",
       );
     }
     const refund = await stripe.refunds.create({

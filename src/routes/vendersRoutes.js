@@ -196,4 +196,10 @@ router.get(
   role,
   asyncHandler(venderController.getLowStockProducts.bind(venderController)),
 );
+router.patch(
+  "/Updateorders-status/:orderId",
+  authorize,
+  role,
+  asyncHandler(venderController.updateOrderStatus.bind(venderController)),
+);
 export default router;

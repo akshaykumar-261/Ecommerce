@@ -1,5 +1,10 @@
 import AdminService from "./adminService.js";
-import { authMessage, userMessage,adminMessage, orderMessages} from "../helper/commanMessages.js";
+import {
+  authMessage,
+  userMessage,
+  adminMessage,
+  orderMessages,
+} from "../helper/commanMessages.js";
 import { sendResponse } from "../helper/responseHandler.js";
 import { STATUS_CODE } from "../helper/statusCode.js";
 import { emailQueue } from "../../utility/queue/emailQueue.js";
@@ -204,16 +209,73 @@ export default class AdminController {
     const { page = 1, limit = 10, status, serach = "" } = req.query;
     const orders = await this.service.getAllOrders(page, limit, status, serach);
     if (orders.count === 0) {
-      return sendResponse(res, STATUS_CODE.NOT_FOUND, orderMessages.ORDER_NOT_FOUND);
+      return sendResponse(
+        res,
+        STATUS_CODE.NOT_FOUND,
+        orderMessages.ORDER_NOT_FOUND,
+      );
     }
     const pagignationData = commanFunction.pagignation(page, limit, orders);
     return sendResponse(
       res,
       STATUS_CODE.SUCCESS,
       orderMessages.ORDER_FETCHED,
-       pagignationData,
+      pagignationData,
     );
   }
 
-  
+  async updateAdminConfiguration(req, res) {
+    const { commission_percentage } = req.body;
+    // Check commission is provided
+    if (commission_percentage === undefined || commission_percentage === null) {
+      return sendResponse(
+        res,
+        STATUS_CODE.BAD_REQUEST,
+        "Commission percentage is required.",
+      );
+    }
+    const commission = Number(commission_percentage);
+    // Validate commission
+    if (Number.isNaN(commission)) {
+      return sendResponse(
+        res,
+        STATUS_CODE.BAD_REQUEST,
+        "Commission percentage must be a valid number.",
+      );
+    }
+    if (commission < 0 || commission > 100) {
+      return sendResponse(
+        res,
+        STATUS_CODE.BAD_REQUEST,
+        "Commission percentage must be between 0 and 100.",
+      );
+    }
+    const configuration = await this.service.updateAdminConfiguration({
+      commission_percentage: commission,
+      updated_by: req.user.id,
+    });
+    return sendResponse(
+      res,
+      STATUS_CODE.SUCCESS,
+      "Admin commission updated successfully.",
+      configuration,
+    );
+  }
+
+  async getAdminConfiguration(req, res) {
+    const configuration = await this.service.getAdminConfiguration();
+    if (!configuration) {
+      return sendResponse(
+        res,
+        STATUS_CODE.NOT_FOUND,
+        "Admin configuration not found.",
+      );
+    }
+    return sendResponse(
+      res,
+      STATUS_CODE.SUCCESS,
+      "Admin configuration fetched successfully.",
+      configuration,
+    );
+  }
 }

@@ -238,11 +238,29 @@ export default class OrderService {
     });
   }
 
+  async getUserById(userId) {
+    return await this.Model.Users.findOne({
+      where: {
+        id: userId,
+        deletedAt: null,
+      },
+    });
+  }
+
   async updateVendorPayout(orderId, payload) {
     return await this.Model.VendorPayout.update(payload, {
       where: {
         order_id: orderId,
       },
+    });
+  }
+
+  async getAdminConfiguration() {
+    return await this.Model.AdminCongiguration.findOne({
+      where: {
+        is_active: true,
+      },
+      order: [["id", "DESC"]],
     });
   }
 }

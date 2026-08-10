@@ -535,4 +535,45 @@ export default class StoreService {
       ],
     });
   }
+
+  async getVendorOrderById(orderId, storeId) {
+    return await this.Model.Order.findOne({
+      where: {
+        id: orderId,
+      },
+      include: [
+        {
+          model: this.Model.OrderItems,
+          required: true,
+          include: [
+            {
+              model: this.Model.Product,
+              where: {
+                store_id: storeId,
+                deletedAt: null,
+              },
+              required: true,
+            },
+          ],
+        },
+      ],
+    });
+  }
+
+  async updateOrderStatus(orderId, status) {
+    return await this.Model.Order.update(
+      {
+        order_status: status,
+      },
+      {
+        where: {
+          id: orderId,
+        },
+      },
+    );
+  }
+
+  async getOrderById(orderId) {
+    return await this.Model.Order.findByPk(orderId);
+  }
 }

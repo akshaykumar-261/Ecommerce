@@ -83,6 +83,14 @@ const UserModel = sequelize.define(
       type: DataTypes.STRING,
       allowNull: true,
     },
+    stripe_customer_id: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    customer_account_enabled: {
+      type: DataTypes.BOOLEAN,
+      defaultValue: false,
+    },
     is_account_enabled: {
       type: DataTypes.BOOLEAN,
       defaultValue: false,

@@ -486,4 +486,31 @@ export default class AdminServices {
       order: [["createdAt", "DESC"]],
     });
   };
+
+  updateAdminConfiguration = async (payload) => {
+    const AdminConfiguration = this.Model.AdminConfiguration;
+    let configuration = await AdminConfiguration.findOne({
+      order: [["id", "DESC"]],
+    });
+    if (!configuration) {
+      configuration = await AdminConfiguration.create({
+        commission_percentage: payload.commission_percentage,
+        is_active: true,
+      });
+    } else {
+      await configuration.update({
+        commission_percentage: payload.commission_percentage,
+      });
+    }
+    return configuration;
+  };
+
+  getAdminConfiguration = async () => {
+    return this.Model.AdminConfiguration.findOne({
+      where: {
+        is_active: true,
+      },
+      order: [["id", "DESC"]],
+    });
+  };
 }

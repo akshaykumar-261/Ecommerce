@@ -164,6 +164,8 @@ export const orderMessages = {
   ORDER_CANCELLED: "Order cancelled successfully.",
   ORDER_NOT_FOUND: "Order not found.",
   ORDER_CANNOT_CANCEL: "This order cannot be cancelled.",
+  ORDER_STATUS: "Order status is required",
+  STATUS_UPDATE:"Order status updated successfully",
   CART_EMPTY: "Your cart is empty.",
   ADDRESS_NOT_FOUND: "Address not found.",
   UNAUTHORIZED: "You are not authorized to access this order.",
@@ -173,7 +175,8 @@ export const orderMessages = {
   ORDER_STATUS: "Order status cannot be changed.",
   ORDER_STATUS_UPDATE: "Order status updated successfully.",
   VENDER_NO_SRIPE_ACCOUNT: "Vendor Stripe account not connected",
-   VENDER_SRIPE_ACCOUNT_NOT_ENABLED: "Vendor Stripe account is not enabled",
+  VENDER_SRIPE_ACCOUNT_NOT_ENABLED: "Vendor Stripe account is not enabled",
+   
 };
 
 export const paymentMessage = {
@@ -189,5 +192,6 @@ export const adminMessage = {
   ORDER_NOT_FOUND: "Orders not found.",
   ORDER_FETCHED: "Orders fetched successfully.",
   VENDER_PAYOUT_FETCH: "Vendor payout summary fetched successfully.",
-  VENDER_DAHBOARD_FETCH:"Vendor dashboard fetched successfully."
+  VENDER_DAHBOARD_FETCH: "Vendor dashboard fetched successfully.",
+  ADMIN_CONFIGURATION: "Admin commission configuration not found."
 }

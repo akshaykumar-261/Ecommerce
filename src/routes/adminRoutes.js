@@ -9,13 +9,24 @@ import OrderItems from "../../dataBase/models/orderItem.js";
 import VendorPayout from "../../dataBase/models/vendor_payouts.js";
 import Address from "../../dataBase/models/addressModel.js";
 import Payment from "../../dataBase/models/paymetModel.js";
+import AdminConfiguration from "../../dataBase/models/adminConfigration.js";
 import authorize from "../middleweare/authmiddleweare.js";
 const router = express.Router();
 const adminController = new AdminController();
 const role = checkRole("Super Admin");
 import checkRole from "../middleweare/roleBasemiddleweare.js";
 await adminController.init({
-  models: { Users, Store, Products, Order, OrderItems, VendorPayout,Address,Payment},
+  models: {
+    Users,
+    Store,
+    Products,
+    Order,
+    OrderItems,
+    VendorPayout,
+    Address,
+    Payment,
+    AdminConfiguration,
+  },
 });
 router.get(
   "/admin-profile",
@@ -71,5 +82,16 @@ router.get(
   role,
   asyncHandler(adminController.getAllOrders.bind(adminController)),
 );
-
+router.put(
+  "/change-commision",
+  authorize,
+  role,
+  asyncHandler(adminController.updateAdminConfiguration.bind(adminController)),
+);
+router.get(
+  "/get-commision",
+  authorize,
+  role,
+  asyncHandler(adminController.getAdminConfiguration.bind(adminController)),
+);
 export default router;
