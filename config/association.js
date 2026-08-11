@@ -12,6 +12,8 @@ import OrderItemModel from "../dataBase/models/orderItem.js";
 import OrderModel from "../dataBase/models/orderModel.js";
 import PaymentModel from "../dataBase/models/paymetModel.js";
 import VendorPayoutModel from "../dataBase/models/vendor_payouts.js";
+import ReviewModel from "../dataBase/models/reviewModel.js";
+import WishListModel from "../dataBase/models/wishListModel.js";
 UserModel.belongsTo(RoleModel, {
   foreignKey: "role_Id",
 });
@@ -102,26 +104,55 @@ OrderModel.hasOne(PaymentModel, {
 });
 
 // VendorPayoutModel Associations
-VendorPayoutModel.belongsTo(OrderModel,{
-    foreignKey:"order_id"
-})
+VendorPayoutModel.belongsTo(OrderModel, {
+  foreignKey: "order_id",
+});
 
-OrderModel.hasOne(VendorPayoutModel,{
-    foreignKey:"order_id"
-})
+OrderModel.hasOne(VendorPayoutModel, {
+  foreignKey: "order_id",
+});
 
-VendorPayoutModel.belongsTo(PaymentModel,{
-    foreignKey:"payment_id"
-})
+VendorPayoutModel.belongsTo(PaymentModel, {
+  foreignKey: "payment_id",
+});
 
-PaymentModel.hasOne(VendorPayoutModel,{
-    foreignKey:"payment_id"
-})
+PaymentModel.hasOne(VendorPayoutModel, {
+  foreignKey: "payment_id",
+});
 
-VendorPayoutModel.belongsTo(UserModel,{
-    foreignKey:"vendor_id"
-})
+VendorPayoutModel.belongsTo(UserModel, {
+  foreignKey: "vendor_id",
+});
 
-UserModel.hasMany(VendorPayoutModel,{
-    foreignKey:"vendor_id"
+UserModel.hasMany(VendorPayoutModel, {
+  foreignKey: "vendor_id",
+});
+
+
+// Review Model
+UserModel.hasMany(ReviewModel, {
+  foreignKey: "user_id",
+});
+ReviewModel.belongsTo(UserModel, {
+  foreignKey: "user_id",
+});
+ProductModel.hasMany(ReviewModel, {
+  foreignKey: "product_id",
+});
+ReviewModel.belongsTo(ProductModel, {
+  foreignKey: "product_id",
+});
+
+// WishList Model
+UserModel.hasMany(WishListModel, {
+  foreignKey: "user_id"
+})
+WishListModel.belongsTo(UserModel, {
+  foreignKey: "user_id"
+})
+ProductModel.hasMany(WishListModel, {
+  foreignKey: "product_id",
+})
+WishListModel.belongsTo(ProductModel, {
+  foreignKey: "product_id"
 })

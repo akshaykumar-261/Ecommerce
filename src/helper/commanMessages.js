@@ -195,3 +195,22 @@ export const adminMessage = {
   VENDER_DAHBOARD_FETCH: "Vendor dashboard fetched successfully.",
   ADMIN_CONFIGURATION: "Admin commission configuration not found."
 }
+
+export const reviewMessages = {
+  REVIEW_CREATED: "Review added successfully",
+  REVIEW_ALREADY_EXISTS: "You have already reviewed this product",
+  REVIEW_NOT_FOUND: "Review not found",
+  REVIEW_FETCHED: "Review fetched successfully",
+  REVIEWS_FETCHED: "Reviews fetched successfully",
+  REVIEW_UPDATED: "Review updated successfully",
+  REVIEW_DELETED: "Review deleted successfully",
+  UNAUTHORIZED_REVIEW: "You are not authorized to modify this review",
+};
+
+export const wishlistMessages = {
+  ADDED_TO_WISHLIST: "Product added to wishlist successfully",
+  ALREADY_IN_WISHLIST: "Product is already in wishlist",
+  WISHLIST_FETCHED: "Wishlist fetched successfully",
+  NOT_IN_WISHLIST: "Product is not in wishlist",
+  REMOVED_FROM_WISHLIST: "Product removed from wishlist successfully",
+};
