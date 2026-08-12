@@ -353,14 +353,6 @@ export default class StoreService {
     });
   };
 
-  async updateUser(userId, payload) {
-    return await this.Model.Users.update(payload, {
-      where: {
-        id: userId,
-      },
-    });
-  }
-
   async createSession(userId, sessionId) {
     return await this.Model.UserDevices.create({
       user_Id: userId,
@@ -389,6 +381,14 @@ export default class StoreService {
       },
     });
   };
+
+  async updateUser(userId, payload) {
+    return await this.Model.Users.update(payload, {
+      where: {
+        id: userId,
+      },
+    });
+  }
 
   async getVendorOrders(storeId, query) {
     const productWhere = {
@@ -449,15 +449,11 @@ export default class StoreService {
 
   async getVendorPayouts(storeId, query) {
     const whereCondition = {};
-
-    // Payout status filter
     if (query.status) {
       whereCondition.payout_status = query.status;
     }
-
     return await this.Model.VendorPayout.findAll({
       where: whereCondition,
-
       include: [
         {
           model: this.Model.Order,
@@ -470,7 +466,6 @@ export default class StoreService {
             "order_status",
             "createdAt",
           ],
-
           // include: [
           //   {
           //     model: this.Model.OrderItems,
@@ -503,7 +498,6 @@ export default class StoreService {
       },
       deletedAt: null,
     };
-
     if (query.search) {
       whereCondition[Op.or] = [
         {
@@ -575,5 +569,56 @@ export default class StoreService {
 
   async getOrderById(orderId) {
     return await this.Model.Order.findByPk(orderId);
+  }
+
+  getUserById = async (id) => {
+    return this.Model.Users.findOne({
+      where: {
+        id: id,
+        deletedAt: null,
+      },
+      attributes: {
+        exclude: [
+          "password",
+          "createdAt",
+          "updatedAt",
+          "department_Id",
+          "refreshToken",
+          "is_mobile_notification_active",
+          "socail_id",
+          "provider",
+          "deletedAt",
+        ],
+      },
+    });
+  };
+
+  async deleteProductByVendor(productId, vendorId) {
+    const store = await this.Model.Store.findOne({
+      where: {
+        user_id: vendorId,
+        deletedAt: null,
+      },
+    });
+    if (!store) {
+      return null;
+    }
+    const product = await this.Model.Product.findOne({
+      where: {
+        id: productId,
+        store_id: store.id,
+        deletedAt: null,
+      },
+    });
+    if (!product) {
+      return null;
+    }
+    await this.Model.Product.destroy({
+      where: {
+        id: productId,
+        store_id: store.id,
+      },
+    });
+    return product;
   }
 }

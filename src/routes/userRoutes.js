@@ -86,5 +86,4 @@ router.post(
   validateRequest(loginSchema),
   asyncHandler(userController.logout.bind(userController)),
 );
-
 export default router;

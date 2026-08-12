@@ -513,4 +513,12 @@ export default class AdminServices {
       order: [["id", "DESC"]],
     });
   };
+
+  async updateUser(userId, payload) {
+    return await this.Model.Users.update(payload, {
+      where: {
+        id: userId,
+      },
+    });
+  }
 }

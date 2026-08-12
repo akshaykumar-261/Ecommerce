@@ -9,8 +9,16 @@ import OrderItems from "../../dataBase/models/orderItem.js";
 import VendorPayout from "../../dataBase/models/vendor_payouts.js";
 import Address from "../../dataBase/models/addressModel.js";
 import Payment from "../../dataBase/models/paymetModel.js";
+import upload from "../middleweare/uploadFile.js";
 import AdminConfiguration from "../../dataBase/models/adminConfigration.js";
 import authorize from "../middleweare/authmiddleweare.js";
+import {
+  validateRequest,
+  validateParams,
+  venderActionValidation,
+  venderIdValidation,
+  updateAdminConfigurationValidation,
+} from "../admin/adminValidation.js";
 const router = express.Router();
 const adminController = new AdminController();
 const role = checkRole("Super Admin");
@@ -28,6 +36,13 @@ await adminController.init({
     AdminConfiguration,
   },
 });
+router.put(
+  "/update-profile",
+   upload.single("avtar"),
+  authorize,
+  role,
+  asyncHandler(adminController.updateAdminProfile.bind(adminController)),
+)
 router.get(
   "/admin-profile",
   authorize,
@@ -44,6 +59,8 @@ router.patch(
   "/vendor/action/:id",
   authorize,
   role,
+  validateParams(venderIdValidation),
+  validateRequest(venderActionValidation),
   asyncHandler(adminController.venderAction.bind(adminController)),
 );
 router.get(
@@ -86,6 +103,7 @@ router.put(
   "/change-commision",
   authorize,
   role,
+  validateRequest(updateAdminConfigurationValidation),
   asyncHandler(adminController.updateAdminConfiguration.bind(adminController)),
 );
 router.get(

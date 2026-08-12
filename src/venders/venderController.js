@@ -6,7 +6,7 @@ import {
   storeMessages,
   productMessage,
   userMessage,
-  orderMessages
+  orderMessages,
 } from "../helper/commanMessages.js";
 import { ROLE } from "../helper/roleBase.js";
 import slugify from "slugify";
@@ -78,7 +78,75 @@ export default class StoreController {
     });
   }
 
-  async createOnboardingLink(req, res) {
+  async deleteProduct(req, res) {
+    const vendorId = req.user.id;
+    const { id } = req.params;
+    const product = await this.services.deleteProductByVendor(id, vendorId);
+    if (!product) {
+      return sendResponse(
+        res,
+        STATUS_CODE.NOT_FOUND,
+        productMessage.PRODUCT_NOT_FOUND,
+      );
+    }
+    return sendResponse(
+      res,
+      STATUS_CODE.SUCCESS,
+      productMessage.PRODUCT_DELETED,
+    );
+  }
+
+  async updateVendorProfile(req, res) {
+    const userId = req.user.id;
+    const existingUser = await this.services.getUserById(userId);
+    if (!existingUser) {
+      return sendResponse(
+        res,
+        STATUS_CODE.NOT_FOUND,
+        userMessage.USER_NOT_FOUND,
+      );
+    }
+    const payload = {
+      ...req.body,
+    };
+    if (req.file) {
+      if (existingUser.avatar_public_id) {
+        await deleteFromCloudinary(existingUser.avatar_public_id);
+      }
+      const result = await uploadToCloudinary(req.file, "users/avatar");
+      payload.avtar = result.secure_url;
+      payload.avatar_public_id = result.public_id;
+      console.log("Cloudinary result:", result);
+    }
+    await this.services.updateUser(userId, payload);
+    const updatedUser = await this.services.getUserById(userId);
+    return sendResponse(
+      res,
+      STATUS_CODE.SUCCESS,
+      userMessage.USER_UPDATED,
+      updatedUser,
+    );
+  }
+
+  async getVendorProfile(req, res) {
+    const userId = req.user.id;
+    const user = await this.services.getUserById(userId);
+    if (!user) {
+      return sendResponse(
+        res,
+        STATUS_CODE.NOT_FOUND,
+        userMessage.USER_NOT_FOUND,
+      );
+    }
+    return sendResponse(
+      res,
+      STATUS_CODE.SUCCESS,
+      userMessage.USER_PROFILE_FETCHED,
+      user,
+    );
+  }
+
+  async createOnboardingLink(req, res) {  
     const user = await this.services.getUserById(req.user.id);
     if (!user.stripe_account_id) {
       return sendResponse(
@@ -500,7 +568,6 @@ export default class StoreController {
       );
     }
     const product = await this.services.getProductById(id);
-
     if (!product) {
       return sendResponse(
         res,
@@ -698,7 +765,6 @@ export default class StoreController {
     const payouts = await this.services.getVendorPayouts(store.id, {
       status,
     });
-
     if (!payouts || payouts.length === 0) {
       return sendResponse(
         res,
@@ -706,7 +772,6 @@ export default class StoreController {
         userMessage.PAYOUT_NOT_FOUND,
       );
     }
-
     return sendResponse(res, STATUS_CODE.SUCCESS, userMessage.PAYOUT_FETCH, {
       payouts,
     });
@@ -761,7 +826,7 @@ export default class StoreController {
       return sendResponse(
         res,
         STATUS_CODE.BAD_REQUEST,
-        orderMessages.ORDER_STATUS
+        orderMessages.ORDER_STATUS,
       );
     }
     if (!allowedStatus.includes(status)) {
@@ -772,7 +837,6 @@ export default class StoreController {
       );
     }
     const store = await this.services.getStoreByUserId(req.user.id);
-
     if (!store) {
       return sendResponse(
         res,
@@ -781,7 +845,6 @@ export default class StoreController {
       );
     }
     const order = await this.services.getVendorOrderById(orderId, store.id);
-
     if (!order) {
       return sendResponse(
         res,
@@ -800,17 +863,9 @@ export default class StoreController {
       );
     }
     await this.services.updateOrderStatus(orderId, status);
-
-    // Get updated order
     const updatedOrder = await this.services.getOrderById(orderId);
-
-    return sendResponse(
-      res,
-      STATUS_CODE.SUCCESS,
-      orderMessages.STATUS_UPDATE,
-      {
-        order: updatedOrder,
-      },
-    );
+    return sendResponse(res, STATUS_CODE.SUCCESS, orderMessages.STATUS_UPDATE, {
+      order: updatedOrder,
+    });
   }
 }

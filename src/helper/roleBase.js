@@ -4,6 +4,5 @@ export const ROLE = {
   CUSTOMER: 3,
 };
 
-export const PAYMENT_STATUS = {
-  
-};
+// export const PAYMENT_STATUS = {
+// };

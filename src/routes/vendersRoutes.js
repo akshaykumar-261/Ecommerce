@@ -42,6 +42,25 @@ router.post(
   validateRequest(createVendorSchema),
   asyncHandler(venderController.userVendor.bind(venderController)),
 );
+router.put(
+  "/updateVendor-Profile",
+  upload.single("avtar"),
+  authorize,
+  role,
+  asyncHandler(venderController.updateVendorProfile.bind(venderController)),
+);
+router.delete(
+  "/deleteProduct/:id",
+  authorize,
+  role,
+  asyncHandler(venderController.deleteProduct.bind(venderController)),
+);
+router.get(
+  "/getVendor-Profile",
+  authorize,
+  role,
+  asyncHandler(venderController.getVendorProfile.bind(venderController)),
+);
 router.get(
   "/onboardingLink",
   authorize,

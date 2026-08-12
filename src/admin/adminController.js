@@ -8,6 +8,10 @@ import {
 import { sendResponse } from "../helper/responseHandler.js";
 import { STATUS_CODE } from "../helper/statusCode.js";
 import { emailQueue } from "../../utility/queue/emailQueue.js";
+import {
+  deleteFromCloudinary,
+  uploadToCloudinary,
+} from "../../utility/ cloudinaryUpload.js";
 import * as commanFunction from "../helper/commonFunction.js";
 export default class AdminController {
   async init(db) {
@@ -38,6 +42,37 @@ export default class AdminController {
       userMessage.USER_PROFILE_FETCHED,
       profile,
     );
+  }
+
+  async updateAdminProfile(req, res) {
+    const userId = req.user.id;
+    const existingUser = await this.service.getUserById(userId);
+     if (!existingUser) {
+    return sendResponse(
+      res,
+      STATUS_CODE.NOT_FOUND,
+      userMessage.USER_NOT_FOUND,
+    );
+    }
+    const payload = {
+      ...req.body,
+    };
+  if (req.file) {
+      if (existingUser.avatar_public_id) {
+        await deleteFromCloudinary(existingUser.avatar_public_id);
+      }
+      const result = await uploadToCloudinary(req.file, "users/avatar");
+      payload.avtar = result.secure_url;
+      payload.avatar_public_id = result.public_id;
+    }
+    await this.service.updateUser(userId, payload);
+    const updatedUser = await this.service.getUserById(userId);
+      return sendResponse(
+    res,
+    STATUS_CODE.SUCCESS,
+    userMessage.USER_UPDATED,
+    updatedUser,
+  );
   }
 
   async getAllVenderByAdmin(req, res) {

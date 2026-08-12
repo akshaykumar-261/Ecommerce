@@ -115,7 +115,8 @@ export const productMessage = {
   PRIMARY_IMAGE: "Primary image updated successfully.",
   OUT_OF_STOCK: "This product is currently out of stock.",
   NO_LOW_STOCK: "Low stock products not found.",
-  LOW_STOCK_FETCH: "Low stock products fetched successfully."
+  LOW_STOCK_FETCH: "Low stock products fetched successfully.",
+  PRODUCT_DELETED: "Product Deleted Successfully",
 };
 
 export const cartMessage = {
