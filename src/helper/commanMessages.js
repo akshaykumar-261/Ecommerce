@@ -215,3 +215,18 @@ export const wishlistMessages = {
   NOT_IN_WISHLIST: "Product is not in wishlist",
   REMOVED_FROM_WISHLIST: "Product removed from wishlist successfully",
 };
+
+export const categoryMessages = {
+  CATEGORY_NAME_REQUIRED: "Category name is required.",
+  CATEGORY_NAME_EMPTY: "Category name cannot be empty.",
+  CATEGORY_ALREADY_EXISTS: "Category already exists.",
+  CATEGORY_NAME_ALREADY_EXISTS: "Category with this name already exists.",
+  CATEGORY_NOT_FOUND: "Category not found.",
+  CATEGORIES_NOT_FOUND: "Categories not found.",
+  CATEGORY_CREATED: "Category created successfully.",
+  CATEGORIES_FETCHED: "Categories fetched successfully.",
+  CATEGORY_FETCHED: "Category fetched successfully.",
+  CATEGORY_UPDATED: "Category updated successfully.",
+  CATEGORY_DELETED: "Category deleted successfully.",
+  CATEGORY_UPDATE_DATA_REQUIRED: "No data provided for update.",
+};

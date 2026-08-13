@@ -11,6 +11,8 @@ import Address from "../../dataBase/models/addressModel.js";
 import Payment from "../../dataBase/models/paymetModel.js";
 import upload from "../middleweare/uploadFile.js";
 import AdminConfiguration from "../../dataBase/models/adminConfigration.js";
+import Category from "../../dataBase/models/categoryModel.js";
+import Review from "../../dataBase/models/reviewModel.js"
 import authorize from "../middleweare/authmiddleweare.js";
 import {
   validateRequest,
@@ -34,15 +36,17 @@ await adminController.init({
     Address,
     Payment,
     AdminConfiguration,
+    Category,
+    Review
   },
 });
 router.put(
   "/update-profile",
-   upload.single("avtar"),
+  upload.single("avtar"),
   authorize,
   role,
   asyncHandler(adminController.updateAdminProfile.bind(adminController)),
-)
+);
 router.get(
   "/admin-profile",
   authorize,
@@ -111,5 +115,43 @@ router.get(
   authorize,
   role,
   asyncHandler(adminController.getAdminConfiguration.bind(adminController)),
+);
+router.post(
+  "/get-category",
+  authorize,
+  role,
+  asyncHandler(adminController.createCategory.bind(adminController)),
+);
+router.get(
+  "/get-categories",
+  authorize,
+  role,
+  asyncHandler(adminController.getAllCategories.bind(adminController)),
+);
+router.put(
+  "/update-category/:id",
+  authorize,
+  role,
+  asyncHandler(adminController.updateCategory.bind(adminController)),
+);
+router.delete(
+  "/delete-category/:id",
+  authorize,
+  role,
+  asyncHandler(adminController.deleteCategory.bind(adminController)),
+);
+router.get(
+  "/getProductByCategoryId/:id",
+  authorize,
+  role,
+  asyncHandler(adminController.getProductByCategoryId.bind(adminController)),
+);
+router.get(
+  "/productByRating/:id",
+  authorize,
+  role,
+  asyncHandler(
+    adminController.getProductsByCategoryAndRating.bind(adminController),
+  ),
 );
 export default router;

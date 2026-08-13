@@ -521,4 +521,126 @@ export default class AdminServices {
       },
     });
   }
+
+  createCategory = async (payload) => {
+    return await this.Model.Category.create(payload);
+  };
+
+  getAllCategories = async (page, limit, search, status) => {
+    const { offset } = commanFunction.pagignation(page, limit);
+    const where = {};
+    if (search) {
+      where.cat_name = {
+        [Op.like]: `%${search}`,
+      };
+    }
+    if (status === "active") {
+      where.is_active = true;
+    }
+    if (status === "inactive") {
+      where.is_active = false;
+    }
+    return await this.Model.Category.findAndCountAll({
+      where,
+      limit: Number(limit),
+      offset,
+      order: [["id", "DESC"]],
+    });
+  };
+
+  getcategoryById = async (id) => {
+    return await this.Model.Category.findOne({
+      where: {
+        id,
+      },
+    });
+  };
+
+  getCategoryBySlug = async (slug) => {
+    return await this.Model.Category.findOne({
+      where: {
+        slug,
+      },
+    });
+  };
+
+  updateCategory = async (id, payload) => {
+    return await this.Model.Category.update(payload, {
+      where: {
+        id,
+      },
+    });
+  };
+
+  deleteCategory = async (id) => {
+    return await this.Model.Category.destroy({
+      where: {
+        id,
+      },
+    });
+  };
+
+  getProductById = async (categoryId, page, limit, search = "") => {
+    const { offset } = commanFunction.pagignation(page, limit);
+    const where = {
+      category_id: categoryId,
+      deletedAt: null,
+    };
+    if (search) {
+      where.pro_name = {
+        [Op.like]: `%${search}%`,
+      };
+    }
+    return await this.Model.Products.findAndCountAll({
+      where,
+      limit: Number(limit),
+      offset,
+      order: [["id", "DESC"]],
+    });
+  };
+
+  getProductsByCategoryAndRating = async (
+    categoryId,
+    page,
+    limit,
+    rating,
+    search = "",
+  ) => {
+    const { offset } = commanFunction.pagignation(page, limit);
+    const productWhere = {
+      category_id: categoryId,
+      deletedAt: null,
+    };
+    if (search) {
+      productWhere.pro_name = {
+        [Op.like]: `%${search}%`,
+      };
+    }
+    if (rating) {
+      const reviews = await this.Model.Review.findAll({
+        where: {
+          rating: Number(rating),
+        },
+        attributes: ["product_id"],
+        group: ["product_id"],
+        raw: true,
+      });
+      const productIds = reviews.map((review) => review.product_id);
+      if (productIds.length === 0) {
+        return {
+          count: 0,
+          rows: [],
+        };
+      }
+      productWhere.id = {
+        [Op.in]: productIds,
+      };
+    }
+    return await this.Model.Products.findAndCountAll({
+      where: productWhere,
+      limit: Number(limit),
+      offset,
+      order: [["id", "DESC"]],
+    });
+  };
 }
