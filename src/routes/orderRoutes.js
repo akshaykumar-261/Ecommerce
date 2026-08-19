@@ -14,8 +14,18 @@ import Store from "../../dataBase/models/storeModel.js";
 import Users from "../../dataBase/models/userModel.js";
 import VendorPayout from "../../dataBase/models/vendor_payouts.js";
 import AdminCongiguration from "../../dataBase/models/adminConfigration.js";
+import checkRole from "../middleweare/roleBasemiddleweare.js";
+import {
+  validateParams,
+  validateRequest,
+  placeOrderSchema,
+  confirmPaymentSchema,
+  orderIdSchema,
+  updateOrderStatusSchema,
+} from "../order/orderValidation.js";
 const router = express.Router();
 const orderController = new OrderController();
+const role = checkRole("Customer");
 await orderController.init(sequelize);
 orderController.init({
   models: {
@@ -35,11 +45,15 @@ orderController.init({
 router.post(
   "/placeOrder",
   authorize,
+  role,
+  validateRequest(placeOrderSchema),
   asyncHandler(orderController.placeOrder.bind(orderController)),
 );
 router.post(
   "/payment-confirm",
   authorize,
+  role,
+  validateRequest(confirmPaymentSchema),
   asyncHandler(orderController.confirmPayment.bind(orderController)),
 );
 router.get(
@@ -50,21 +64,27 @@ router.get(
 router.get(
   "/getOrderById/:orderId",
   authorize,
+  role,
   asyncHandler(orderController.getOrderById.bind(orderController)),
 );
 router.post(
   "/cancelOrder/:orderId",
   authorize,
+  role,
+  validateParams(orderIdSchema),
   asyncHandler(orderController.cancelOrder.bind(orderController)),
 );
 router.patch(
   "/change-order-status/:orderId",
   authorize,
+  role,
+  validateRequest(updateOrderStatusSchema),
   asyncHandler(orderController.updateOrderStatus.bind(orderController)),
 );
 router.get(
   "/track-order/:orderId",
   authorize,
+  role,
   asyncHandler(orderController.trackOrder.bind(orderController)),
 );
 export default router;

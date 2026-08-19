@@ -69,8 +69,8 @@ router.get(
 );
 router.get(
   "/stripeAccountDetails",
-  //authorize,
-  // checkRole("Vendors"),
+  authorize,
+  role,
   asyncHandler(venderController.getStripeAccountStatus.bind(venderController)),
 );
 
