@@ -10,7 +10,8 @@ import {
   uploadToCloudinary,
 } from "../../utility/ cloudinaryUpload.js";
 import { ROLE } from "../helper/roleBase.js";
-import { emailQueue } from "../../utility/queue/emailQueue.js";
+//import { emailQueue } from "../../utility/queue/emailQueue.js";
+import { sendRegistrationOtp } from "../../utility/sendRegisterOtp.js";
 import jwt from "jsonwebtoken";
 import { v4 as uuidv4 } from "uuid";
 export default class userController {
@@ -62,11 +63,12 @@ export default class userController {
     const accessToken = commanFunction.generateAccessToken(user, sessionId);
     const refreshToken = commanFunction.generateRefreshToken(user, sessionId);
     await this.service.createSession(user.id, sessionId);
-    await emailQueue.add("registration", {
-      email: user.email,
-      otp,
-      name: user.name,
-    });
+    // await emailQueue.add("registration", {
+    //   email: user.email,
+    //   otp,
+    //   name: user.name,
+    // });
+    await sendRegistrationOtp(user.email, otp, user.name);
     return sendResponse(res, STATUS_CODE.CREATED, userMessage.USER_CREATED, {
       user,
       accessToken,
