@@ -14,6 +14,7 @@ import AdminConfiguration from "../../dataBase/models/adminConfigration.js";
 import Category from "../../dataBase/models/categoryModel.js";
 import Review from "../../dataBase/models/reviewModel.js"
 import authorize from "../middleweare/authmiddleweare.js";
+import limiter from "../../utility/rateLimit.js";
 import {
   validateRequest,
   validateParams,
@@ -49,6 +50,7 @@ router.put(
 );
 router.get(
   "/admin-profile",
+  limiter,
   authorize,
   role,
   asyncHandler(adminController.getAdminProfile.bind(adminController)),
