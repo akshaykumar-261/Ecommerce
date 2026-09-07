@@ -4,8 +4,21 @@ import AuthLayout from "../../components/auth/AuthLayout";
 import { Link } from "react-router-dom";
 import { Mail, Lock, Eye, EyeOff } from "lucide-react";
 import Button from "../../components/common/Button";
+import { loginSchema } from "../../validation/auth";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 function Login() {
   const [showPassword, setShowPassword] = useState(false);
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm({
+    resolver: zodResolver(loginSchema),
+  });
+  const onSubmitData = (data) => {
+    console.log("Logging Data:",data);
+  }
   return (
     <AuthLayout>
       <div className="flex border-b mb-10">
@@ -53,6 +66,12 @@ function Login() {
                 focus:border-violet-500
               "
             />
+            {/* Zod Validation Error Message */}
+            {errors.email && (
+              <p className="text-red-500 text-sm mt-1">
+                {errors.email.message}
+              </p>
+            )}
           </div>
         </div>
         {/* PASSWORD...................... */}
@@ -85,6 +104,14 @@ function Login() {
             >
               {showPassword ? <EyeOff size={21} /> : <Eye size={21} />}
             </button>
+
+            {/* Zod Error */}
+
+            {errors.password && (
+              <p className="text-red-500 text-sm mt-1">
+                {errors.password.message}
+              </p>
+            )}
           </div>
         </div>
         {/* REMEMBER........................................... */}
@@ -101,8 +128,16 @@ function Login() {
           </Link>
         </div>
         {/* LOGIN BUTTON....................... */}
-        <Button type="submit">LOGIN</Button>
+        <Button type="submit" onClick={onSubmitData()}>LOGIN</Button>
       </form>
+      {/* ================= BOTTOM ================= */}
+
+      <p className="text-center mt-8 text-gray-600">
+        Don't have an account?{" "}
+        <Link to="/register" className="text-violet-600 font-medium">
+          Sign up
+        </Link>
+      </p>
     </AuthLayout>
   );
 }
