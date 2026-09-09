@@ -10,8 +10,8 @@ import {
   uploadToCloudinary,
 } from "../../utility/ cloudinaryUpload.js";
 import { ROLE } from "../helper/roleBase.js";
-//import { emailQueue } from "../../utility/queue/emailQueue.js";
-import { sendRegistrationOtp } from "../../utility/sendRegisterOtp.js";
+import { emailQueue } from "../../utility/queue/emailQueue.js";
+//import { sendRegistrationOtp } from "../../utility/sendRegisterOtp.js";
 import jwt from "jsonwebtoken";
 import { v4 as uuidv4 } from "uuid";
 export default class userController {
@@ -63,12 +63,12 @@ export default class userController {
     const accessToken = commanFunction.generateAccessToken(user, sessionId);
     const refreshToken = commanFunction.generateRefreshToken(user, sessionId);
     await this.service.createSession(user.id, sessionId);
-    // await emailQueue.add("registration", {
-    //   email: user.email,
-    //   otp,
-    //   name: user.name,
-    // });
-    await sendRegistrationOtp(user.email, otp, user.name);
+    await emailQueue.add("registration", {
+      email: user.email,
+      otp,
+      name: user.name,
+    });
+   // await sendRegistrationOtp(user.email, otp, user.name);
     return sendResponse(res, STATUS_CODE.CREATED, userMessage.USER_CREATED, {
       user,
       accessToken,
@@ -270,6 +270,8 @@ export default class userController {
         userMessage.USER_NOT_FOUND,
       );
     }
+
+
     await this.service.updateUser(user.id, { password: newPassword });
     return sendResponse(
       res,
@@ -386,33 +388,53 @@ export default class userController {
     );
   }
 
-  async login(req, res) {
-    const { email, password, device_token, device_type, device_id } = req.body;
-    const userInDb = await this.service.getByEmail(email);
-    if (!userInDb) {
-      return sendResponse(res, STATUS_CODE.NOT_FOUND, userMessage.NOT_FOUND);
-    }
-    if (!userInDb.is_verified) {
-      return sendResponse(
-        res,
-        STATUS_CODE.BAD_REQUEST,
-        userMessage.VERIFY_EMAIL,
-      );
-    }
-    const isMatch = await bcrypt.compare(password, userInDb.password);
-    if (!isMatch) {
-      return sendResponse(
-        res,
-        STATUS_CODE.BAD_REQUEST,
-        userMessage.INVALID_CREDENTIALS,
-      );
-    }
-    const sessionId = uuidv4();
-    const accessToken = commanFunction.generateAccessToken(userInDb, sessionId);
-    const refreshToken = commanFunction.generateRefreshToken(
-      userInDb,
-      sessionId,
+ async login(req, res) {
+  const {
+    email,
+    password,
+    device_token,
+    device_type,
+    device_id,
+  } = req.body;
+
+  const userInDb = await this.service.getByEmail(email);
+
+  if (!userInDb) {
+    return sendResponse(
+      res,
+      STATUS_CODE.NOT_FOUND,
+      userMessage.NOT_FOUND
     );
+  }
+
+  if (!userInDb.is_verified) {
+    return sendResponse(
+      res,
+      STATUS_CODE.BAD_REQUEST,
+      userMessage.VERIFY_EMAIL
+    );
+  }
+
+  const isMatch = await bcrypt.compare(password, userInDb.password);
+   console.log("===============>", isMatch);
+  if (!isMatch) {
+    return sendResponse(
+      res,
+      STATUS_CODE.BAD_REQUEST,
+      userMessage.INVALID_CREDENTIALS
+    );
+  }
+
+  const sessionId = uuidv4();
+
+  const accessToken =
+    commanFunction.generateAccessToken(userInDb, sessionId);
+
+  const refreshToken =
+    commanFunction.generateRefreshToken(userInDb, sessionId);
+
+  // Device details are optional
+  if (device_id) {
     const existingDevice = await this.Models.UserDevices.findOne({
       where: {
         user_Id: userInDb.id,
@@ -427,6 +449,7 @@ export default class userController {
         is_login: true,
         login_time: new Date(),
         logout_time: null,
+        session_id: sessionId,
       });
     } else {
       await this.Models.UserDevices.create({
@@ -439,11 +462,18 @@ export default class userController {
         session_id: sessionId,
       });
     }
-    return sendResponse(res, STATUS_CODE.SUCCESS, userMessage.LOGIN_SUCCESS, {
+  }
+
+  return sendResponse(
+    res,
+    STATUS_CODE.SUCCESS,
+    userMessage.LOGIN_SUCCESS,
+    {
       accessToken,
       refreshToken,
-    });
-  }
+    }
+  );
+}
 
   async logout(req, res) {
     const user = req.user;
