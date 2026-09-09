@@ -7,10 +7,16 @@ import { loginSchema } from "../../validation/auth";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import authBanner from "../../assets/image.png";
+import { useLogin } from "../../api/useAuth";
+import { useNavigate } from "react-router-dom";
+import toast from "react-hot-toast";
 function Login() {
   const [showPassword, setShowPassword] = useState(false);
+  const { mutate: loginUser } = useLogin();
+  const navigate = useNavigate();
   const {
     register,
+    reset,
     handleSubmit,
     formState: { errors },
   } = useForm({
@@ -18,7 +24,16 @@ function Login() {
   });
 
   const onSubmitData = (data) => {
-    console.log("Logging Data:", data);
+    loginUser(data, {
+      onSuccess: () => {
+        toast.success("Login Successfully!");
+        reset();
+        navigate("/home");
+      },
+      onError: (error) => {
+        toast.error(error.response?.data?.message || "Login Failed");
+      }
+    });
   };
 
   return (

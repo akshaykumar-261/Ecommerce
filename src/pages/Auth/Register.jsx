@@ -7,17 +7,36 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { registerSchema } from "../../validation/auth";
 import authBanner from "../../assets/image.png";
+import { useRegister } from "../../api/useAuth";
+import { useNavigate } from "react-router-dom";
+import toast from "react-hot-toast";
 function Register() {
   const [showPassword, setShowPassword] = useState(false);
+  const { mutate:createUser } = useRegister();
+  const navigate = useNavigate();
   const {
     register,
     handleSubmit,
+    reset,
     formState: { errors },
   } = useForm({
     resolver: zodResolver(registerSchema),
   });
 
-  const onSubmitData = (data) => console.log("Registering Data:", data);
+  const onSubmitData = (data) => {
+    const { confirmPassword, ...payload } = data;
+    createUser(payload, {
+      onSuccess: () => {
+        toast.success("Account Created Successfully!");
+        reset();
+        navigate("/otpVerify");
+      },
+      onError: (error) => {
+        toast.error(error.response?.data?.message || "Registeration Failed");
+      },
+    });
+    reset();
+  };
 
   return (
     <AuthLayout image={authBanner}>
@@ -42,7 +61,12 @@ function Register() {
         </p>
       </div>
 
-      <form onSubmit={handleSubmit(onSubmitData)} className="space-y-3">
+      <form
+        onSubmit={handleSubmit(onSubmitData, (errors) => {
+          console.log("VALIDATION ERRORS:", errors);
+        })}
+        className="space-y-3"
+      >
         {/* FIRST NAME & LAST NAME (2 Columns) */}
         <div className="grid grid-cols-2 gap-3">
           <div>
@@ -54,13 +78,13 @@ function Register() {
               <input
                 type="text"
                 placeholder="First Name"
-                {...register("firstName")}
+                {...register("name")}
                 className="w-full border rounded-lg py-1.5 pl-10 pr-3 text-sm outline-none focus:border-violet-500"
               />
             </div>
-            {errors.firstName && (
+            {errors.name && (
               <p className="text-red-500 text-xs mt-0.5">
-                {errors.firstName.message}
+                {errors.name.message}
               </p>
             )}
           </div>
@@ -74,13 +98,13 @@ function Register() {
               <input
                 type="text"
                 placeholder="Last Name"
-                {...register("lastName")}
+                {...register("lastname")}
                 className="w-full border rounded-lg py-1.5 pl-10 pr-3 text-sm outline-none focus:border-violet-500"
               />
             </div>
-            {errors.lastName && (
+            {errors.lastname && (
               <p className="text-red-500 text-xs mt-0.5">
-                {errors.lastName.message}
+                {errors.lastname.message}
               </p>
             )}
           </div>
@@ -117,13 +141,13 @@ function Register() {
             <input
               type="text"
               placeholder="Enter Mobile Number"
-              {...register("phone")}
+              {...register("phoneNo")}
               className="w-full border rounded-lg py-1.5 pl-10 pr-3 text-sm outline-none focus:border-violet-500"
             />
           </div>
-          {errors.phone && (
+          {errors.phoneNo && (
             <p className="text-red-500 text-xs mt-0.5">
-              {errors.phone.message}
+              {errors.phoneNo.message}
             </p>
           )}
         </div>
@@ -168,7 +192,7 @@ function Register() {
                 onClick={() => setShowPassword(!showPassword)}
                 className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-500"
               >
-                {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                {showPassword ? <Eye size={16} /> : <EyeOff size={16} />}
               </button>
             </div>
             {errors.password && (
@@ -187,8 +211,8 @@ function Register() {
               <input
                 type={showPassword ? "text" : "password"}
                 placeholder="Confirm"
-                {...register("confirmPassword")}
                 className="w-full border rounded-lg py-1.5 pl-10 pr-8 text-sm outline-none focus:border-violet-500"
+                {...register("confirmPassword")}
               />
             </div>
             {errors.confirmPassword && (

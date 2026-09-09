@@ -1,0 +1,58 @@
+ async login(req, res) {
+    const { email, password, device_token, device_type, device_id } = req.body;
+    const userInDb = await this.service.getByEmail(email);
+    if (!userInDb) {
+      return sendResponse(res, STATUS_CODE.NOT_FOUND, userMessage.NOT_FOUND);
+    }
+    if (!userInDb.is_verified) {
+      return sendResponse(
+        res,
+        STATUS_CODE.BAD_REQUEST,
+        userMessage.VERIFY_EMAIL,
+      );
+    }
+    const isMatch = await bcrypt.compare(password, userInDb.password);
+    if (!isMatch) {
+      return sendResponse(
+        res,
+        STATUS_CODE.BAD_REQUEST,
+        userMessage.INVALID_CREDENTIALS,
+      );
+    }
+    const sessionId = uuidv4();
+    const accessToken = commanFunction.generateAccessToken(userInDb, sessionId);
+    const refreshToken = commanFunction.generateRefreshToken(
+      userInDb,
+      sessionId,
+    );
+    const existingDevice = await this.Models.UserDevices.findOne({
+      where: {
+        user_Id: userInDb.id,
+        device_id,
+      },
+    });
+
+    if (existingDevice) {
+      await existingDevice.update({
+        device_token,
+        device_type,
+        is_login: true,
+        login_time: new Date(),
+        logout_time: null,
+      });
+    } else {
+      await this.Models.UserDevices.create({
+        user_Id: userInDb.id,
+        device_token,
+        device_type,
+        device_id,
+        is_login: true,
+        login_time: new Date(),
+        session_id: sessionId,
+      });
+    }
+    return sendResponse(res, STATUS_CODE.SUCCESS, userMessage.LOGIN_SUCCESS, {
+      accessToken,
+      refreshToken,
+    });
+  }
