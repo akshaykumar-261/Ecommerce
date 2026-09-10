@@ -51,28 +51,28 @@ export default class UserServices {
     );
   }
 
-  getUserById = async (id) => {
-    return this.Model.Users.findOne({
-      where: {
-        id: id,
-        deletedAt: null,
-      },
-      attributes: {
-        exclude: [
-          "password",
-          "createdAt",
-          "updatedAt",
-          "department_Id",
-          "refreshToken",
-          "is_mobile_notification_active",
-          "socail_id",
-          "provider",
-          "deletedAt",
-        ],
-      },
-    });
-  };
-
+getUserById = async (id) => {
+  return this.Model.Users.findOne({
+    where: {
+      id: id,
+      is_active: 1, // Added for consistency
+      deletedAt: null,
+    },
+    attributes: {
+      exclude: [
+        "password",
+        "createdAt",
+        "updatedAt",
+        "department_Id",
+        "refreshToken",
+        "is_mobile_notification_active",
+        "socail_id",
+        "provider",
+        "deletedAt",
+      ],
+    },
+  });
+};
   async createSession(userId, sessionId) {
     return await this.Model.UserDevices.create({
       user_Id: userId,

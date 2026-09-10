@@ -21,7 +21,7 @@ const authorize = async (req, res, next) => {
     if (!decoded) {
       return sendResponse(
         res,
-        STATUS_CODE.BAD_REQUEST,
+        STATUS_CODE.UNAUTHORIZE,
         userMessage.INVALID_TOKEN,
       );
     }
@@ -49,7 +49,7 @@ const authorize = async (req, res, next) => {
     next();
   } catch (error) {
     console.error(error);
-    return sendResponse(res, STATUS_CODE.SERVER_ERROR, authMessage.INVALID);
+    return sendResponse(res, STATUS_CODE.SERVER_ERROR, serverFile.SERVER_ERROR);
   }
 };
 export default authorize;

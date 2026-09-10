@@ -71,7 +71,6 @@ router.put(
 );
 router.post(
   "/refresh-token",
-  authorize,
   asyncHandler(userController.refreshToken.bind(userController)),
 );
 router.get(
