@@ -106,13 +106,17 @@ export default class UserServices {
       },
     );
   }
-  async updateUser(userId, payload) {
-    return await this.Model.Users.update(payload, {
-      where: {
-        id: userId,
-      },
-    });
+async updateUser(userId, payload) {
+  const user = await this.Model.Users.findByPk(userId);
+
+  if (!user) {
+    return null;
   }
+
+  await user.update(payload);
+
+  return user;
+}
   
   async getSessionBySessionId(sessionId) {
     return await this.Model.UserDevices.findOne({
