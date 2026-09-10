@@ -7,6 +7,7 @@ import Home from "../pages/Unauth/Home";
 import OtpVerify from "../pages/Auth/OtpVerify";
 import OtpVerifyForgotPassword from "../pages/Auth/OtpVerifyForgotPassword";
 import ResetPassword from "../pages/Auth/ResetPassword";
+import VendorRegister from "../pages/Auth/VendoreRegister";
 function AppRoutes() {
   return (
     <Routes>
@@ -16,7 +17,8 @@ function AppRoutes() {
       <Route path="/home" element={<Home />} />
       <Route path="otpVerify" element={<OtpVerify />} />
       <Route path="otpVerifyForgotPassword" element={<OtpVerifyForgotPassword />} />
-      <Route path="resetPassword" element={<ResetPassword/>} />
+      <Route path="resetPassword" element={<ResetPassword />} />
+      <Route path="/vendorRegister" element={<VendorRegister/>}/>
     </Routes>
   );
 }

@@ -30,7 +30,7 @@ export const useLogin = () => {
     mutationFn: LoginUser,
     onSuccess: (data) => {
       const { accessToken, refreshToken } = data.data;
-      localStorage.setItem("accessToke", accessToken);
+      localStorage.setItem("accessToken", accessToken);
       localStorage.setItem("refreshToken", refreshToken);
       console.log("User registered successfully:", data);
     },
@@ -46,7 +46,7 @@ export const useForgetPassword = () => {
     mutationFn: ForgotPassword,
     onSuccess: (data) => {
       const { accessToken, refreshToken } = data.data;
-      localStorage.setItem("accessToke", accessToken);
+      localStorage.setItem("accessToken", accessToken);
       localStorage.setItem("refreshToken", refreshToken);
       console.log("User registered successfully:", data);
     },
@@ -75,7 +75,7 @@ export const useOtpResendUser = () => {
     mutationFn: OtpResendUser,
     onSuccess: (data) => {
       const { accessToken, refreshToken } = data.data;
-      localStorage.setItem("accessToke", accessToken);
+      localStorage.setItem("accessToken", accessToken);
       localStorage.setItem("refreshToken", refreshToken);
       console.log("User registered successfully:", data);
     },
@@ -91,7 +91,7 @@ export const useOtpVerifyForgotPassword = () => {
     mutationFn: OtpVerifyForgotPassword,
     onSuccess: (data) => {
       const { accessToken, refreshToken } = data.data;
-      localStorage.setItem("accessToke", accessToken);
+      localStorage.setItem("accessToken", accessToken);
       localStorage.setItem("refreshToken", refreshToken);
       console.log("User registered successfully:", data);
     },
@@ -107,7 +107,7 @@ export const useOtpResendForgotPassword = () => {
     mutationFn: OtpResendForgotPassword,
     onSuccess: (data) => {
       const { accessToken, refreshToken } = data.data;
-      localStorage.setItem("accessToke", accessToken);
+      localStorage.setItem("accessToken", accessToken);
       localStorage.setItem("refreshToken", refreshToken);
       console.log("User registered successfully:", data);
     },
