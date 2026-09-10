@@ -270,9 +270,8 @@ export default class userController {
         userMessage.USER_NOT_FOUND,
       );
     }
-
-
-    await this.service.updateUser(user.id, { password: newPassword });
+    const hashdPassword = await bcrypt.hash(newPassword, 10);
+    await this.service.updateUser(user.id, { password: hashdPassword });
     return sendResponse(
       res,
       STATUS_CODE.SUCCESS,
