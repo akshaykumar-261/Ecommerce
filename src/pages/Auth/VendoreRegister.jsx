@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import AuthLayout from "../../components/auth/AuthLayout";
 import { Link } from "react-router-dom";
 import { User, Mail, Phone, MapPin, Lock, Eye, EyeOff } from "lucide-react";
@@ -6,26 +6,51 @@ import Button from "../../components/common/Button";
 import authBanner from "../../assets/image copy 15.png";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { venderSchema } from "../../validation/auth";
-import {useForm} from "react-hook-form"
+import { useForm } from "react-hook-form";
+import { useVenderRegister } from "../../api/useAuth";
+import toast from "react-hot-toast";
+import { useNavigate } from "react-router-dom";
 function VendorRegister() {
   const [showPassword, setShowPassword] = useState(false);
-   const {
-     register,
-     handleSubmit,
-     reset,
-     formState: { errors },
-   } = useForm({
-     resolver: zodResolver(venderSchema),
-   });
+  const { mutate: createVendor } = useVenderRegister();
+  const navigate = useNavigate();
+  const {
+    register,
+    handleSubmit,
+    reset,
+    formState: { errors },
+  } = useForm({
+    resolver: zodResolver(venderSchema),
+  });
+  const onSubmitData = (data) => {
+    const { confirmPassword, ...payload } = data;
+    createVendor(payload, {
+      onSuccess: () => {
+        toast.success("Vendor Account Created Successfully!");
+        reset();
+        navigate("/otpVerify");
+      },
+      onError: (error) => {
+        toast.error(error.response?.data?.message || "Registeration Failed");
+      },
+    });
+    reset();
+  };
   return (
     <AuthLayout image={authBanner}>
       {/* TABS */}
       <div className="flex border-b mb-4 text-sm font-medium">
         <Link
-          to="/vendor-register"
+          to="/vendorLogin"
+          className="w-1/2 text-center pb-2 text-gray-500"
+        >
+          Login
+        </Link>
+        <Link
+          to="/vendorRegister"
           className="w-1/2 text-center pb-2 text-violet-600 border-b-2 border-violet-600"
         >
-          Vendor Register
+          Register
         </Link>
       </div>
 
@@ -41,7 +66,12 @@ function VendorRegister() {
       </div>
 
       {/* FORM - DESIGN ONLY */}
-      <form className="space-y-3">
+      <form
+        className="space-y-3"
+        onSubmit={handleSubmit(onSubmitData, (errors) => {
+          console.log("VALIDATION ERRORS:", errors);
+        })}
+      >
         {/* FIRST NAME & LAST NAME */}
         <div className="grid grid-cols-2 gap-3">
           {/* FIRST NAME */}
@@ -54,10 +84,13 @@ function VendorRegister() {
             <input
               type="text"
               placeholder="First Name"
+              {...register("name")}
               className="w-full border border-violet-200 rounded-lg py-1.5 pl-10 pr-3 text-sm outline-none bg-white shadow-[0_2px_8px_rgba(139,92,246,0.12)] focus:border-violet-500 focus:shadow-[0_3px_10px_rgba(139,92,246,0.18)]"
             />
           </div>
-
+          {errors.name && (
+            <p className="text-red-500 text-xs mt-0.5">{errors.name.message}</p>
+          )}
           {/* LAST NAME */}
           <div className="relative">
             <User
@@ -67,10 +100,16 @@ function VendorRegister() {
 
             <input
               type="text"
+              {...register("lastname")}
               placeholder="Last Name"
               className="w-full border border-violet-200 rounded-lg py-1.5 pl-10 pr-3 text-sm outline-none bg-white shadow-[0_2px_8px_rgba(139,92,246,0.12)] focus:border-violet-500 focus:shadow-[0_3px_10px_rgba(139,92,246,0.18)]"
             />
           </div>
+          {errors.lastname && (
+            <p className="text-red-500 text-xs mt-0.5">
+              {errors.lastname.message}
+            </p>
+          )}
         </div>
 
         {/* EMAIL */}
@@ -83,10 +122,13 @@ function VendorRegister() {
           <input
             type="email"
             placeholder="Enter Your Email"
+            {...register("email")}
             className="w-full border border-violet-200 rounded-lg py-1.5 pl-10 pr-3 text-sm outline-none bg-white shadow-[0_2px_8px_rgba(139,92,246,0.12)] focus:border-violet-500 focus:shadow-[0_3px_10px_rgba(139,92,246,0.18)]"
           />
         </div>
-
+        {errors.email && (
+          <p className="text-red-500 text-xs mt-0.5">{errors.email.message}</p>
+        )}
         {/* MOBILE */}
         <div className="relative">
           <Phone
@@ -97,10 +139,15 @@ function VendorRegister() {
           <input
             type="text"
             placeholder="Enter Mobile Number"
+            {...register("phoneNo")}
             className="w-full border border-violet-200 rounded-lg py-1.5 pl-10 pr-3 text-sm outline-none bg-white shadow-[0_2px_8px_rgba(139,92,246,0.12)] focus:border-violet-500 focus:shadow-[0_3px_10px_rgba(139,92,246,0.18)]"
           />
         </div>
-
+        {errors.phoneNo && (
+          <p className="text-red-500 text-xs mt-0.5">
+            {errors.phoneNo.message}
+          </p>
+        )}
         {/* ADDRESS */}
         <div className="relative">
           <MapPin
@@ -111,10 +158,15 @@ function VendorRegister() {
           <input
             type="text"
             placeholder="Enter Address"
+            {...register("address")}
             className="w-full border border-violet-200 rounded-lg py-1.5 pl-10 pr-3 text-sm outline-none bg-white shadow-[0_2px_8px_rgba(139,92,246,0.12)] focus:border-violet-500 focus:shadow-[0_3px_10px_rgba(139,92,246,0.18)]"
           />
         </div>
-
+        {errors.address && (
+          <p className="text-red-500 text-xs mt-0.5">
+            {errors.address.message}
+          </p>
+        )}
         {/* PASSWORD & CONFIRM PASSWORD */}
         <div className="grid grid-cols-2 gap-3">
           {/* PASSWORD */}
@@ -127,6 +179,7 @@ function VendorRegister() {
             <input
               type={showPassword ? "text" : "password"}
               placeholder="Password"
+              {...register("password")}
               className="w-full border border-violet-200 rounded-lg py-1.5 pl-10 pr-8 text-sm outline-none bg-white shadow-[0_2px_8px_rgba(139,92,246,0.12)] focus:border-violet-500 focus:shadow-[0_3px_10px_rgba(139,92,246,0.18)]"
             />
 
@@ -138,6 +191,11 @@ function VendorRegister() {
               {showPassword ? <Eye size={16} /> : <EyeOff size={16} />}
             </button>
           </div>
+          {errors.password && (
+            <p className="text-red-500 text-xs mt-0.5">
+              {errors.password.message}
+            </p>
+          )}
 
           {/* CONFIRM PASSWORD */}
           <div className="relative">
@@ -149,9 +207,15 @@ function VendorRegister() {
             <input
               type={showPassword ? "text" : "password"}
               placeholder="Confirm"
+              {...register("confirmPassword")}
               className="w-full border border-violet-200 rounded-lg py-1.5 pl-10 pr-8 text-sm outline-none bg-white shadow-[0_2px_8px_rgba(139,92,246,0.12)] focus:border-violet-500 focus:shadow-[0_3px_10px_rgba(139,92,246,0.18)]"
             />
           </div>
+          {errors.confirmPassword && (
+            <p className="text-red-500 text-xs mt-0.5">
+              {errors.confirmPassword.message}
+            </p>
+          )}
         </div>
 
         {/* TERMS */}
@@ -162,7 +226,7 @@ function VendorRegister() {
         </label>
 
         {/* BUTTON */}
-        <Button type="button" className="py-2 text-sm">
+        <Button type="submit" className="py-2 text-sm">
           CREATE VENDOR ACCOUNT
         </Button>
       </form>
@@ -170,7 +234,7 @@ function VendorRegister() {
       {/* LOGIN */}
       <p className="text-center mt-3 text-xs text-gray-600">
         Already have an account?{" "}
-        <Link to="/login" className="text-violet-600 font-medium">
+        <Link to="/vendorLogin" className="text-violet-600 font-medium">
           Login
         </Link>
       </p>

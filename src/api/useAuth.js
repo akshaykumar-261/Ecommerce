@@ -7,7 +7,9 @@ import {
   OtpResendUser,
   OtpVerifyForgotPassword,
   OtpResendForgotPassword,
-  ResetOtp
+  ResetOtp,
+  VenderRegister,
+  VenderOnboardingLink
 } from "./authApi";
 export const useRegister = () => {
   return useMutation({
@@ -97,7 +99,7 @@ export const useOtpVerifyForgotPassword = () => {
     },
     onError: (error) => {
       console.error("STATUS:", error.response?.status);
-      console.error("BACKEND ERROR:", error.response?.data);
+      console.error("BAVenderOnboardingLinkCKEND ERROR:", error.response?.data);
       console.error("FULL ERROR:", error);
     },
   });
@@ -131,3 +133,33 @@ export const useResetOtp = () => {
     },
   });
 };
+export const useVenderRegister = () => {
+  return useMutation({
+    mutationFn: VenderRegister,
+    onSuccess: (data) => {
+      const { accessToken, refreshToken } = data.data;
+      localStorage.setItem("accessToken", accessToken);
+      localStorage.setItem("refreshToken", refreshToken);
+      console.log("User registered successfully:", data);
+    },
+    onError: (error) => {
+      console.error("STATUS:", error.response?.status);
+      console.error("BACKEND ERROR:", error.response?.data);
+      console.error("FULL ERROR:", error);
+    },
+  });
+};
+export const useVenderOnboarding = () => {
+  return useMutation({
+    mutationFn: VenderOnboardingLink,
+    onSuccess: (data) => {
+      console.log("User registered successfully:", data);
+    },
+    onError: (error) => {
+      console.error("STATUS:", error.response?.status);
+      console.error("BACKEND ERROR:", error.response?.data);
+      console.error("FULL ERROR:", error);
+    },
+  });
+};
+

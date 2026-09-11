@@ -62,176 +62,167 @@ function Register() {
       </div>
 
       <form
+        className="space-y-3"
         onSubmit={handleSubmit(onSubmitData, (errors) => {
           console.log("VALIDATION ERRORS:", errors);
         })}
-        className="space-y-3"
       >
-        {/* FIRST NAME & LAST NAME (2 Columns) */}
+        {/* FIRST NAME & LAST NAME */}
         <div className="grid grid-cols-2 gap-3">
-          <div>
-            <div className="relative">
-              <User
-                size={18}
-                className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
-              />
-              <input
-                type="text"
-                placeholder="First Name"
-                {...register("name")}
-                className="w-full border rounded-lg py-1.5 pl-10 pr-3 text-sm outline-none focus:border-violet-500"
-              />
-            </div>
-            {errors.name && (
-              <p className="text-red-500 text-xs mt-0.5">
-                {errors.name.message}
-              </p>
-            )}
-          </div>
+          {/* FIRST NAME */}
+          <div className="relative">
+            <User
+              size={18}
+              className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+            />
 
-          <div>
-            <div className="relative">
-              <User
-                size={18}
-                className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
-              />
-              <input
-                type="text"
-                placeholder="Last Name"
-                {...register("lastname")}
-                className="w-full border rounded-lg py-1.5 pl-10 pr-3 text-sm outline-none focus:border-violet-500"
-              />
-            </div>
-            {errors.lastname && (
-              <p className="text-red-500 text-xs mt-0.5">
-                {errors.lastname.message}
-              </p>
-            )}
+            <input
+              type="text"
+              placeholder="First Name"
+              {...register("name")}
+              className="w-full border border-violet-200 rounded-lg py-1.5 pl-10 pr-3 text-sm outline-none bg-white shadow-[0_2px_8px_rgba(139,92,246,0.12)] focus:border-violet-500 focus:shadow-[0_3px_10px_rgba(139,92,246,0.18)]"
+            />
           </div>
+          {errors.name && (
+            <p className="text-red-500 text-xs mt-0.5">{errors.name.message}</p>
+          )}
+          {/* LAST NAME */}
+          <div className="relative">
+            <User
+              size={18}
+              className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+            />
+
+            <input
+              type="text"
+              {...register("lastname")}
+              placeholder="Last Name"
+              className="w-full border border-violet-200 rounded-lg py-1.5 pl-10 pr-3 text-sm outline-none bg-white shadow-[0_2px_8px_rgba(139,92,246,0.12)] focus:border-violet-500 focus:shadow-[0_3px_10px_rgba(139,92,246,0.18)]"
+            />
+          </div>
+          {errors.lastname && (
+            <p className="text-red-500 text-xs mt-0.5">
+              {errors.lastname.message}
+            </p>
+          )}
         </div>
 
         {/* EMAIL */}
-        <div>
-          <div className="relative">
-            <Mail
-              size={18}
-              className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
-            />
-            <input
-              type="email"
-              placeholder="Enter Your Email"
-              {...register("email")}
-              className="w-full border rounded-lg py-1.5 pl-10 pr-3 text-sm outline-none focus:border-violet-500"
-            />
-          </div>
-          {errors.email && (
-            <p className="text-red-500 text-xs mt-0.5">
-              {errors.email.message}
-            </p>
-          )}
-        </div>
+        <div className="relative">
+          <Mail
+            size={18}
+            className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+          />
 
+          <input
+            type="email"
+            placeholder="Enter Your Email"
+            {...register("email")}
+            className="w-full border border-violet-200 rounded-lg py-1.5 pl-10 pr-3 text-sm outline-none bg-white shadow-[0_2px_8px_rgba(139,92,246,0.12)] focus:border-violet-500 focus:shadow-[0_3px_10px_rgba(139,92,246,0.18)]"
+          />
+        </div>
+        {errors.email && (
+          <p className="text-red-500 text-xs mt-0.5">{errors.email.message}</p>
+        )}
         {/* MOBILE */}
-        <div>
-          <div className="relative">
-            <Phone
-              size={18}
-              className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
-            />
-            <input
-              type="text"
-              placeholder="Enter Mobile Number"
-              {...register("phoneNo")}
-              className="w-full border rounded-lg py-1.5 pl-10 pr-3 text-sm outline-none focus:border-violet-500"
-            />
-          </div>
-          {errors.phoneNo && (
-            <p className="text-red-500 text-xs mt-0.5">
-              {errors.phoneNo.message}
-            </p>
-          )}
-        </div>
+        <div className="relative">
+          <Phone
+            size={18}
+            className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+          />
 
+          <input
+            type="text"
+            placeholder="Enter Mobile Number"
+            {...register("phoneNo")}
+            className="w-full border border-violet-200 rounded-lg py-1.5 pl-10 pr-3 text-sm outline-none bg-white shadow-[0_2px_8px_rgba(139,92,246,0.12)] focus:border-violet-500 focus:shadow-[0_3px_10px_rgba(139,92,246,0.18)]"
+          />
+        </div>
+        {errors.phoneNo && (
+          <p className="text-red-500 text-xs mt-0.5">
+            {errors.phoneNo.message}
+          </p>
+        )}
         {/* ADDRESS */}
-        <div>
+        <div className="relative">
+          <MapPin
+            size={18}
+            className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+          />
+
+          <input
+            type="text"
+            placeholder="Enter Address"
+            {...register("address")}
+            className="w-full border border-violet-200 rounded-lg py-1.5 pl-10 pr-3 text-sm outline-none bg-white shadow-[0_2px_8px_rgba(139,92,246,0.12)] focus:border-violet-500 focus:shadow-[0_3px_10px_rgba(139,92,246,0.18)]"
+          />
+        </div>
+        {errors.address && (
+          <p className="text-red-500 text-xs mt-0.5">
+            {errors.address.message}
+          </p>
+        )}
+        {/* PASSWORD & CONFIRM PASSWORD */}
+        <div className="grid grid-cols-2 gap-3">
+          {/* PASSWORD */}
           <div className="relative">
-            <MapPin
+            <Lock
               size={18}
               className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
             />
+
             <input
-              type="text"
-              placeholder="Enter Address"
-              {...register("address")}
-              className="w-full border rounded-lg py-1.5 pl-10 pr-3 text-sm outline-none focus:border-violet-500"
+              type={showPassword ? "text" : "password"}
+              placeholder="Password"
+              {...register("password")}
+              className="w-full border border-violet-200 rounded-lg py-1.5 pl-10 pr-8 text-sm outline-none bg-white shadow-[0_2px_8px_rgba(139,92,246,0.12)] focus:border-violet-500 focus:shadow-[0_3px_10px_rgba(139,92,246,0.18)]"
             />
+
+            <button
+              type="button"
+              onClick={() => setShowPassword(!showPassword)}
+              className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-500"
+            >
+              {showPassword ? <Eye size={16} /> : <EyeOff size={16} />}
+            </button>
           </div>
-          {errors.address && (
+          {errors.password && (
             <p className="text-red-500 text-xs mt-0.5">
-              {errors.address.message}
+              {errors.password.message}
             </p>
           )}
-        </div>
 
-        {/* PASSWORD & CONFIRM PASSWORD (2 Columns) */}
-        <div className="grid grid-cols-2 gap-3">
-          <div>
-            <div className="relative">
-              <Lock
-                size={18}
-                className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
-              />
-              <input
-                type={showPassword ? "text" : "password"}
-                placeholder="Password"
-                {...register("password")}
-                className="w-full border rounded-lg py-1.5 pl-10 pr-8 text-sm outline-none focus:border-violet-500"
-              />
-              <button
-                type="button"
-                onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-500"
-              >
-                {showPassword ? <Eye size={16} /> : <EyeOff size={16} />}
-              </button>
-            </div>
-            {errors.password && (
-              <p className="text-red-500 text-xs mt-0.5">
-                {errors.password.message}
-              </p>
-            )}
-          </div>
+          {/* CONFIRM PASSWORD */}
+          <div className="relative">
+            <Lock
+              size={18}
+              className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+            />
 
-          <div>
-            <div className="relative">
-              <Lock
-                size={18}
-                className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
-              />
-              <input
-                type={showPassword ? "text" : "password"}
-                placeholder="Confirm"
-                className="w-full border rounded-lg py-1.5 pl-10 pr-8 text-sm outline-none focus:border-violet-500"
-                {...register("confirmPassword")}
-              />
-            </div>
-            {errors.confirmPassword && (
-              <p className="text-red-500 text-xs mt-0.5">
-                {errors.confirmPassword.message}
-              </p>
-            )}
+            <input
+              type={showPassword ? "text" : "password"}
+              placeholder="Confirm"
+              {...register("confirmPassword")}
+              className="w-full border border-violet-200 rounded-lg py-1.5 pl-10 pr-8 text-sm outline-none bg-white shadow-[0_2px_8px_rgba(139,92,246,0.12)] focus:border-violet-500 focus:shadow-[0_3px_10px_rgba(139,92,246,0.18)]"
+            />
           </div>
+          {errors.confirmPassword && (
+            <p className="text-red-500 text-xs mt-0.5">
+              {errors.confirmPassword.message}
+            </p>
+          )}
         </div>
 
         {/* TERMS */}
         <label className="flex items-center gap-2 text-xs text-gray-500">
           <input type="checkbox" className="accent-violet-600 rounded" />
+
           <span>I agree to Terms & Conditions</span>
         </label>
 
         {/* BUTTON */}
         <Button type="submit" className="py-2 text-sm">
-          CREATE ACCOUNT
+          CREATE VENDOR ACCOUNT
         </Button>
       </form>
 
