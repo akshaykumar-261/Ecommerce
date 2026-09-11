@@ -100,6 +100,8 @@ export const createStoreSchema = Joi.object({
     "string.empty": "Zipcode is required.",
     "any.required": "Zipcode is required.",
   }),
+  store_logo: Joi.any().optional(),
+  store_banner: Joi.any().optional(),
 });
 
 export const updateStoreSchema = Joi.object({
