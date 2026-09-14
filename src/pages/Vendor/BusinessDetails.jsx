@@ -15,10 +15,12 @@ import { useCreateStore } from "../../api/useVendorApi";
 import Button from "../../components/common/Button";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
+import { useNavigate } from "react-router-dom";
 function BusinessDetails() {
   const logoInputRef = useRef(null);
   const bannerInputRef = useRef(null);
   const createStoreMutation = useCreateStore();
+  const navigate = useNavigate();
   const {
     register,
     handleSubmit,
@@ -50,6 +52,7 @@ function BusinessDetails() {
     }
     createStoreMutation.mutate(formData);
     reset();
+    navigate("/vendor/dashboard");
   };
 
   return (
@@ -194,7 +197,6 @@ function BusinessDetails() {
                     className="hidden"
                     onChange={(e) => {
                       const file = e.target.files?.[0];
-
                       if (file) {
                         setValue("store_logo", file, {
                           shouldValidate: true,
@@ -250,7 +252,6 @@ function BusinessDetails() {
                     className="hidden"
                     onChange={(e) => {
                       const file = e.target.files?.[0];
-
                       if (file) {
                         setValue("store_banner", file, {
                           shouldValidate: true,

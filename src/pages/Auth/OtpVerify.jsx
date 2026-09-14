@@ -8,6 +8,7 @@ import { useForm } from "react-hook-form";
 import { useOtpVerifyUser, useOtpResendUser } from "../../api/useAuth";
 import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
+import { jwtDecode } from "jwt-decode";
 function OtpVerify() {
   const handleNumberChange = (e) => {
     e.target.value = e.target.value.replace(/[^0-9]/g, "");
@@ -28,9 +29,20 @@ function OtpVerify() {
       { otp },
       {
         onSuccess: () => {
-          toast.success("OTP Verify Successfully!");
-          reset();
-          navigate("/login");
+          const accessToken = localStorage.getItem("accessToken");
+          if (!accessToken) {
+            toast.error("Access token not found");
+          }
+          const decodedToken = jwtDecode(accessToken);
+          const roleId = decodedToken.role_Id;
+          if (roleId === 2) {
+            navigate("/bussinessAccountVendor");
+          } else if (roleId === 3) {
+            navigate("/home");
+          } else {
+            toast.error("Invalid user role");
+            navigate("/login");
+          }
         },
         onError: (error) => {
           toast.error(error.response?.data?.message || "Otp Verify Failed!!");

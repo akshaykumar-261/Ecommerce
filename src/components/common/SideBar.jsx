@@ -22,7 +22,7 @@ const vendorMenu = [
   },
   {
     label: "Products",
-    path: "/vendor/products",
+    path: "/vendor/addProduct",
     icon: Package,
   },
   {

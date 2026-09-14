@@ -10,6 +10,7 @@ import authBanner from "../../assets/image copy 15.png";
 import { useLogin } from "../../api/useAuth";
 import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
+import { jwtDecode } from "jwt-decode";
 function Login() {
   const [showPassword, setShowPassword] = useState(false);
   const { mutate: loginUser } = useLogin();
@@ -25,10 +26,22 @@ function Login() {
 
   const onSubmitData = (data) => {
     loginUser(data, {
-      onSuccess: () => {
+      onSuccess: (response) => {
         toast.success("Login Successfully!");
+        const accessToken = response.data.accessToken;
+        const decodedToken = jwtDecode(accessToken);
+        const roleId = decodedToken.role_Id;
+        console.log("Decoded Token:", decodedToken);
+        console.log("Role ID:", roleId);
         reset();
-        navigate("/home");
+        if (roleId === 2) {
+          navigate("/vendor/dashboard");
+        } else if (roleId === 3) {
+          navigate("/home");
+        } else {
+          toast.error("Invalid user role");
+          navigate("/login");
+        }
       },
       onError: (error) => {
         toast.error(error.response?.data?.message || "Login Failed");
