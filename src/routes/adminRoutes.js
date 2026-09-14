@@ -121,13 +121,13 @@ router.get(
 router.post(
   "/get-category",
   authorize,
-  role,
+  checkRole("Super Admin","Vendors"),
   asyncHandler(adminController.createCategory.bind(adminController)),
 );
 router.get(
   "/get-categories",
   authorize,
-  role,
+   checkRole("Super Admin","Vendors"),
   asyncHandler(adminController.getAllCategories.bind(adminController)),
 );
 router.put(

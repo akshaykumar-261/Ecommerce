@@ -526,28 +526,28 @@ export default class AdminServices {
     return await this.Model.Category.create(payload);
   };
 
-  getAllCategories = async (page, limit, search, status) => {
-    const { offset } = commanFunction.pagignation(page, limit);
-    const where = {};
-    if (search) {
-      where.cat_name = {
-        [Op.like]: `%${search}`,
-      };
-    }
-    if (status === "active") {
-      where.is_active = true;
-    }
-    if (status === "inactive") {
-      where.is_active = false;
-    }
-    return await this.Model.Category.findAndCountAll({
-      where,
-      limit: Number(limit),
-      offset,
-      order: [["id", "DESC"]],
-    });
-  };
+getAllCategories = async (search, status) => {
+  const where = {};
 
+  if (search) {
+    where.cat_name = {
+      [Op.like]: `%${search}%`,
+    };
+  }
+
+  if (status === "active") {
+    where.is_active = true;
+  }
+
+  if (status === "inactive") {
+    where.is_active = false;
+  }
+
+  return await this.Model.Category.findAll({
+    where,
+    order: [["id", "DESC"]],
+  });
+};
   getcategoryById = async (id) => {
     return await this.Model.Category.findOne({
       where: {

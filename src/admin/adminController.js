@@ -353,30 +353,24 @@ export default class AdminController {
   }
 
   async getAllCategories(req, res) {
-    const { page = 1, limit = 10, search = "", status } = req.query;
-    const categories = await this.service.getAllCategories(
-      page,
-      limit,
-      search,
-      status,
-    );
-    if (categories.count === 0) {
-      return sendResponse(
-        res,
-        STATUS_CODE.NOT_FOUND,
-        categoryMessages.CATEGORIES_NOT_FOUND,
-      );
-    }
-    const pagignationData = commanFunction.pagignation(page, limit, categories);
+  const { search = "", status } = req.query;
+  const categories = await this.service.getAllCategories(search, status);
+  if (categories.length === 0) {
     return sendResponse(
       res,
-      STATUS_CODE.SUCCESS,
-      categoryMessages.CATEGORIES_FETCHED,
-      {
-        pagignationData,
-      },
+      STATUS_CODE.NOT_FOUND,
+      categoryMessages.CATEGORIES_NOT_FOUND,
     );
   }
+  return sendResponse(
+    res,
+    STATUS_CODE.SUCCESS,
+    categoryMessages.CATEGORIES_FETCHED,
+    {
+      categories,
+    },
+  );
+}
 
   async updateCategory(req, res) {
     const { id } = req.params;
