@@ -1,4 +1,4 @@
-import { useMutation } from "@tanstack/react-query";
+import { useMutation,useQuery} from "@tanstack/react-query";
 import {
   RegisterUser,
   LoginUser,
@@ -9,7 +9,8 @@ import {
   OtpResendForgotPassword,
   ResetOtp,
   VenderRegister,
-  VenderOnboardingLink
+  VenderOnboardingLink,
+  VenderStripeDetail
 } from "./authApi";
 export const useRegister = () => {
   return useMutation({
@@ -162,4 +163,11 @@ export const useVenderOnboarding = () => {
     },
   });
 };
+export const useVenderStripeDetail = () => {
+  return useQuery({
+    queryKey: ["stripe-account-status"],
+    queryFn: VenderStripeDetail,
+  });
+};
+
 

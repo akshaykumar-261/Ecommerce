@@ -10,8 +10,10 @@ import { useForm } from "react-hook-form";
 import { useVenderRegister } from "../../api/useAuth";
 import toast from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "../../components/common/ AuthContext";
 function VendorRegister() {
   const [showPassword, setShowPassword] = useState(false);
+  const { setRegistrationCompleted } = useAuth();
   const { mutate: createVendor } = useVenderRegister();
   const navigate = useNavigate();
   const {
@@ -27,6 +29,7 @@ function VendorRegister() {
     createVendor(payload, {
       onSuccess: () => {
         toast.success("Vendor Account Created Successfully!");
+        setRegistrationCompleted(true);
         reset();
         navigate("/otpVerify");
       },

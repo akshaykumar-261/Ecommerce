@@ -9,10 +9,12 @@ import { registerSchema } from "../../validation/auth";
 import authBanner from "../../assets/image.png";
 import { useRegister } from "../../api/useAuth";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "../../components/common/ AuthContext";
 import toast from "react-hot-toast";
 function Register() {
   const [showPassword, setShowPassword] = useState(false);
-  const { mutate:createUser } = useRegister();
+  const { mutate: createUser } = useRegister();
+  const { setRegistrationCompleted } = useAuth();
   const navigate = useNavigate();
   const {
     register,
@@ -28,6 +30,7 @@ function Register() {
     createUser(payload, {
       onSuccess: () => {
         toast.success("Account Created Successfully!");
+         setRegistrationCompleted(true);
         reset();
         navigate("/otpVerify");
       },

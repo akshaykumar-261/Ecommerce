@@ -9,15 +9,16 @@ import { useOtpVerifyUser, useOtpResendUser } from "../../api/useAuth";
 import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 import { jwtDecode } from "jwt-decode";
+import { useAuth } from "../../components/common/ AuthContext";
 function OtpVerify() {
   const handleNumberChange = (e) => {
     e.target.value = e.target.value.replace(/[^0-9]/g, "");
   };
   const navigate = useNavigate();
+  const { setOtpVerified } = useAuth();
   const { mutate: otpVerifyUser } = useOtpVerifyUser();
   const {
     register,
-    reset,
     handleSubmit,
     formState: { errors },
   } = useForm();
@@ -32,9 +33,11 @@ function OtpVerify() {
           const accessToken = localStorage.getItem("accessToken");
           if (!accessToken) {
             toast.error("Access token not found");
+             return;
           }
           const decodedToken = jwtDecode(accessToken);
           const roleId = decodedToken.role_Id;
+          setOtpVerified(true);
           if (roleId === 2) {
             navigate("/bussinessAccountVendor");
           } else if (roleId === 3) {
@@ -209,14 +212,6 @@ function OtpVerify() {
           VERIFY OTP
         </Button>
       </form>
-
-      {/* Back */}
-      <Link
-        to="/register"
-        className="inline-block mt-7 text-sm text-violet-600"
-      >
-        ← Back
-      </Link>
     </AuthLayout>
   );
 }

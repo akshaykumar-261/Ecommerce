@@ -16,10 +16,12 @@ import Button from "../../components/common/Button";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "../../components/common/ AuthContext";
 function BusinessDetails() {
   const logoInputRef = useRef(null);
   const bannerInputRef = useRef(null);
   const createStoreMutation = useCreateStore();
+  const { setBusinessDetailsCompleted } = useAuth();
   const navigate = useNavigate();
   const {
     register,
@@ -51,6 +53,7 @@ function BusinessDetails() {
       formData.append("store_banner", data.store_banner);
     }
     createStoreMutation.mutate(formData);
+     setBusinessDetailsCompleted(true);
     reset();
     navigate("/vendor/dashboard");
   };

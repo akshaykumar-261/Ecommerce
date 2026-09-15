@@ -11,9 +11,11 @@ import { useLogin } from "../../api/useAuth";
 import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 import { jwtDecode } from "jwt-decode";
+import { useAuth } from "../../components/common/ AuthContext";
 function Login() {
   const [showPassword, setShowPassword] = useState(false);
   const { mutate: loginUser } = useLogin();
+  const { setBusinessDetailsCompleted, setOtpVerified } = useAuth();
   const navigate = useNavigate();
   const {
     register,
@@ -23,31 +25,54 @@ function Login() {
   } = useForm({
     resolver: zodResolver(loginSchema),
   });
+const onSubmitData = (data) => {
+  loginUser(data, {
+    onSuccess: (response) => {
+      toast.success("Login Successfully!");
 
-  const onSubmitData = (data) => {
-    loginUser(data, {
-      onSuccess: (response) => {
-        toast.success("Login Successfully!");
-        const accessToken = response.data.accessToken;
-        const decodedToken = jwtDecode(accessToken);
-        const roleId = decodedToken.role_Id;
-        console.log("Decoded Token:", decodedToken);
-        console.log("Role ID:", roleId);
-        reset();
-        if (roleId === 2) {
-          navigate("/vendor/dashboard");
-        } else if (roleId === 3) {
-          navigate("/home");
-        } else {
-          toast.error("Invalid user role");
-          navigate("/login");
-        }
-      },
-      onError: (error) => {
-        toast.error(error.response?.data?.message || "Login Failed");
-      },
-    });
-  };
+      const accessToken = response.data.accessToken;
+
+      const decodedToken = jwtDecode(accessToken);
+
+      const roleId = decodedToken.role_Id;
+
+      console.log("Decoded Token:", decodedToken);
+      console.log("Role ID:", roleId);
+
+      reset();
+
+      if (roleId === 2) {
+        // Vendor successfully logged in
+        setOtpVerified(true);
+        setBusinessDetailsCompleted(true);
+
+        navigate("/vendor/dashboard");
+      } else {
+        toast.error("Invalid user role");
+        navigate("/login");
+      }
+    },
+
+    onError: (error) => {
+      const message = error.response?.data?.message || "Login Failed";
+
+      toast.error(message);
+
+      if (
+        message === "Please complete your business details first." ||
+        message === "Your business details are not verified yet."
+      ) {
+        // User ka OTP already verified hai
+        setOtpVerified(true);
+
+        // Business details abhi complete/verified nahi hain
+        setBusinessDetailsCompleted(false);
+
+        navigate("/bussinessAccountVendor");
+      }
+    },
+  });
+};
 
   return (
     <AuthLayout image={authBanner}>

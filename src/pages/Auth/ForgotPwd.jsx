@@ -10,8 +10,10 @@ import { forgotPasswordSchema } from "../../validation/auth";
 import { useForgetPassword } from "../../api/useAuth";
 import toast from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
+import {useAuth} from "../../components/common/ AuthContext"
 function ForgotPwd() {
   const { mutate: userForgotPassword } = useForgetPassword();
+  const { setForgotPasswordEmail } = useAuth();
   const navigate = useNavigate();
   const {
     register,
@@ -24,6 +26,7 @@ function ForgotPwd() {
   const onSubmitData = (data) => {
     userForgotPassword(data, {
       onSuccess: () => {
+          setForgotPasswordEmail(data.email);
         toast.success("OTP sent! Please check your email.");
         reset();
         navigate("/otpVerifyForgotPassword");

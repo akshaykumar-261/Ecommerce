@@ -6,16 +6,18 @@ import Button from "../../components/common/Button";
 import { Link } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "../../components/common/ AuthContext";
 import toast from "react-hot-toast";
 import {
   useOtpVerifyForgotPassword,
   useOtpResendForgotPassword,
 } from "../../api/useAuth";
 function OtpVerifyForgotPassword() {
-   const handleNumberChange = (e) => {
-     e.target.value = e.target.value.replace(/[^0-9]/g, "");
-   };
-    const { mutate: otpResendForgotPassword } = useOtpResendForgotPassword();
+  const { forgotPasswordEmail, setForgotPasswordOtpVerified } = useAuth();
+  const handleNumberChange = (e) => {
+    e.target.value = e.target.value.replace(/[^0-9]/g, "");
+  };
+  const { mutate: otpResendForgotPassword } = useOtpResendForgotPassword();
   const navigate = useNavigate();
   const { mutate: otpVerifyForgotPassword } = useOtpVerifyForgotPassword();
   const {
@@ -24,37 +26,46 @@ function OtpVerifyForgotPassword() {
     handleSubmit,
     formState: { errors },
   } = useForm();
-   const onSubmitData = (data) => {
-     const otp =
-       data.otp1 + data.otp2 + data.otp3 + data.otp4 + data.otp5 + data.otp6;
-     otpVerifyForgotPassword(
-       { otp },
-       {
-         onSuccess: () => {
-           toast.success("OTP Verify Successfully!");
-           reset();
-           navigate("/resetPassword");
-         },
-         onError: (error) => {
-           toast.error(error.response?.data?.message || "Otp Verify Failed!!");
-         },
-       },
-     );
-   };
-    const handleResendOtp = () => {
-      otpResendForgotPassword(
-        {},
-        {
-          onSuccess: (data) => {
-            toast.success(data.message || "OTP sent successfully!");
-          },
-
-          onError: (error) => {
-            toast.error(error.response?.data?.message || "OTP resend failed!");
-          },
+  const maskedEmail = (email) => {
+    if (!email) return "";
+    const [name, domain] = email.split("@");
+    if (name.length <= 2) {
+      return `${name[0]}***@${domain}`;
+    }
+    return `${name.slice(0, 2)}***@${domain}`;
+  };
+  const onSubmitData = (data) => {
+    const otp =
+      data.otp1 + data.otp2 + data.otp3 + data.otp4 + data.otp5 + data.otp6;
+    otpVerifyForgotPassword(
+      { otp },
+      {
+        onSuccess: () => {
+           setForgotPasswordOtpVerified(true);
+          toast.success("OTP Verify Successfully!");
+          reset();
+          navigate("/resetPassword");
         },
-      );
-    };
+        onError: (error) => {
+          toast.error(error.response?.data?.message || "Otp Verify Failed!!");
+        },
+      },
+    );
+  };
+  const handleResendOtp = () => {
+    otpResendForgotPassword(
+      {},
+      {
+        onSuccess: (data) => {
+          toast.success(data.message || "OTP sent successfully!");
+        },
+
+        onError: (error) => {
+          toast.error(error.response?.data?.message || "OTP resend failed!");
+        },
+      },
+    );
+  };
   return (
     <AuthLayout image={authBanner}>
       {/* Icon */}
@@ -69,7 +80,7 @@ function OtpVerifyForgotPassword() {
         <p className="text-gray-500 mt-2 text-sm">
           We've sent a 6-digit code to
           <br />
-          ak****@gmail.com
+          {maskedEmail(forgotPasswordEmail)}
         </p>
       </div>
 

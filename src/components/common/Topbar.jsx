@@ -34,42 +34,6 @@ function Topbar({ setMobileOpen, role = "vendor", userName = "Vikash Store" }) {
 
       {/* ================= RIGHT ================= */}
       <div className="flex items-center gap-4">
-        {/* ================= NOTIFICATION ================= */}
-        <button
-          className="
-            relative
-            flex h-9 w-9
-            items-center justify-center
-            rounded-full
-            transition
-            hover:bg-gray-100
-          "
-        >
-          <Bell size={20} strokeWidth={1.8} className="text-gray-600" />
-
-          {/* Notification Count */}
-          <span
-            className="
-              absolute
-              -right-0.5
-              -top-0.5
-              flex
-              h-4
-              min-w-4
-              items-center
-              justify-center
-              rounded-full
-              bg-red-500
-              px-1
-              text-[9px]
-              font-semibold
-              text-white
-            "
-          >
-            3
-          </span>
-        </button>
-
         {/* ================= PROFILE ================= */}
         <div
           className="
