@@ -19,7 +19,6 @@ export default class StoreService {
           "rating",
           "updatedAt",
           "createdAt",
-          "is_verified",
           "deletedAt",
         ],
       },

@@ -146,7 +146,7 @@ export default class StoreController {
     );
   }
 
-  async createOnboardingLink(req, res) {  
+  async createOnboardingLink(req, res) {
     const user = await this.services.getUserById(req.user.id);
     if (!user.stripe_account_id) {
       return sendResponse(
@@ -157,8 +157,8 @@ export default class StoreController {
     }
     const accountLink = await stripe.accountLinks.create({
       account: user.stripe_account_id,
-      refresh_url: "https://example.com/reauth",
-      return_url: `http://localhost:8089/venders/stripeAccountDetails?userId=${user.id}`,
+      refresh_url: "http://localhost:5173/vendor/stripeConnectLink",
+      return_url: "http://localhost:5173/vendor/stripeConnectLink",
       type: "account_onboarding",
     });
     return sendResponse(
@@ -172,10 +172,7 @@ export default class StoreController {
   }
 
   async getStripeAccountStatus(req, res) {
-    const { userId } = req.query;
-    if (!userId) {
-      return sendResponse(res, STATUS_CODE.BAD_REQUEST, "User id is required");
-    }
+    const userId = req.user.id;
     const user = await this.services.getUserById(userId);
     if (!user) {
       return sendResponse(
@@ -218,6 +215,7 @@ export default class StoreController {
   async createStore(req, res) {
     const payload = { ...req.body };
     payload.user_id = req.user.id;
+    payload.is_verified = true;
     let slug = slugify(payload.store_name, {
       lower: true,
       strict: true,

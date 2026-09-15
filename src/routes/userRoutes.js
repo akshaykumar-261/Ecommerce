@@ -6,6 +6,7 @@ import { sequelize } from "../../config/db.js";
 import Users from "../../dataBase/models/userModel.js";
 import Roles from "../../dataBase/models/roleModel.js";
 import UserDevices from "../../dataBase/models/user_deviceModel.js";
+import Store from "../../dataBase/models/storeModel.js"
 import authorize from "../middleweare/authmiddleweare.js";
 import checkRole from "../middleweare/roleBasemiddleweare.js";
 import {
@@ -22,7 +23,7 @@ const router = express.Router();
 const role = checkRole("User");
 const userController = new UserController();
 await userController.init(sequelize);
-userController.init({ models: { Users, Roles, UserDevices } });
+userController.init({ models: { Users, Roles, UserDevices,Store } });
 router.post(
   "/create",
   upload.any(),

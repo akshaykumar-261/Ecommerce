@@ -68,67 +68,13 @@ export default class userController {
       otp,
       name: user.name,
     });
-   // await sendRegistrationOtp(user.email, otp, user.name);
+    // await sendRegistrationOtp(user.email, otp, user.name);
     return sendResponse(res, STATUS_CODE.CREATED, userMessage.USER_CREATED, {
       user,
       accessToken,
       refreshToken,
     });
   }
-  // async userVendor(req, res) {
-  //   const { email } = req.body;
-  //   const existingUser = await this.service.getByEmail(email);
-  //   if (existingUser) {
-  //     return sendResponse(res, STATUS_CODE.BAD_REQUEST, userMessage.USER_EXIST);
-  //   }
-  //   let avatar = null;
-  //   if (req.files && req.files.length > 0) {
-  //     const result = await uploadToCloudinary(req.files[0], "users/avatar");
-  //     avatar = result.secure_url;
-  //   }
-  //   const otp = commanFunction.generateOtp(6);
-  //   const user = await this.service.createUser({
-  //     ...req.body,
-  //     avtar: avatar,
-  //     role_Id: ROLE.VENDER,
-  //     otp,
-  //     is_verified: false,
-  //     otp_expire: new Date(Date.now() + 10 * 60 * 1000),
-  //   });
-  //   const stripeAccount = await stripe.accounts.create({
-  //     country: "INR",
-  //     email: user.email,
-  //     controller: {
-  //       fees: {
-  //         payer: "application",
-  //       },
-  //       losses: {
-  //         payments: "application",
-  //       },
-  //       stripe_dashboard: {
-  //         type: "express",
-  //       },
-  //     },
-  //   });
-  //   await this.service.updateUser(user.id, {
-  //     stripe_account_id: stripeAccount.id,
-  //   });
-  //   const sessionId = uuidv4();
-  //   const accessToken = commanFunction.generateAccessToken(user, sessionId);
-  //   const refreshToken = commanFunction.generateRefreshToken(user, sessionId);
-  //   await this.service.createSession(user.id, sessionId);
-  //   await emailQueue.add("registration", {
-  //     email: user.email,
-  //     otp,
-  //     name: user.name,
-  //   });
-  //   return sendResponse(res, STATUS_CODE.CREATED, userMessage.USER_CREATED, {
-  //     user,
-  //     stripeAccount,
-  //     accessToken,
-  //     refreshToken,
-  //   });
-  // }
 
   async verifyUser(req, res) {
     const { otp } = req.body;
@@ -387,92 +333,174 @@ export default class userController {
     );
   }
 
- async login(req, res) {
-  const {
-    email,
-    password,
-    device_token,
-    device_type,
-    device_id,
-  } = req.body;
+  //  async login(req, res) {
+  //   const {
+  //     email,
+  //     password,
+  //     device_token,
+  //     device_type,
+  //     device_id,
+  //   } = req.body;
+  //   const userInDb = await this.service.getByEmail(email);
+  //   if (!userInDb) {
+  //     return sendResponse(
+  //       res,
+  //       STATUS_CODE.NOT_FOUND,
+  //       userMessage.NOT_FOUND
+  //     );
+  //   }
 
-  const userInDb = await this.service.getByEmail(email);
+  //   if (!userInDb.is_verified) {
+  //     return sendResponse(
+  //       res,
+  //       STATUS_CODE.BAD_REQUEST,
+  //       userMessage.VERIFY_EMAIL
+  //     );
+  //   }
 
-  if (!userInDb) {
-    return sendResponse(
-      res,
-      STATUS_CODE.NOT_FOUND,
-      userMessage.NOT_FOUND
-    );
-  }
+  //   const isMatch = await bcrypt.compare(password, userInDb.password);
+  //    console.log("===============>", isMatch);
+  //   if (!isMatch) {
+  //     return sendResponse(
+  //       res,
+  //       STATUS_CODE.BAD_REQUEST,
+  //       userMessage.INVALID_CREDENTIALS
+  //     );
+  //   }
 
-  if (!userInDb.is_verified) {
-    return sendResponse(
-      res,
-      STATUS_CODE.BAD_REQUEST,
-      userMessage.VERIFY_EMAIL
-    );
-  }
+  //   const sessionId = uuidv4();
 
-  const isMatch = await bcrypt.compare(password, userInDb.password);
-   console.log("===============>", isMatch);
-  if (!isMatch) {
-    return sendResponse(
-      res,
-      STATUS_CODE.BAD_REQUEST,
-      userMessage.INVALID_CREDENTIALS
-    );
-  }
+  //   const accessToken =
+  //     commanFunction.generateAccessToken(userInDb, sessionId);
 
-  const sessionId = uuidv4();
+  //   const refreshToken =
+  //     commanFunction.generateRefreshToken(userInDb, sessionId);
 
-  const accessToken =
-    commanFunction.generateAccessToken(userInDb, sessionId);
+  //   // Device details are optional
+  //   if (device_id) {
+  //     const existingDevice = await this.Models.UserDevices.findOne({
+  //       where: {
+  //         user_Id: userInDb.id,
+  //         device_id,
+  //       },
+  //     });
 
-  const refreshToken =
-    commanFunction.generateRefreshToken(userInDb, sessionId);
+  //     if (existingDevice) {
+  //       await existingDevice.update({
+  //         device_token,
+  //         device_type,
+  //         is_login: true,
+  //         login_time: new Date(),
+  //         logout_time: null,
+  //         session_id: sessionId,
+  //       });
+  //     } else {
+  //       await this.Models.UserDevices.create({
+  //         user_Id: userInDb.id,
+  //         device_token,
+  //         device_type,
+  //         device_id,
+  //         is_login: true,
+  //         login_time: new Date(),
+  //         session_id: sessionId,
+  //       });
+  //     }
+  //   }
 
-  // Device details are optional
-  if (device_id) {
-    const existingDevice = await this.Models.UserDevices.findOne({
-      where: {
-        user_Id: userInDb.id,
-        device_id,
-      },
-    });
-
-    if (existingDevice) {
-      await existingDevice.update({
-        device_token,
-        device_type,
-        is_login: true,
-        login_time: new Date(),
-        logout_time: null,
-        session_id: sessionId,
-      });
-    } else {
-      await this.Models.UserDevices.create({
-        user_Id: userInDb.id,
-        device_token,
-        device_type,
-        device_id,
-        is_login: true,
-        login_time: new Date(),
-        session_id: sessionId,
-      });
+  //   return sendResponse(
+  //     res,
+  //     STATUS_CODE.SUCCESS,
+  //     userMessage.LOGIN_SUCCESS,
+  //     {
+  //       accessToken,
+  //       refreshToken,
+  //     }
+  //   );
+  // }
+  async login(req, res) {
+    const { email, password, device_token, device_type, device_id } = req.body;
+    const userInDb = await this.service.getByEmail(email);
+    if (!userInDb) {
+      return sendResponse(res, STATUS_CODE.NOT_FOUND, userMessage.NOT_FOUND);
     }
-  }
-
-  return sendResponse(
-    res,
-    STATUS_CODE.SUCCESS,
-    userMessage.LOGIN_SUCCESS,
-    {
+    if (!userInDb.is_verified) {
+      return sendResponse(
+        res,
+        STATUS_CODE.BAD_REQUEST,
+        userMessage.VERIFY_EMAIL,
+      );
+    }
+    const isMatch = await bcrypt.compare(password, userInDb.password);
+    if (!isMatch) {
+      return sendResponse(
+        res,
+        STATUS_CODE.BAD_REQUEST,
+        userMessage.INVALID_CREDENTIALS,
+      );
+    }
+    if (userInDb.role_Id === 2) {
+      const store = await this.Models.Store.findOne({
+        where: {
+          user_id: userInDb.id,
+        },
+      });
+      // Vendor ne Business Details hi nahi bhari
+      if (!store) {
+        return sendResponse(
+          res,
+          STATUS_CODE.BAD_REQUEST,
+          "Please complete your business details first.",
+        );
+      }
+      // Business Details hai but verified nahi hai
+      if (!store.is_verified) {
+        return sendResponse(
+          res,
+          STATUS_CODE.BAD_REQUEST,
+          "Your business details are not verified yet.",
+        );
+      }
+    }
+    const sessionId = uuidv4();
+    const accessToken = commanFunction.generateAccessToken(userInDb, sessionId);
+    const refreshToken = commanFunction.generateRefreshToken(
+      userInDb,
+      sessionId,
+    );
+    if (device_id) {
+      const existingDevice = await this.Models.UserDevices.findOne({
+        where: {
+          user_Id: userInDb.id,
+          device_id,
+        },
+      });
+      if (existingDevice) {
+        await existingDevice.update({
+          device_token,
+          device_type,
+          is_login: true,
+          login_time: new Date(),
+          logout_time: null,
+          session_id: sessionId,
+        });
+      } else {
+        await this.Models.UserDevices.create({
+          user_Id: userInDb.id,
+          device_token,
+          device_type,
+          device_id,
+          is_login: true,
+          login_time: new Date(),
+          logout_time: null,
+          session_id: sessionId,
+        });
+      }
+    }
+    return sendResponse(res, STATUS_CODE.SUCCESS, userMessage.LOGIN_SUCCESS, {
       accessToken,
       refreshToken,
-    }
-  );
-}
+    });
+  }
 
   async logout(req, res) {
     const user = req.user;
