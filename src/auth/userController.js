@@ -278,7 +278,7 @@ export default class userController {
     );
   }
   async updateUser(req, res) {
-    const { id } = req.params;
+    const id = req.user.id;
     const existingUser = await this.service.getUserById(id);
     if (!existingUser) {
       return sendResponse(

@@ -64,8 +64,8 @@ router.post(
   asyncHandler(userController.resendOtpForgotPassword.bind(userController)),
 );
 router.put(
-  "/update-user/:id",
-  upload.single("avtar"),
+  "/update-user",
+   upload.single("avtar"),
   authorize,
   validateRequest(updateUserSchema),
   asyncHandler(userController.updateUser.bind(userController)),

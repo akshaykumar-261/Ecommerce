@@ -335,6 +335,14 @@ export default class StoreController {
   }
 
   async addProduct(req, res) {
+    const user = await this.services.getUserById(req.user.id);
+    if (!user || !user.is_account_enabled) {
+      return sendResponse(
+        res,
+        STATUS_CODE.BAD_REQUEST,
+        "First create your connected account to add Product",
+      );
+    }
     const payload = {
       ...req.body,
     };
