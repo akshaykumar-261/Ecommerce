@@ -38,8 +38,13 @@ export const ResetOtp = async (data) => {
   const response = await axiosInstance.post("/users/reset-password", data);
   return response.data;
 };
-export const GetUser = async (data) => {
-  const response = await axiosInstance.post("/users/get-User", data);
+export const GetUser = async () => {
+  const response = await axiosInstance.get("/users/get-User");
+  return response.data;
+};
+export const UpdateUser = async (data) => {
+  const response = await axiosInstance.put("/users/update-user", data);
+
   return response.data;
 };
 export const VenderRegister = async (data) => {

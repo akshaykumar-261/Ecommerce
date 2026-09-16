@@ -18,6 +18,7 @@ import AddProducts from "../pages/Vendor/AddProducts";
 import AddProductMedia from "../pages/Vendor/AddProductMedia";
 import EditProduct from "../pages/Vendor/EditProduct";
 import ProtectedRoute from "../components/common/ProtectedRoute";
+import Profile from "../pages/Unauth/Profile";
 function AppRoutes() {
   return (
     <Routes>
@@ -54,14 +55,7 @@ function AppRoutes() {
       <Route path="/vendor/stripeConnectLink" element={<StripeConnect />} />
       <Route path="/sideBar" element={<Sidebar />} />
       <Route path="/topBar" element={<Topbar />} />
-      <Route
-        path="/vendor/dashboard"
-        element={
-          <ProtectedRoute requireBusinessDetails>
-            <VendorDashboard />
-          </ProtectedRoute>
-        }
-      />
+      <Route path="/vendor/dashboard" element={<VendorDashboard />} />
       <Route
         path="/bussinessAccountVendor"
         element={
@@ -76,6 +70,7 @@ function AppRoutes() {
         element={<AddProductMedia />}
       />
       <Route path="/vendor/editProduct/:productId" element={<EditProduct />} />
+      <Route path="/profile" element={<Profile />} />
     </Routes>
   );
 }

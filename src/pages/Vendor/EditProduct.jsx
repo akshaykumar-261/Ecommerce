@@ -1,16 +1,354 @@
-import React, { useState } from "react";
+import React, { useRef, useState } from "react";
 import { ArrowLeft, Image as ImageIcon, Film, X, Plus } from "lucide-react";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import Sidebar from "../../components/common/SideBar";
 import Topbar from "../../components/common/Topbar";
+import {
+  useUpadteProduct,
+  useAddProductImage,
+  useDeleteProductMedia,
+} from "../../api/useVendorApi";
+import toast from "react-hot-toast";
 function EditProduct() {
   const navigate = useNavigate();
   const location = useLocation();
   const { productId } = useParams();
   const [mobileOpen, setMobileOpen] = useState(false);
-  // PrductTable se product receive hoga
+  // ProductTable se product receive hoga
   const product = location.state?.product;
-  // Agar direct URL open kiya aur product state nahi hai
+  /*
+   * File input refs
+   */
+  const imageInputRef = useRef(null);
+  const videoInputRef = useRef(null);
+
+  /*
+   * Product update mutation
+   */
+  const { mutate: updateProduct, isPending: isUpdatingProduct } =
+    useUpadteProduct();
+
+  /*
+   * Product media upload mutation
+   */
+  const { mutate: addProductMedia, isPending: isUploadingMedia } =
+    useAddProductImage();
+
+  /*
+   * Product media delete mutation
+   */
+  const { mutate: deleteProductMedia, isPending: isDeletingMedia } =
+    useDeleteProductMedia();
+
+  /*
+   * Product details
+   */
+  const [formData, setFormData] = useState({
+    pro_name: product?.pro_name || "",
+    quantity: product?.quantity ?? "",
+    price: product?.price ?? "",
+    discount_price: product?.discount_price ?? "",
+    description: product?.description || "",
+  });
+
+  /*
+   * Product media ko local state mein rakhenge.
+   *
+   * Isse API call ke baad page reload ki zarurat nahi padegi.
+   */
+  const [mediaList, setMediaList] = useState(product?.product_media || []);
+
+  /*
+   * Delete hone wale media ki ID
+   */
+  const [deletingMediaId, setDeletingMediaId] = useState(null);
+
+  /*
+   * Input change
+   */
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
+
+  /*
+   * =========================================
+   * UPDATE PRODUCT DETAILS
+   * =========================================
+   */
+  const handleUpdateProduct = () => {
+    const id = product?.id || productId;
+
+    if (!id) {
+      toast.error("Product ID not found");
+      return;
+    }
+
+    updateProduct(
+      {
+        productId: id,
+        data: formData,
+      },
+      {
+        onSuccess: (data) => {
+          toast.success(data?.message || "Product updated successfully!");
+
+          navigate("/vendor/addProduct");
+        },
+
+        onError: (error) => {
+          toast.error(
+            error.response?.data?.message || "Failed to update product",
+          );
+        },
+      },
+    );
+  };
+
+  /*
+   * =========================================
+   * PRODUCT IMAGES
+   * =========================================
+   */
+  const images = mediaList.filter((media) => media.media_type === "images");
+
+  /*
+   * =========================================
+   * PRODUCT VIDEOS
+   * =========================================
+   */
+  const videos = mediaList.filter((media) => media.media_type === "video");
+
+  /*
+   * =========================================
+   * OPEN IMAGE PICKER
+   * =========================================
+   */
+  const handleAddImages = () => {
+    imageInputRef.current?.click();
+  };
+
+  /*
+   * =========================================
+   * OPEN VIDEO PICKER
+   * =========================================
+   */
+  const handleAddVideos = () => {
+    videoInputRef.current?.click();
+  };
+
+  /*
+   * =========================================
+   * UPLOAD IMAGES
+   * =========================================
+   */
+  const handleImageChange = (e) => {
+    const files = Array.from(e.target.files || []);
+
+    if (files.length === 0) {
+      return;
+    }
+
+    const id = product?.id || productId;
+
+    if (!id) {
+      toast.error("Product ID not found");
+      return;
+    }
+
+    const formData = new FormData();
+
+    files.forEach((file) => {
+      formData.append("product_images", file);
+    });
+
+    addProductMedia(
+      {
+        productId: id,
+        data: formData,
+      },
+      {
+        onSuccess: (data) => {
+          /*
+           * Backend response mein agar media array
+           * aa raha hai to usko use karo.
+           */
+          const newMedia =
+            data?.data?.product_media ||
+            data?.data?.media ||
+            data?.product_media ||
+            data?.media ||
+            [];
+
+          if (Array.isArray(newMedia) && newMedia.length > 0) {
+            setMediaList(newMedia);
+          } else {
+            /*
+             * Agar backend sirf success message bhej raha hai,
+             * to temporary local preview create kar rahe hain.
+             */
+            const localImages = files.map((file, index) => ({
+              id: `temp-image-${Date.now()}-${index}`,
+              media_type: "images",
+              media_url: URL.createObjectURL(file),
+              isLocal: true,
+            }));
+
+            setMediaList((prev) => [...prev, ...localImages]);
+          }
+
+          toast.success(data?.message || "Images uploaded successfully!");
+        },
+
+        onError: (error) => {
+          toast.error(
+            error.response?.data?.message || "Failed to upload images",
+          );
+        },
+      },
+    );
+
+    /*
+     * Same file dobara select karne ke liye input reset.
+     */
+    e.target.value = "";
+  };
+
+  /*
+   * =========================================
+   * UPLOAD VIDEOS
+   * =========================================
+   */
+  const handleVideoChange = (e) => {
+    const files = Array.from(e.target.files || []);
+
+    if (files.length === 0) {
+      return;
+    }
+
+    const id = product?.id || productId;
+
+    if (!id) {
+      toast.error("Product ID not found");
+      return;
+    }
+
+    const formData = new FormData();
+
+    files.forEach((file) => {
+      formData.append("product_videos", file);
+    });
+
+    addProductMedia(
+      {
+        productId: id,
+        data: formData,
+      },
+      {
+        onSuccess: (data) => {
+          /*
+           * Backend response mein agar media array
+           * aa raha hai to use karenge.
+           */
+          const newMedia =
+            data?.data?.product_media ||
+            data?.data?.media ||
+            data?.product_media ||
+            data?.media ||
+            [];
+
+          if (Array.isArray(newMedia) && newMedia.length > 0) {
+            setMediaList(newMedia);
+          } else {
+            /*
+             * Agar backend media return nahi kar raha,
+             * temporary video preview show karenge.
+             */
+            const localVideos = files.map((file, index) => ({
+              id: `temp-video-${Date.now()}-${index}`,
+              media_type: "video",
+              media_url: URL.createObjectURL(file),
+              isLocal: true,
+            }));
+
+            setMediaList((prev) => [...prev, ...localVideos]);
+          }
+
+          toast.success(data?.message || "Videos uploaded successfully!");
+        },
+
+        onError: (error) => {
+          toast.error(
+            error.response?.data?.message || "Failed to upload videos",
+          );
+        },
+      },
+    );
+
+    /*
+     * Input reset
+     */
+    e.target.value = "";
+  };
+
+  /*
+   * =========================================
+   * DELETE PRODUCT MEDIA
+   * =========================================
+   */
+  const handleDeleteMedia = (mediaId) => {
+    if (!mediaId) {
+      toast.error("Media ID not found");
+      return;
+    }
+
+    /*
+     * Temporary local media hai to
+     * API call ki zarurat nahi.
+     */
+    const selectedMedia = mediaList.find((media) => media.id === mediaId);
+
+    if (selectedMedia?.isLocal) {
+      setMediaList((prev) => prev.filter((media) => media.id !== mediaId));
+
+      toast.success("Media removed successfully!");
+      return;
+    }
+
+    setDeletingMediaId(mediaId);
+
+    deleteProductMedia(mediaId, {
+      onSuccess: (data) => {
+        /*
+         * API success ke baad sirf selected media
+         * local state se remove kar do.
+         *
+         * Page reload ki zarurat nahi.
+         */
+        setMediaList((prev) => prev.filter((media) => media.id !== mediaId));
+
+        toast.success(data?.message || "Media deleted successfully!");
+
+        setDeletingMediaId(null);
+      },
+
+      onError: (error) => {
+        toast.error(error.response?.data?.message || "Failed to delete media");
+
+        setDeletingMediaId(null);
+      },
+    });
+  };
+
+  /*
+   * =========================================
+   * PRODUCT NOT FOUND
+   * =========================================
+   */
   if (!product) {
     return (
       <div className="min-h-screen bg-[#f5f7fb]">
@@ -54,16 +392,6 @@ function EditProduct() {
     );
   }
 
-  // Images
-  const images =
-    product.product_media?.filter((media) => media.media_type === "images") ||
-    [];
-
-  // Videos
-  const videos =
-    product.product_media?.filter((media) => media.media_type === "video") ||
-    [];
-
   return (
     <div className="min-h-screen bg-[#f5f7fb]">
       {/* Sidebar */}
@@ -83,7 +411,10 @@ function EditProduct() {
 
         <main className="p-5 lg:p-6">
           <div className="mx-auto max-w-5xl">
-            {/* Header */}
+            {/* ========================================= */}
+            {/* HEADER */}
+            {/* ========================================= */}
+
             <div className="mb-6 flex items-center gap-3">
               <button
                 type="button"
@@ -104,7 +435,10 @@ function EditProduct() {
               </div>
             </div>
 
-            {/* Product ID */}
+            {/* ========================================= */}
+            {/* PRODUCT ID */}
+            {/* ========================================= */}
+
             <div className="mb-5 flex items-center justify-between rounded-xl border border-indigo-100 bg-indigo-50 px-5 py-3">
               <div>
                 <p className="text-xs text-indigo-500">Product ID</p>
@@ -127,7 +461,10 @@ function EditProduct() {
               </div>
             </div>
 
-            {/* Product Details */}
+            {/* ========================================= */}
+            {/* PRODUCT DETAILS */}
+            {/* ========================================= */}
+
             <div className="mb-6 rounded-xl border border-gray-100 bg-white p-6 shadow-sm">
               <div className="mb-5">
                 <h2 className="text-base font-semibold text-gray-800">
@@ -148,7 +485,9 @@ function EditProduct() {
 
                   <input
                     type="text"
-                    defaultValue={product.pro_name}
+                    name="pro_name"
+                    value={formData.pro_name}
+                    onChange={handleChange}
                     className="h-11 w-full rounded-lg border border-gray-200 px-4 text-sm outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100"
                   />
                 </div>
@@ -175,7 +514,9 @@ function EditProduct() {
 
                   <input
                     type="number"
-                    defaultValue={product.quantity}
+                    name="quantity"
+                    value={formData.quantity}
+                    onChange={handleChange}
                     className="h-11 w-full rounded-lg border border-gray-200 px-4 text-sm outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100"
                   />
                 </div>
@@ -193,13 +534,15 @@ function EditProduct() {
 
                     <input
                       type="number"
-                      defaultValue={product.price}
+                      name="price"
+                      value={formData.price}
+                      onChange={handleChange}
                       className="w-full px-3 text-sm outline-none"
                     />
                   </div>
                 </div>
 
-                {/* Discount */}
+                {/* Discount Price */}
                 <div>
                   <label className="mb-2 block text-sm font-medium text-gray-700">
                     Discount Price
@@ -212,7 +555,9 @@ function EditProduct() {
 
                     <input
                       type="number"
-                      defaultValue={product.discount_price || ""}
+                      name="discount_price"
+                      value={formData.discount_price}
+                      onChange={handleChange}
                       className="w-full px-3 text-sm outline-none"
                     />
                   </div>
@@ -226,7 +571,9 @@ function EditProduct() {
 
                   <textarea
                     rows="5"
-                    defaultValue={product.description}
+                    name="description"
+                    value={formData.description}
+                    onChange={handleChange}
                     className="w-full resize-none rounded-lg border border-gray-200 px-4 py-3 text-sm outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100"
                   />
                 </div>
@@ -237,21 +584,27 @@ function EditProduct() {
                 <button
                   type="button"
                   onClick={() => navigate("/vendor/addProduct")}
-                  className="rounded-lg border border-gray-200 px-5 py-2.5 text-sm font-medium text-gray-600 hover:bg-gray-50"
+                  disabled={isUpdatingProduct}
+                  className="rounded-lg border border-gray-200 px-5 py-2.5 text-sm font-medium text-gray-600 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-60"
                 >
                   Cancel
                 </button>
 
                 <button
                   type="button"
-                  className="rounded-lg bg-gradient-to-r from-indigo-600 to-blue-500 px-5 py-2.5 text-sm font-medium text-white shadow-sm hover:shadow-md"
+                  onClick={handleUpdateProduct}
+                  disabled={isUpdatingProduct}
+                  className="rounded-lg bg-gradient-to-r from-indigo-600 to-blue-500 px-5 py-2.5 text-sm font-medium text-white shadow-sm hover:shadow-md disabled:cursor-not-allowed disabled:opacity-60"
                 >
-                  Save Changes
+                  {isUpdatingProduct ? "Saving..." : "Save Changes"}
                 </button>
               </div>
             </div>
 
-            {/* Images */}
+            {/* ========================================= */}
+            {/* PRODUCT IMAGES */}
+            {/* ========================================= */}
+
             <div className="mb-6 rounded-xl border border-gray-100 bg-white p-6 shadow-sm">
               <div className="mb-5 flex items-center justify-between">
                 <div>
@@ -282,15 +635,19 @@ function EditProduct() {
                         className="aspect-square w-full object-cover"
                       />
 
-                      {/* Image number */}
+                      {/* Image Number */}
                       <div className="absolute bottom-2 left-2 rounded-md bg-black/60 px-2 py-1 text-xs text-white">
                         Image #{media.id}
                       </div>
 
-                      {/* Remove button */}
+                      {/* Delete */}
                       <button
                         type="button"
-                        className="absolute right-2 top-2 flex h-7 w-7 items-center justify-center rounded-full bg-white text-gray-500 opacity-0 shadow-sm transition group-hover:opacity-100 hover:text-red-500"
+                        onClick={() => handleDeleteMedia(media.id)}
+                        disabled={
+                          isDeletingMedia && deletingMediaId === media.id
+                        }
+                        className="absolute right-2 top-2 flex h-7 w-7 items-center justify-center rounded-full bg-white text-gray-500 opacity-0 shadow-sm transition group-hover:opacity-100 hover:text-red-500 disabled:cursor-not-allowed disabled:opacity-50"
                         title="Remove image"
                       >
                         <X size={14} />
@@ -310,17 +667,33 @@ function EditProduct() {
                 </div>
               )}
 
+              {/* Hidden Image Input */}
+              <input
+                ref={imageInputRef}
+                type="file"
+                accept="image/*"
+                multiple
+                className="hidden"
+                onChange={handleImageChange}
+              />
+
               {/* Add Images */}
               <button
                 type="button"
-                className="mt-5 flex items-center gap-2 rounded-lg border border-indigo-200 px-4 py-2.5 text-sm font-medium text-indigo-600 hover:bg-indigo-50"
+                onClick={handleAddImages}
+                disabled={isUploadingMedia}
+                className="mt-5 flex items-center gap-2 rounded-lg border border-indigo-200 px-4 py-2.5 text-sm font-medium text-indigo-600 hover:bg-indigo-50 disabled:cursor-not-allowed disabled:opacity-60"
               >
                 <Plus size={17} />
-                Add More Images
+
+                {isUploadingMedia ? "Uploading..." : "Add More Images"}
               </button>
             </div>
 
-            {/* Videos */}
+            {/* ========================================= */}
+            {/* PRODUCT VIDEOS */}
+            {/* ========================================= */}
+
             <div className="mb-6 rounded-xl border border-gray-100 bg-white p-6 shadow-sm">
               <div className="mb-5 flex items-center justify-between">
                 <div>
@@ -360,9 +733,14 @@ function EditProduct() {
                           </span>
                         </div>
 
+                        {/* Delete */}
                         <button
                           type="button"
-                          className="flex h-7 w-7 items-center justify-center rounded-lg text-gray-400 hover:bg-red-50 hover:text-red-500"
+                          onClick={() => handleDeleteMedia(media.id)}
+                          disabled={
+                            isDeletingMedia && deletingMediaId === media.id
+                          }
+                          className="flex h-7 w-7 items-center justify-center rounded-lg text-gray-400 hover:bg-red-50 hover:text-red-500 disabled:cursor-not-allowed disabled:opacity-50"
                           title="Remove video"
                         >
                           <X size={15} />
@@ -383,13 +761,26 @@ function EditProduct() {
                 </div>
               )}
 
+              {/* Hidden Video Input */}
+              <input
+                ref={videoInputRef}
+                type="file"
+                accept="video/*"
+                multiple
+                className="hidden"
+                onChange={handleVideoChange}
+              />
+
               {/* Add Videos */}
               <button
                 type="button"
-                className="mt-5 flex items-center gap-2 rounded-lg border border-purple-200 px-4 py-2.5 text-sm font-medium text-purple-600 hover:bg-purple-50"
+                onClick={handleAddVideos}
+                disabled={isUploadingMedia}
+                className="mt-5 flex items-center gap-2 rounded-lg border border-purple-200 px-4 py-2.5 text-sm font-medium text-purple-600 hover:bg-purple-50 disabled:cursor-not-allowed disabled:opacity-60"
               >
                 <Plus size={17} />
-                Add More Videos
+
+                {isUploadingMedia ? "Uploading..." : "Add More Videos"}
               </button>
             </div>
           </div>

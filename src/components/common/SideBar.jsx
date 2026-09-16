@@ -11,9 +11,7 @@ import {
   Settings,
   BarChart3,
 } from "lucide-react";
-
 import { NavLink } from "react-router-dom";
-
 const vendorMenu = [
   {
     label: "Dashboard",
@@ -39,11 +37,6 @@ const vendorMenu = [
     label: "Store Settings",
     path: "/vendor/store-settings",
     icon: Store,
-  },
-  {
-    label: "Profile",
-    path: "/vendor/profile",
-    icon: User,
   },
   {
     label: "Support",

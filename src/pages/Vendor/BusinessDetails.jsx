@@ -52,10 +52,14 @@ function BusinessDetails() {
     if (data.store_banner instanceof File) {
       formData.append("store_banner", data.store_banner);
     }
-    createStoreMutation.mutate(formData);
-     setBusinessDetailsCompleted(true);
-    reset();
-    navigate("/vendor/dashboard");
+   
+  createStoreMutation.mutate(formData, {
+    onSuccess: () => {
+      setBusinessDetailsCompleted(true);
+      reset();
+      navigate("/vendorLogin");
+    },
+  });
   };
 
   return (

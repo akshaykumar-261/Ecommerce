@@ -1,4 +1,4 @@
-import { useMutation,useQuery} from "@tanstack/react-query";
+import { useMutation,useQuery,useQueryClient} from "@tanstack/react-query";
 import {
   RegisterUser,
   LoginUser,
@@ -10,7 +10,9 @@ import {
   ResetOtp,
   VenderRegister,
   VenderOnboardingLink,
-  VenderStripeDetail
+  VenderStripeDetail,
+  GetUser,
+  UpdateUser
 } from "./authApi";
 export const useRegister = () => {
   return useMutation({
@@ -167,6 +169,29 @@ export const useVenderStripeDetail = () => {
   return useQuery({
     queryKey: ["stripe-account-status"],
     queryFn: VenderStripeDetail,
+  });
+};
+export const useGetUser = () => {
+  return useQuery({
+    queryKey: ["user"],
+    queryFn: GetUser,
+  });
+};
+export const useUpdateUser = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: UpdateUser,
+    onSuccess: (data) => {
+      console.log("User updated successfully:", data);
+      queryClient.invalidateQueries({
+        queryKey: ["user"],
+      });
+    },
+    onError: (error) => {
+      console.error("STATUS:", error.response?.status);
+      console.error("BACKEND ERROR:", error.response?.data);
+      console.error("FULL ERROR:", error);
+    },
   });
 };
 

@@ -9,54 +9,193 @@ import {
   ChevronRight,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { useGetProducts, useGetCategory } from "../../api/useVendorApi";
+import { useQueryClient } from "@tanstack/react-query";
+import toast from "react-hot-toast";
+import {
+  useGetProducts,
+  useGetCategory,
+  useDeleteProduct,
+} from "../../api/useVendorApi";
 function ProductTable({ onAddProduct }) {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
+
   // Current page
   const [page, setPage] = useState(1);
-  // Products per page
-  const [limit] = useState(10);
+
+  // Backend ko 10 products per page chahiye
+  const limit = 10;
+
+  // Products backend pagination ke according aa rahe hain
   const { data: productData, isLoading, isError } = useGetProducts(page, limit);
-  const { data: categoryData } = useGetCategory();
-  // Products
-  const products = productData?.data?.data || [];
-  // Pagination information
-  const totalRecords = productData?.data?.totalRecords || 0;
-  const totalPages = productData?.data?.totalPages || 1;
-  const currentPage = productData?.data?.currcurrentPage || page;
+
   // Categories
+  const { data: categoryData } = useGetCategory();
+
+  // Delete product mutation
+  const { mutate: deleteProduct, isPending: isDeletingProduct } =
+    useDeleteProduct();
+
+  // Jis product ko delete kiya ja raha hai
+  const [deletingProductId, setDeletingProductId] = useState(null);
+
+  /*
+   * =========================================
+   * PRODUCTS
+   * =========================================
+   */
+
+  const products = productData?.data?.data || [];
+
+  /*
+   * =========================================
+   * BACKEND PAGINATION
+   * =========================================
+   */
+
+  const totalRecords = productData?.data?.totalRecords || 0;
+
+  const totalPages = productData?.data?.totalPages || 1;
+
+  const currentPage = productData?.data?.currentPage || page;
+
+  /*
+   * =========================================
+   * CATEGORIES
+   * =========================================
+   */
+
   const categories = categoryData?.data?.categories || [];
-  // Get category name
+
+  /*
+   * =========================================
+   * GET CATEGORY NAME
+   * =========================================
+   */
+
   const getCategoryName = (categoryId) => {
     const category = categories.find(
       (item) => Number(item.id) === Number(categoryId),
     );
+
     return category?.cat_name || `Category ${categoryId}`;
   };
-  // Get first product image
+
+  /*
+   * =========================================
+   * GET PRODUCT IMAGE
+   * =========================================
+   */
+
   const getProductImage = (product) => {
     const image = product?.product_media?.find(
       (media) => media.media_type === "images",
     );
+
     return image?.media_url;
   };
-  // Previous page
+
+  /*
+   * =========================================
+   * PREVIOUS PAGE
+   * =========================================
+   */
+
   const handlePrevious = () => {
-    if (page > 1) {
+    if (currentPage > 1) {
       setPage((prev) => prev - 1);
     }
   };
-  // Next page
+
+  /*
+   * =========================================
+   * NEXT PAGE
+   * =========================================
+   */
+
   const handleNext = () => {
-    if (page < totalPages) {
+    if (currentPage < totalPages) {
       setPage((prev) => prev + 1);
     }
   };
 
-  // Numbered page
+  /*
+   * =========================================
+   * NUMBERED PAGE
+   * =========================================
+   */
+
   const handlePageChange = (pageNumber) => {
-    setPage(pageNumber);
+    if (pageNumber !== currentPage) {
+      setPage(pageNumber);
+    }
   };
+
+  /*
+   * =========================================
+   * DELETE PRODUCT
+   * =========================================
+   */
+
+  const handleDeleteProduct = (productId) => {
+    if (!productId) {
+      toast.error("Product ID not found");
+      return;
+    }
+
+    const confirmed = window.confirm(
+      "Are you sure you want to delete this product?",
+    );
+
+    if (!confirmed) {
+      return;
+    }
+
+    setDeletingProductId(productId);
+
+    deleteProduct(productId, {
+      onSuccess: (data) => {
+        toast.success(data?.message || "Product deleted successfully!");
+
+        /*
+         * Agar current page par sirf 1 product tha
+         * aur wo delete ho gaya,
+         * to previous page par chale jayenge.
+         */
+        if (products.length === 1 && currentPage > 1) {
+          setPage((prev) => prev - 1);
+        }
+
+        /*
+         * Backend se latest products dobara fetch honge.
+         */
+        queryClient.invalidateQueries({
+          queryKey: ["vendor-products"],
+        });
+
+        setDeletingProductId(null);
+      },
+
+      onError: (error) => {
+        toast.error(
+          error.response?.data?.message || "Failed to delete product",
+        );
+
+        setDeletingProductId(null);
+      },
+    });
+  };
+
+  /*
+   * =========================================
+   * PAGINATION SHOW / HIDE
+   * =========================================
+   *
+   * Pagination sirf tab show hogi
+   * jab total products 10 se zyada hon.
+   */
+
+  const showPagination = totalRecords > limit;
 
   return (
     <div>
@@ -163,6 +302,9 @@ function ProductTable({ onAddProduct }) {
                   {products.map((product) => {
                     const productImage = getProductImage(product);
 
+                    const isDeleting =
+                      isDeletingProduct && deletingProductId === product.id;
+
                     return (
                       <tr
                         key={product.id}
@@ -252,24 +394,36 @@ function ProductTable({ onAddProduct }) {
                         {/* Action */}
                         <td className="px-5 py-4">
                           <div className="flex justify-end gap-2">
+                            {/* Edit */}
                             <button
                               type="button"
                               onClick={() =>
                                 navigate(`/vendor/editProduct/${product.id}`, {
-                                  state: { product },
+                                  state: {
+                                    product,
+                                  },
                                 })
                               }
-                              className="flex h-9 w-9 items-center justify-center rounded-lg border border-gray-200 text-gray-500 transition hover:border-indigo-200 hover:bg-indigo-50 hover:text-indigo-600"
+                              disabled={isDeletingProduct}
+                              className="flex h-9 w-9 items-center justify-center rounded-lg border border-gray-200 text-gray-500 transition hover:border-indigo-200 hover:bg-indigo-50 hover:text-indigo-600 disabled:cursor-not-allowed disabled:opacity-50"
                               title="Edit Product"
                             >
                               <Pencil size={16} />
                             </button>
+
+                            {/* Delete */}
                             <button
                               type="button"
-                              className="flex h-9 w-9 items-center justify-center rounded-lg border border-gray-200 text-gray-500 transition hover:border-red-200 hover:bg-red-50 hover:text-red-500"
+                              onClick={() => handleDeleteProduct(product.id)}
+                              disabled={isDeletingProduct}
+                              className="flex h-9 w-9 items-center justify-center rounded-lg border border-gray-200 text-gray-500 transition hover:border-red-200 hover:bg-red-50 hover:text-red-500 disabled:cursor-not-allowed disabled:opacity-50"
                               title="Delete Product"
                             >
-                              <Trash2 size={16} />
+                              {isDeleting ? (
+                                <span className="h-4 w-4 animate-spin rounded-full border-2 border-gray-300 border-t-red-500" />
+                              ) : (
+                                <Trash2 size={16} />
+                              )}
                             </button>
                           </div>
                         </td>
@@ -281,70 +435,76 @@ function ProductTable({ onAddProduct }) {
             </div>
 
             {/* Pagination */}
-            <div className="flex flex-col gap-4 border-t border-gray-100 px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
-              {/* Showing */}
-              <p className="text-sm text-gray-500">
-                Showing{" "}
-                <span className="font-medium text-gray-700">
-                  {products.length}
-                </span>{" "}
-                of{" "}
-                <span className="font-medium text-gray-700">
-                  {totalRecords}
-                </span>{" "}
-                products
-              </p>
+            {showPagination && (
+              <div className="flex flex-col gap-4 border-t border-gray-100 px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
+                {/* Showing */}
+                <p className="text-sm text-gray-500">
+                  Showing{" "}
+                  <span className="font-medium text-gray-700">
+                    {products.length}
+                  </span>{" "}
+                  of{" "}
+                  <span className="font-medium text-gray-700">
+                    {totalRecords}
+                  </span>{" "}
+                  products
+                </p>
 
-              {/* Pagination Buttons */}
-              <div className="flex items-center gap-1">
-                {/* Previous */}
-                <button
-                  type="button"
-                  onClick={handlePrevious}
-                  disabled={page === 1 || isLoading}
-                  className="flex h-9 w-9 items-center justify-center rounded-lg border border-gray-200 text-gray-500 transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-40"
-                >
-                  <ChevronLeft size={17} />
-                </button>
-
-                {/* Page Numbers */}
-                {Array.from(
-                  { length: totalPages },
-                  (_, index) => index + 1,
-                ).map((pageNumber) => (
+                {/* Pagination Buttons */}
+                <div className="flex items-center gap-1">
+                  {/* Previous */}
                   <button
-                    key={pageNumber}
                     type="button"
-                    onClick={() => handlePageChange(pageNumber)}
-                    className={`h-9 min-w-9 rounded-lg px-2 text-sm font-medium transition ${
-                      currentPage === pageNumber
-                        ? "bg-indigo-600 text-white"
-                        : "border border-gray-200 text-gray-600 hover:bg-gray-50"
-                    }`}
+                    onClick={handlePrevious}
+                    disabled={currentPage === 1 || isLoading}
+                    className="flex h-9 w-9 items-center justify-center rounded-lg border border-gray-200 text-gray-500 transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-40"
                   >
-                    {pageNumber}
+                    <ChevronLeft size={17} />
                   </button>
-                ))}
 
-                {/* Next */}
-                <button
-                  type="button"
-                  onClick={handleNext}
-                  disabled={page === totalPages || isLoading}
-                  className="flex h-9 w-9 items-center justify-center rounded-lg border border-gray-200 text-gray-500 transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-40"
-                >
-                  <ChevronRight size={17} />
-                </button>
+                  {/* Page Numbers */}
+                  {Array.from(
+                    { length: totalPages },
+                    (_, index) => index + 1,
+                  ).map((pageNumber) => (
+                    <button
+                      key={pageNumber}
+                      type="button"
+                      onClick={() => handlePageChange(pageNumber)}
+                      className={`h-9 min-w-9 rounded-lg px-2 text-sm font-medium transition ${
+                        currentPage === pageNumber
+                          ? "bg-indigo-600 text-white"
+                          : "border border-gray-200 text-gray-600 hover:bg-gray-50"
+                      }`}
+                    >
+                      {pageNumber}
+                    </button>
+                  ))}
+
+                  {/* Next */}
+                  <button
+                    type="button"
+                    onClick={handleNext}
+                    disabled={currentPage === totalPages || isLoading}
+                    className="flex h-9 w-9 items-center justify-center rounded-lg border border-gray-200 text-gray-500 transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-40"
+                  >
+                    <ChevronRight size={17} />
+                  </button>
+                </div>
+
+                {/* Current Page */}
+                <p className="text-sm text-gray-500">
+                  Page{" "}
+                  <span className="font-medium text-gray-700">
+                    {currentPage}
+                  </span>{" "}
+                  of{" "}
+                  <span className="font-medium text-gray-700">
+                    {totalPages}
+                  </span>
+                </p>
               </div>
-
-              {/* Current Page */}
-              <p className="text-sm text-gray-500">
-                Page{" "}
-                <span className="font-medium text-gray-700">{currentPage}</span>{" "}
-                of{" "}
-                <span className="font-medium text-gray-700">{totalPages}</span>
-              </p>
-            </div>
+            )}
           </>
         )}
       </div>

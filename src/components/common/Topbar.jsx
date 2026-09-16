@@ -1,7 +1,13 @@
-import React from "react";
-import { Bell, Menu, ChevronDown } from "lucide-react";
-
+import React, { useState } from "react";
+import { Menu, ChevronDown, User, Mail, Phone } from "lucide-react";
+import { useGetUser } from "../../api/useAuth";
+import { useNavigate } from "react-router-dom";
 function Topbar({ setMobileOpen, role = "vendor", userName = "Vikash Store" }) {
+  const [profileOpen, setProfileOpen] = useState(false);
+  const { data, isLoading } = useGetUser();
+  const user = data?.data;
+  const displayName = user?.name || user?.first_name || userName;
+  const navigate = useNavigate();
   return (
     <header
       className="
@@ -14,9 +20,8 @@ function Topbar({ setMobileOpen, role = "vendor", userName = "Vikash Store" }) {
         lg:px-6
       "
     >
-      {/* ================= LEFT ================= */}
+      {/* LEFT */}
       <div className="flex items-center">
-        {/* Mobile Menu */}
         <button
           className="
             rounded-lg
@@ -32,13 +37,14 @@ function Topbar({ setMobileOpen, role = "vendor", userName = "Vikash Store" }) {
         </button>
       </div>
 
-      {/* ================= RIGHT ================= */}
-      <div className="flex items-center gap-4">
-        {/* ================= PROFILE ================= */}
-        <div
+      {/* RIGHT */}
+      <div className="relative flex items-center gap-4">
+        {/* PROFILE BUTTON */}
+        <button
+          type="button"
+          onClick={() => setProfileOpen((prev) => !prev)}
           className="
             flex
-            cursor-pointer
             items-center
             gap-2.5
             rounded-lg
@@ -48,30 +54,39 @@ function Topbar({ setMobileOpen, role = "vendor", userName = "Vikash Store" }) {
             hover:bg-gray-50
           "
         >
-          {/* Avatar */}
+          {/* avtar */}
           <div
             className="
-              flex
-              h-9
-              w-9
-              items-center
-              justify-center
-              rounded-full
-              bg-gradient-to-r
-              from-[#4c2ed8]
-              to-[#368de8]
-              text-xs
-              font-semibold
-              text-white
-            "
+            flex
+            h-9
+            w-9
+            items-center
+            justify-center
+            overflow-hidden
+            rounded-full
+            bg-gradient-to-r
+            from-[#4c2ed8]
+            to-[#368de8]
+            text-xs
+            font-semibold
+            text-white
+          "
           >
-            {role === "admin" ? "AD" : "VS"}
+            {user?.avtar ? (
+              <img
+                src={user.avtar}
+                alt="Profile"
+                className="h-full w-full object-cover"
+              />
+            ) : (
+              displayName?.charAt(0)?.toUpperCase() || "U"
+            )}
           </div>
 
-          {/* User Information */}
-          <div className="hidden sm:block">
+          {/* User Name */}
+          <div className="hidden text-left sm:block">
             <p className="text-xs font-semibold leading-4 text-gray-800">
-              {userName}
+              {isLoading ? "Loading..." : displayName}
             </p>
 
             <p className="text-[11px] leading-4 text-gray-500">
@@ -79,9 +94,141 @@ function Topbar({ setMobileOpen, role = "vendor", userName = "Vikash Store" }) {
             </p>
           </div>
 
-          {/* Dropdown */}
-          <ChevronDown size={16} strokeWidth={1.8} className="text-gray-500" />
-        </div>
+          {/* Dropdown Icon */}
+          <ChevronDown
+            size={16}
+            strokeWidth={1.8}
+            className={`text-gray-500 transition-transform ${
+              profileOpen ? "rotate-180" : ""
+            }`}
+          />
+        </button>
+
+        {/* PROFILE DROPDOWN */}
+        {profileOpen && (
+          <div
+            className="
+              absolute
+              right-0
+              top-12
+              z-50
+              w-72
+              rounded-xl
+              border
+              border-gray-100
+              bg-white
+              p-4
+              shadow-lg
+            "
+          >
+            {/* Profile Header */}
+            <div className="mb-4 flex items-center gap-3">
+              <div
+                className="
+            flex
+            h-9
+            w-9
+            items-center
+            justify-center
+            overflow-hidden
+            rounded-full
+            bg-gradient-to-r
+            from-[#4c2ed8]
+            to-[#368de8]
+            text-xs
+            font-semibold
+            text-white
+          "
+              >
+                {user?.avtar ? (
+                  <img
+                    src={user.avtar}
+                    alt="Profile"
+                    className="h-full w-full object-cover"
+                  />
+                ) : (
+                  displayName?.charAt(0)?.toUpperCase() || "U"
+                )}
+              </div>
+
+              <div>
+                <p className="text-sm font-semibold text-gray-800">
+                  {isLoading ? "Loading..." : displayName}
+                </p>
+
+                <p className="text-xs text-gray-500">
+                  {role === "admin" ? "Administrator" : "Vendor"}
+                </p>
+              </div>
+            </div>
+
+            {/* User Details */}
+            <div className="space-y-3 border-t border-gray-100 pt-3">
+              {/* Name */}
+              <div className="flex items-center gap-3">
+                <User size={16} className="text-gray-400" />
+
+                <div>
+                  <p className="text-[11px] text-gray-400">Name</p>
+
+                  <p className="text-xs font-medium text-gray-700">
+                    {user?.name || user?.first_name || "-"}
+                  </p>
+                </div>
+              </div>
+
+              {/* Email */}
+              <div className="flex items-center gap-3">
+                <Mail size={16} className="text-gray-400" />
+
+                <div>
+                  <p className="text-[11px] text-gray-400">Email</p>
+
+                  <p className="text-xs font-medium text-gray-700">
+                    {user?.email || "-"}
+                  </p>
+                </div>
+              </div>
+
+              {/* Phone */}
+              <div className="flex items-center gap-3">
+                <Phone size={16} className="text-gray-400" />
+
+                <div>
+                  <p className="text-[11px] text-gray-400">Phone</p>
+
+                  <p className="text-xs font-medium text-gray-700">
+                    {user?.phoneNo || user?.phone || "-"}
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Profile Button */}
+            <button
+              type="button"
+              onClick={() => {
+                setProfileOpen(false);
+                navigate("/profile");
+              }}
+              className="
+               mt-4
+               w-full
+               rounded-lg
+               bg-gray-50
+               px-3
+               py-2
+               text-xs
+               font-medium
+               text-gray-700
+               transition
+               hover:bg-gray-100
+             "
+            >
+              View Profile
+            </button>
+          </div>
+        )}
       </div>
     </header>
   );
