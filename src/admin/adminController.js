@@ -242,8 +242,8 @@ export default class AdminController {
   }
 
   async getAllOrders(req, res) {
-    const { page = 1, limit = 10, status, serach = "" } = req.query;
-    const orders = await this.service.getAllOrders(page, limit, status, serach);
+    const { page = 1, limit = 10, status, search = "" } = req.query;
+    const orders = await this.service.getAllOrders(page, limit, status, search);
     if (orders.count === 0) {
       return sendResponse(
         res,

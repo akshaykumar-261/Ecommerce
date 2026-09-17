@@ -241,18 +241,28 @@ export default class StoreService {
         this.Model.Product.count({
           where: {
             store_id: storeId,
+            deletedAt: null,
           },
         }),
         this.Model.Product.count({
           where: {
             store_id: storeId,
             status: 1,
+            deletedAt: null,
           },
         }),
         this.Model.Product.count({
           where: {
             store_id: storeId,
             status: 0,
+            deletedAt: null,
+          },
+        }),
+        this.Model.Product.count({
+          where: {
+            store_id: storeId,
+            quantity: 0,
+            deletedAt: null,
           },
         }),
         this.Model.Product.count({
@@ -261,6 +271,7 @@ export default class StoreService {
             quantity: {
               [Op.between]: [1, 5],
             },
+            deletedAt: null,
           },
         }),
       ]);

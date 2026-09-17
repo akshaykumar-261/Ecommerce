@@ -49,6 +49,13 @@ const authorize = async (req, res, next) => {
     next();
   } catch (error) {
     console.error(error);
+    if (
+      error.name === "TokenExpiredError" ||
+      error.name === "JsonWebTokenError" ||
+      error.name === "NotBeforeError"
+    ) {
+      return sendResponse(res, STATUS_CODE.UNAUTHORIZE, userMessage.TOKEN_EXPIRED);
+    }
     return sendResponse(res, STATUS_CODE.SERVER_ERROR, serverFile.SERVER_ERROR);
   }
 };

@@ -10,7 +10,7 @@ export const generateAccessToken = (user, sessionId) => {
     },
     process.env.JWT_SECRET,
     {
-      expiresIn: "9h",
+      expiresIn: "20s",
     },
   );
 };
@@ -57,7 +57,7 @@ export const pagignation = (page = 1, limit = 10, data = null) => {
   return {
     totalRecords: data.count,
     totalPages: Math.ceil(data.count / limit),
-    currcurrentPage: page,
+    currentPage: page,
     pageSize: limit,
     data: data.rows,
   };

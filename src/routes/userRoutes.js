@@ -17,7 +17,6 @@ import {
   verifyForgotOtpSchema,
   resetPasswordSchema,
   updateUserSchema,
-  loginSchema,
 } from "../auth/userValidation.js";
 const router = express.Router();
 const role = checkRole("User");
@@ -83,7 +82,6 @@ router.post("/login", asyncHandler(userController.login.bind(userController)));
 router.post(
   "/logout",
   authorize,
-  validateRequest(loginSchema),
   asyncHandler(userController.logout.bind(userController)),
 );
 export default router;

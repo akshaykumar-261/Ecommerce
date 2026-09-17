@@ -360,7 +360,6 @@ export default class AdminServices {
     status,
     vendor_id,
     order_id,
-    serach,
   ) => {
     const { offset } = commanFunction.pagignation(page, limit);
     const where = {};
@@ -368,14 +367,13 @@ export default class AdminServices {
       where.payout_status = status;
     }
     if (vendor_id) {
-      where.vendor_id = vendor_id;
+      where.vendor_id = Number(vendor_id);
     }
-    if (order_id) {
-      where.order_id = order_id;
+    if (order_id !== undefined && order_id !== null && String(order_id).trim() !== "") {
+      where.order_id = Number(order_id);
     }
     return this.Model.VendorPayout.findAndCountAll({
       where,
-      attributes: [where],
       attributes: [
         "id",
         "order_id",
@@ -457,7 +455,7 @@ export default class AdminServices {
     }
     if (search) {
       where.order_number = {
-        [Op.like]: `%${serach}`,
+        [Op.like]: `%${search}%`,
       };
     }
     return this.Model.Order.findAndCountAll({
