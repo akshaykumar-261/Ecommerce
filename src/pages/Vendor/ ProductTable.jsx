@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import {
   Plus,
   Package,
@@ -15,6 +15,7 @@ import {
   useGetProducts,
   useGetCategory,
   useDeleteProduct,
+  useChangeProductStatus,
 } from "../../api/useVendorApi";
 function ProductTable({ onAddProduct }) {
   const navigate = useNavigate();
@@ -36,70 +37,34 @@ function ProductTable({ onAddProduct }) {
   const { mutate: deleteProduct, isPending: isDeletingProduct } =
     useDeleteProduct();
 
+  // Change product status mutation
+  const { mutate: changeProductStatus, isPending: isUpdatingStatus } =
+    useChangeProductStatus();
+
   // Jis product ko delete kiya ja raha hai
   const [deletingProductId, setDeletingProductId] = useState(null);
 
-  /*
-   * =========================================
-   * PRODUCTS
-   * =========================================
-   */
-
+  // Jis product ka status change ho raha hai
+  const [statusUpdatingId, setStatusUpdatingId] = useState(null);
   const products = productData?.data?.data || [];
-
-  /*
-   * =========================================
-   * BACKEND PAGINATION
-   * =========================================
-   */
-
   const totalRecords = productData?.data?.totalRecords || 0;
-
   const totalPages = productData?.data?.totalPages || 1;
-
   const currentPage = productData?.data?.currentPage || page;
-
-  /*
-   * =========================================
-   * CATEGORIES
-   * =========================================
-   */
-
   const categories = categoryData?.data?.categories || [];
-
-  /*
-   * =========================================
-   * GET CATEGORY NAME
-   * =========================================
-   */
 
   const getCategoryName = (categoryId) => {
     const category = categories.find(
       (item) => Number(item.id) === Number(categoryId),
     );
-
     return category?.cat_name || `Category ${categoryId}`;
   };
-
-  /*
-   * =========================================
-   * GET PRODUCT IMAGE
-   * =========================================
-   */
 
   const getProductImage = (product) => {
     const image = product?.product_media?.find(
       (media) => media.media_type === "images",
     );
-
     return image?.media_url;
   };
-
-  /*
-   * =========================================
-   * PREVIOUS PAGE
-   * =========================================
-   */
 
   const handlePrevious = () => {
     if (currentPage > 1) {
@@ -107,23 +72,11 @@ function ProductTable({ onAddProduct }) {
     }
   };
 
-  /*
-   * =========================================
-   * NEXT PAGE
-   * =========================================
-   */
-
   const handleNext = () => {
     if (currentPage < totalPages) {
       setPage((prev) => prev + 1);
     }
   };
-
-  /*
-   * =========================================
-   * NUMBERED PAGE
-   * =========================================
-   */
 
   const handlePageChange = (pageNumber) => {
     if (pageNumber !== currentPage) {
@@ -131,44 +84,24 @@ function ProductTable({ onAddProduct }) {
     }
   };
 
-  /*
-   * =========================================
-   * DELETE PRODUCT
-   * =========================================
-   */
-
   const handleDeleteProduct = (productId) => {
     if (!productId) {
       toast.error("Product ID not found");
       return;
     }
-
     const confirmed = window.confirm(
       "Are you sure you want to delete this product?",
     );
-
     if (!confirmed) {
       return;
     }
-
     setDeletingProductId(productId);
-
     deleteProduct(productId, {
       onSuccess: (data) => {
         toast.success(data?.message || "Product deleted successfully!");
-
-        /*
-         * Agar current page par sirf 1 product tha
-         * aur wo delete ho gaya,
-         * to previous page par chale jayenge.
-         */
         if (products.length === 1 && currentPage > 1) {
           setPage((prev) => prev - 1);
         }
-
-        /*
-         * Backend se latest products dobara fetch honge.
-         */
         queryClient.invalidateQueries({
           queryKey: ["vendor-products"],
         });
@@ -180,23 +113,43 @@ function ProductTable({ onAddProduct }) {
         toast.error(
           error.response?.data?.message || "Failed to delete product",
         );
-
         setDeletingProductId(null);
       },
     });
   };
 
-  /*
-   * =========================================
-   * PAGINATION SHOW / HIDE
-   * =========================================
-   *
-   * Pagination sirf tab show hogi
-   * jab total products 10 se zyada hon.
-   */
+  const handleToggleStatus = (product) => {
+    if (!product?.id) {
+      toast.error("Product ID not found");
+      return;
+    }
 
-  const showPagination = totalRecords > limit;
+    const newStatus = product.status ? 0 : 1;
 
+    setStatusUpdatingId(product.id);
+
+    changeProductStatus(
+      { productId: product.id, status: newStatus },
+      {
+        onSuccess: () => {
+          toast.success(
+            newStatus ? "Product activated!" : "Product deactivated!",
+          );
+          queryClient.invalidateQueries({
+            queryKey: ["vendor-products"],
+          });
+          setStatusUpdatingId(null);
+        },
+        onError: (error) => {
+          toast.error(
+            error.response?.data?.message || "Failed to update status",
+          );
+          setStatusUpdatingId(null);
+        },
+      },
+    );
+  };
+  const showPagination = totalRecords >= limit;
   return (
     <div>
       {/* Header */}
@@ -301,10 +254,8 @@ function ProductTable({ onAddProduct }) {
                 <tbody>
                   {products.map((product) => {
                     const productImage = getProductImage(product);
-
                     const isDeleting =
                       isDeletingProduct && deletingProductId === product.id;
-
                     return (
                       <tr
                         key={product.id}
@@ -335,9 +286,9 @@ function ProductTable({ onAddProduct }) {
                                 {product.pro_name}
                               </p>
 
-                              <p className="mt-1 text-xs text-gray-400">
+                              {/* <p className="mt-1 text-xs text-gray-400">
                                 ID: #{product.id}
-                              </p>
+                              </p> */}
                             </div>
                           </div>
                         </td>
@@ -380,15 +331,49 @@ function ProductTable({ onAddProduct }) {
 
                         {/* Status */}
                         <td className="px-5 py-4">
-                          {product.status ? (
-                            <span className="inline-flex rounded-full bg-green-50 px-3 py-1 text-xs font-medium text-green-600">
-                              Active
+                          <button
+                            type="button"
+                            onClick={() => handleToggleStatus(product)}
+                            disabled={isUpdatingStatus}
+                            title={product.status ? "Deactivate" : "Activate"}
+                            className={`flex items-center gap-2 disabled:cursor-not-allowed disabled:opacity-60`}
+                          >
+                            {/* Toggle Track */}
+                            <span
+                              className={`relative h-5 w-9 rounded-full transition-colors ${
+                                product.status
+                                  ? "bg-green-500"
+                                  : "bg-gray-300"
+                              }`}
+                            >
+                              {/* Toggle Knob */}
+                              <span
+                                className={`absolute top-0.5 h-4 w-4 rounded-full bg-white shadow transition-all ${
+                                  product.status
+                                    ? "left-4.5"
+                                    : "left-0.5"
+                                }`}
+                              />
                             </span>
-                          ) : (
-                            <span className="inline-flex rounded-full bg-red-50 px-3 py-1 text-xs font-medium text-red-500">
-                              Inactive
+
+                            {/* Label */}
+                            <span
+                              className={`text-sm font-medium ${
+                                product.status
+                                  ? "text-green-600"
+                                  : "text-red-500"
+                              }`}
+                            >
+                              {isUpdatingStatus &&
+                              statusUpdatingId === product.id ? (
+                                <span className="h-4 w-4 animate-spin rounded-full border-2 border-gray-300 border-t-green-500" />
+                              ) : product.status ? (
+                                "Active"
+                              ) : (
+                                "Inactive"
+                              )}
                             </span>
-                          )}
+                          </button>
                         </td>
 
                         {/* Action */}
@@ -404,7 +389,7 @@ function ProductTable({ onAddProduct }) {
                                   },
                                 })
                               }
-                              disabled={isDeletingProduct}
+                              disabled={isDeletingProduct || isUpdatingStatus}
                               className="flex h-9 w-9 items-center justify-center rounded-lg border border-gray-200 text-gray-500 transition hover:border-indigo-200 hover:bg-indigo-50 hover:text-indigo-600 disabled:cursor-not-allowed disabled:opacity-50"
                               title="Edit Product"
                             >
@@ -415,7 +400,7 @@ function ProductTable({ onAddProduct }) {
                             <button
                               type="button"
                               onClick={() => handleDeleteProduct(product.id)}
-                              disabled={isDeletingProduct}
+                              disabled={isDeletingProduct || isUpdatingStatus}
                               className="flex h-9 w-9 items-center justify-center rounded-lg border border-gray-200 text-gray-500 transition hover:border-red-200 hover:bg-red-50 hover:text-red-500 disabled:cursor-not-allowed disabled:opacity-50"
                               title="Delete Product"
                             >

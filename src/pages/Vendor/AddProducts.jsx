@@ -8,8 +8,7 @@ import {
   Image as ImageIcon,
   Film,
 } from "lucide-react";
-import { toast } from "react-hot-toast";
-import { useState as useReactState } from "react";
+import { toast } from "react-hot-toast"
 import Sidebar from "../../components/common/SideBar";
 import Topbar from "../../components/common/Topbar";
 import { useAddProduct, useGetCategory } from "../../api/useVendorApi";

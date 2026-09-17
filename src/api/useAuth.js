@@ -12,7 +12,8 @@ import {
   VenderOnboardingLink,
   VenderStripeDetail,
   GetUser,
-  UpdateUser
+  UpdateUser,
+  LogoutUser
 } from "./authApi";
 export const useRegister = () => {
   return useMutation({
@@ -187,6 +188,16 @@ export const useUpdateUser = () => {
         queryKey: ["user"],
       });
     },
+    onError: (error) => {
+      console.error("STATUS:", error.response?.status);
+      console.error("BACKEND ERROR:", error.response?.data);
+      console.error("FULL ERROR:", error);
+    },
+  });
+};
+export const useLogout = () => {
+  return useMutation({
+    mutationFn: LogoutUser,
     onError: (error) => {
       console.error("STATUS:", error.response?.status);
       console.error("BACKEND ERROR:", error.response?.data);

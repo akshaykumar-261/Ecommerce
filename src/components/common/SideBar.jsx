@@ -10,8 +10,12 @@ import {
   Users,
   Settings,
   BarChart3,
+  LogOut,
 } from "lucide-react";
-import { NavLink } from "react-router-dom";
+import { NavLink, useNavigate } from "react-router-dom";
+import toast from "react-hot-toast";
+import { useQueryClient } from "@tanstack/react-query";
+import { useLogout } from "../../api/useAuth";
 const vendorMenu = [
   {
     label: "Dashboard",
@@ -86,6 +90,27 @@ const adminMenu = [
 function Sidebar({ roleId = 2 }) {
   const menu = roleId === 1 ? adminMenu : vendorMenu;
   const isAdmin = roleId === 1;
+  const navigate = useNavigate();
+  const queryClient = useQueryClient();
+  const logoutMutation = useLogout();
+
+  const handleLogout = () => {
+    logoutMutation.mutate(undefined, {
+      onSuccess: () => {
+        localStorage.removeItem("accessToken");
+        localStorage.removeItem("refreshToken");
+        queryClient.clear();
+        toast.success("Logged out successfully");
+        navigate(roleId === 1 ? "/login" : "/vendorLogin");
+      },
+      onError: () => {
+        localStorage.removeItem("accessToken");
+        localStorage.removeItem("refreshToken");
+        queryClient.clear();
+        navigate(roleId === 1 ? "/login" : "/vendorLogin");
+      },
+    });
+  };
 
   return (
     <>
@@ -121,7 +146,7 @@ function Sidebar({ roleId = 2 }) {
             h-[calc(100vh-85px)]
             overflow-y-auto
             px-4
-            pb-[180px]
+            pb-[220px]
           "
         >
           {menu.map((item) => {
@@ -154,6 +179,24 @@ function Sidebar({ roleId = 2 }) {
               </NavLink>
             );
           })}
+
+          {/* ================= LOGOUT ================= */}
+          <div className="mt-3 border-t border-white/10 pt-4">
+            <button
+              type="button"
+              onClick={handleLogout}
+              disabled={logoutMutation.isPending}
+              className="group flex w-full items-center gap-4 rounded-xl px-5 py-3.5 text-left text-sm font-medium text-white/60 transition-all hover:bg-red-500/20 hover:text-white"
+            >
+              <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-white/5 transition-all duration-300 group-hover:bg-red-500/25 group-hover:scale-110">
+                <LogOut
+                  size={20}
+                  className="transition-transform duration-300 group-hover:-translate-x-0.5 group-hover:translate-y-0.5"
+                />
+              </span>
+              {logoutMutation.isPending ? "Logging out..." : "Logout"}
+            </button>
+          </div>
         </nav>
 
         {/* ================= BOTTOM BOX ================= */}

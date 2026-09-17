@@ -12,11 +12,12 @@ import VenderLogin from "../pages/Auth/VenderLogin";
 import StripeConnect from "../pages/Auth/StritpeConnect";
 import Sidebar from "../components/common/SideBar";
 import Topbar from "../components/common/Topbar";
-import VendorDashboard from "../pages/Unauth/VendorDashboard";
 import BusinessDetails from "../pages/Vendor/BusinessDetails";
+import Dashboard from "../pages/Vendor/Dashboard";
 import AddProducts from "../pages/Vendor/AddProducts";
 import AddProductMedia from "../pages/Vendor/AddProductMedia";
 import EditProduct from "../pages/Vendor/EditProduct";
+import StoreSettings from "../pages/Vendor/StoreSettings";
 import ProtectedRoute from "../components/common/ProtectedRoute";
 import Profile from "../pages/Unauth/Profile";
 function AppRoutes() {
@@ -55,7 +56,7 @@ function AppRoutes() {
       <Route path="/vendor/stripeConnectLink" element={<StripeConnect />} />
       <Route path="/sideBar" element={<Sidebar />} />
       <Route path="/topBar" element={<Topbar />} />
-      <Route path="/vendor/dashboard" element={<VendorDashboard />} />
+      <Route path="/vendor/dashboard" element={<Dashboard />} />
       <Route
         path="/bussinessAccountVendor"
         element={
@@ -70,6 +71,7 @@ function AppRoutes() {
         element={<AddProductMedia />}
       />
       <Route path="/vendor/editProduct/:productId" element={<EditProduct />} />
+      <Route path="/vendor/store-settings" element={<StoreSettings />} />
       <Route path="/profile" element={<Profile />} />
     </Routes>
   );

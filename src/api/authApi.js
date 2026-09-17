@@ -59,3 +59,7 @@ export const VenderStripeDetail = async () => {
   const response = await axiosInstance.get("/venders/stripeAccountDetails");
   return response.data;
 };
+export const LogoutUser = async () => {
+  const response = await axiosInstance.post("/users/logout");
+  return response.data;
+};

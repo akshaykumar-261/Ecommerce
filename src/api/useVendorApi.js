@@ -7,7 +7,12 @@ import {
   GetProducts,
   UpdateProduct,
   DeleteProductMedia,
-  DeleteProduct
+  DeleteProduct,
+  GetVenderDashboard,
+  ChangeProductStatus,
+  GetStore,
+  UpdateStore,
+  DeleteStore
 } from "./vendorApi";
 export const useCreateStore = () => {
   return useMutation({
@@ -95,6 +100,58 @@ export const useDeleteProduct = () => {
     mutationFn: DeleteProduct,
     onSuccess: (data) => {
       console.log("Product deleted successfully:", data);
+    },
+    onError: (error) => {
+      console.error("STATUS:", error.response?.status);
+      console.error("BACKEND ERROR:", error.response?.data);
+      console.error("FULL ERROR:", error);
+    },
+  });
+};
+export const useVenderDashboard = () => {
+  return useQuery({
+    queryKey: ["vendor-dashboard"],
+    queryFn: GetVenderDashboard,
+  });
+};
+export const useChangeProductStatus = () => {
+  return useMutation({
+    mutationFn: ({ productId, status }) =>
+      ChangeProductStatus(productId, status),
+    onSuccess: (data) => {
+      console.log("Product status updated successfully:", data);
+    },
+    onError: (error) => {
+      console.error("STATUS:", error.response?.status);
+      console.error("BACKEND ERROR:", error.response?.data);
+      console.error("FULL ERROR:", error);
+    },
+  });
+};
+export const useGetStore = () => {
+  return useQuery({
+    queryKey: ["vendor-store"],
+    queryFn: GetStore,
+  });
+};
+export const useUpdateStore = () => {
+  return useMutation({
+    mutationFn: UpdateStore,
+    onSuccess: (data) => {
+      console.log("Store updated successfully:", data);
+    },
+    onError: (error) => {
+      console.error("STATUS:", error.response?.status);
+      console.error("BACKEND ERROR:", error.response?.data);
+      console.error("FULL ERROR:", error);
+    },
+  });
+};
+export const useDeleteStore = () => {
+  return useMutation({
+    mutationFn: DeleteStore,
+    onSuccess: (data) => {
+      console.log("Store deleted successfully:", data);
     },
     onError: (error) => {
       console.error("STATUS:", error.response?.status);
