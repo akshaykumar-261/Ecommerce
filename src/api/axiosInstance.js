@@ -56,7 +56,10 @@ let refreshPromise = null;
 const clearSessionAndRedirect = () => {
   localStorage.removeItem("accessToken");
   localStorage.removeItem("refreshToken");
-  if (!window.location.pathname.startsWith("/login")) {
+  const path = window.location.pathname;
+  if (path.startsWith("/admin") && !path.startsWith("/admin/login")) {
+    window.location.href = "/admin/login";
+  } else if (!path.startsWith("/login")) {
     window.location.href = "/login";
   }
 };

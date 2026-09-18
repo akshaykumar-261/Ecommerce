@@ -84,8 +84,8 @@ function Dashboard() {
     },
     {
       label: "Payouts",
-      description: "Connect Stripe and get paid",
-      path: "/vendor/stripeConnectLink",
+      description: "View your earnings and payout history",
+      path: "/vendor/payouts",
       icon: WalletCards,
       iconBg: "from-violet-500 to-purple-500",
     },

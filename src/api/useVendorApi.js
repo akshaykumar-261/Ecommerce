@@ -12,7 +12,17 @@ import {
   ChangeProductStatus,
   GetStore,
   UpdateStore,
-  DeleteStore
+  DeleteStore,
+  GetVendorProfile,
+  UpdateVendorProfile,
+  GetOrders,
+  UpdateOrderStatus,
+  GetPayouts,
+  GetProductById,
+  SetPrimaryImage,
+  UpdateProductQuantity,
+  GetOutOfStockProducts,
+  GetLowStockProducts,
 } from "./vendorApi";
 export const useCreateStore = () => {
   return useMutation({
@@ -158,5 +168,104 @@ export const useDeleteStore = () => {
       console.error("BACKEND ERROR:", error.response?.data);
       console.error("FULL ERROR:", error);
     },
+  });
+};
+
+export const useGetVendorProfile = () => {
+  return useQuery({
+    queryKey: ["vendor-profile"],
+    queryFn: GetVendorProfile,
+  });
+};
+
+export const useUpdateVendorProfile = () => {
+  return useMutation({
+    mutationFn: UpdateVendorProfile,
+    onSuccess: (data) => {
+      console.log("Vendor profile updated successfully:", data);
+    },
+    onError: (error) => {
+      console.error("STATUS:", error.response?.status);
+      console.error("BACKEND ERROR:", error.response?.data);
+      console.error("FULL ERROR:", error);
+    },
+  });
+};
+
+export const useGetOrders = (page = 1, limit = 10, status, search) => {
+  return useQuery({
+    queryKey: ["vendor-orders", page, limit, status, search],
+    queryFn: () => GetOrders({ page, limit, status, search }),
+  });
+};
+
+export const useUpdateOrderStatus = () => {
+  return useMutation({
+    mutationFn: ({ orderId, status }) => UpdateOrderStatus(orderId, status),
+    onSuccess: (data) => {
+      console.log("Order status updated successfully:", data);
+    },
+    onError: (error) => {
+      console.error("STATUS:", error.response?.status);
+      console.error("BACKEND ERROR:", error.response?.data);
+      console.error("FULL ERROR:", error);
+    },
+  });
+};
+
+export const useGetPayouts = (status) => {
+  return useQuery({
+    queryKey: ["vendor-payouts", status],
+    queryFn: () => GetPayouts({ status }),
+  });
+};
+
+export const useGetProductById = (productId) => {
+  return useQuery({
+    queryKey: ["vendor-product", productId],
+    queryFn: () => GetProductById(productId),
+    enabled: !!productId,
+  });
+};
+
+export const useSetPrimaryImage = () => {
+  return useMutation({
+    mutationFn: SetPrimaryImage,
+    onSuccess: (data) => {
+      console.log("Primary image set successfully:", data);
+    },
+    onError: (error) => {
+      console.error("STATUS:", error.response?.status);
+      console.error("BACKEND ERROR:", error.response?.data);
+      console.error("FULL ERROR:", error);
+    },
+  });
+};
+
+export const useUpdateProductQuantity = () => {
+  return useMutation({
+    mutationFn: ({ productId, quantity }) => UpdateProductQuantity(productId, quantity),
+    onSuccess: (data) => {
+      console.log("Product quantity updated successfully:", data);
+    },
+    onError: (error) => {
+      console.error("STATUS:", error.response?.status);
+      console.error("BACKEND ERROR:", error.response?.data);
+      console.error("FULL ERROR:", error);
+    },
+  });
+};
+
+export const useGetOutOfStockProducts = (page = 1, limit = 10, search) => {
+  return useQuery({
+    queryKey: ["vendor-out-of-stock", page, limit, search],
+    queryFn: () => GetOutOfStockProducts({ page, limit, search }),
+  });
+};
+
+export const useGetLowStockProducts = (page = 1, limit = 10, search) => {
+  return useQuery({
+    queryKey: ["vendor-low-stock", page, limit, search],
+    queryFn: () => GetLowStockProducts({ page, limit, search }),
   });
 };

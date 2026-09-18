@@ -1,21 +1,24 @@
-import React from "react";
+import { useState } from "react";
 import {
   LayoutDashboard,
   Package,
   ShoppingBag,
   WalletCards,
   Store,
-  User,
   Headphones,
   Users,
   Settings,
   BarChart3,
   LogOut,
+  MessageCircle,
 } from "lucide-react";
 import { NavLink, useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 import { useQueryClient } from "@tanstack/react-query";
 import { useLogout } from "../../api/useAuth";
+import { useGetVendorProfile } from "../../api/useVendorApi";
+import ConfirmDialog from "../admin/ConfirmDialog";
+
 const vendorMenu = [
   {
     label: "Dashboard",
@@ -34,7 +37,7 @@ const vendorMenu = [
   },
   {
     label: "Payouts",
-    path: "/vendor/stripeConnectLink",
+    path: "/vendor/payouts",
     icon: WalletCards,
   },
   {
@@ -43,9 +46,9 @@ const vendorMenu = [
     icon: Store,
   },
   {
-    label: "Support",
-    path: "/vendor/support",
-    icon: Headphones,
+    label: "Chat",
+    path: "/vendor/chat",
+    icon: MessageCircle,
   },
 ];
 
@@ -85,6 +88,11 @@ const adminMenu = [
     path: "/admin/settings",
     icon: Settings,
   },
+  {
+    label: "Chat",
+    path: "/admin/chat",
+    icon: MessageCircle,
+  },
 ];
 
 function Sidebar({ roleId = 2 }) {
@@ -93,8 +101,12 @@ function Sidebar({ roleId = 2 }) {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const logoutMutation = useLogout();
+  const [logoutConfirm, setLogoutConfirm] = useState(false);
+  const { data: vendorProfile } = useGetVendorProfile();
+  const storeName = vendorProfile?.data?.Store?.store_name;
 
   const handleLogout = () => {
+    setLogoutConfirm(false);
     logoutMutation.mutate(undefined, {
       onSuccess: () => {
         localStorage.removeItem("accessToken");
@@ -119,8 +131,10 @@ function Sidebar({ roleId = 2 }) {
           fixed
           left-0
           top-0
+          flex
           h-screen
           w-[270px]
+          flex-col
           bg-gradient-to-b
           from-[#4630d8]
           via-[#365fe0]
@@ -130,7 +144,7 @@ function Sidebar({ roleId = 2 }) {
       >
         {/* ================= LOGO ================= */}
 
-        <div className="h-[85px] px-7 pt-5">
+        <div className="h-[85px] shrink-0 px-7 pt-5">
           <h1 className="text-2xl font-bold">ShopEase</h1>
 
           <p className="text-sm text-white/80">
@@ -143,10 +157,9 @@ function Sidebar({ roleId = 2 }) {
         <nav
           className="
             sidebar-menu
-            h-[calc(100vh-85px)]
+            flex-1
             overflow-y-auto
             px-4
-            pb-[220px]
           "
         >
           {menu.map((item) => {
@@ -184,11 +197,11 @@ function Sidebar({ roleId = 2 }) {
           <div className="mt-3 border-t border-white/10 pt-4">
             <button
               type="button"
-              onClick={handleLogout}
+              onClick={() => setLogoutConfirm(true)}
               disabled={logoutMutation.isPending}
-              className="group flex w-full items-center gap-4 rounded-xl px-5 py-3.5 text-left text-sm font-medium text-white/60 transition-all hover:bg-red-500/20 hover:text-white"
+              className="group flex w-full items-center gap-4 rounded-xl px-5 py-3.5 text-left text-sm font-medium text-white/60 transition-all hover:bg-white/10 hover:text-white"
             >
-              <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-white/5 transition-all duration-300 group-hover:bg-red-500/25 group-hover:scale-110">
+              <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-white/5 transition-all duration-300 group-hover:bg-white/15 group-hover:scale-110">
                 <LogOut
                   size={20}
                   className="transition-transform duration-300 group-hover:-translate-x-0.5 group-hover:translate-y-0.5"
@@ -201,44 +214,56 @@ function Sidebar({ roleId = 2 }) {
 
         {/* ================= BOTTOM BOX ================= */}
 
-        <div className="absolute bottom-4 left-4 right-4">
+        <div className="shrink-0 p-4">
           <div
             className="
+              flex
+              items-center
+              gap-3
               rounded-xl
               border
               border-white/20
               bg-white/10
-              p-3.5
+              px-3.5
+              py-3
             "
           >
-            <h3 className="text-sm font-semibold">
-              {isAdmin ? "Manage ShopEase" : "Grow Your Business"}
-            </h3>
-
-            <p className="mt-1 text-xs leading-4 text-white/75">
-              {isAdmin
-                ? "Monitor and manage your marketplace."
-                : "Sell more, reach more customers."}
-            </p>
-
-            <div className="mt-3 flex justify-center">
-              <div
-                className="
-                  flex
-                  h-11
-                  w-14
-                  items-center
-                  justify-center
-                  rounded-lg
-                  bg-white/10
-                "
-              >
-                <Store size={26} className="text-white/80" />
-              </div>
+            <div
+              className="
+                flex
+                h-9
+                w-9
+                shrink-0
+                items-center
+                justify-center
+                rounded-lg
+                bg-white/15
+              "
+            >
+              <Store size={18} className="text-white/80" />
+            </div>
+            <div className="min-w-0">
+              <p className="truncate text-xs font-semibold">
+                {isAdmin ? "ShopEase" : storeName || "Your Store"}
+              </p>
+              <p className="mt-0.5 text-[10px] leading-tight text-white/60">
+                {isAdmin ? "Admin Panel" : "Vendor Panel"}
+              </p>
             </div>
           </div>
         </div>
       </aside>
+
+      {/* Logout Confirmation */}
+      <ConfirmDialog
+        open={logoutConfirm}
+        title="Logout"
+        message="Are you sure you want to logout?"
+        confirmLabel="Yes, Logout"
+        variant="danger"
+        onConfirm={handleLogout}
+        onCancel={() => setLogoutConfirm(false)}
+      />
 
       {/* ================= HIDE SCROLLBAR ================= */}
 

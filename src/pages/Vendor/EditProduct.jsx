@@ -7,6 +7,7 @@ import {
   useUpadteProduct,
   useAddProductImage,
   useDeleteProductMedia,
+  useSetPrimaryImage,
 } from "../../api/useVendorApi";
 import toast from "react-hot-toast";
 function EditProduct() {
@@ -39,6 +40,9 @@ function EditProduct() {
    */
   const { mutate: deleteProductMedia, isPending: isDeletingMedia } =
     useDeleteProductMedia();
+
+  const { mutate: setPrimaryImage, isPending: isSettingPrimary } =
+    useSetPrimaryImage();
 
   /*
    * Product details
@@ -306,15 +310,10 @@ function EditProduct() {
       return;
     }
 
-    /*
-     * Temporary local media hai to
-     * API call ki zarurat nahi.
-     */
     const selectedMedia = mediaList.find((media) => media.id === mediaId);
 
     if (selectedMedia?.isLocal) {
       setMediaList((prev) => prev.filter((media) => media.id !== mediaId));
-
       toast.success("Media removed successfully!");
       return;
     }
@@ -323,23 +322,35 @@ function EditProduct() {
 
     deleteProductMedia(mediaId, {
       onSuccess: (data) => {
-        /*
-         * API success ke baad sirf selected media
-         * local state se remove kar do.
-         *
-         * Page reload ki zarurat nahi.
-         */
         setMediaList((prev) => prev.filter((media) => media.id !== mediaId));
-
         toast.success(data?.message || "Media deleted successfully!");
-
         setDeletingMediaId(null);
       },
-
       onError: (error) => {
         toast.error(error.response?.data?.message || "Failed to delete media");
-
         setDeletingMediaId(null);
+      },
+    });
+  };
+
+  const handleSetPrimary = (mediaId) => {
+    if (!mediaId) return;
+
+    setPrimaryImage(mediaId, {
+      onSuccess: (data) => {
+        setMediaList((prev) =>
+          prev.map((m) =>
+            m.media_type === "images"
+              ? { ...m, is_primary: m.id === mediaId }
+              : m,
+          ),
+        );
+        toast.success(data?.message || "Primary image updated!");
+      },
+      onError: (error) => {
+        toast.error(
+          error.response?.data?.message || "Failed to set primary image",
+        );
       },
     });
   };
@@ -635,23 +646,53 @@ function EditProduct() {
                         className="aspect-square w-full object-cover"
                       />
 
-                      {/* Image Number */}
+                      {media.is_primary && (
+                        <div className="absolute top-2 left-2 rounded-md bg-indigo-600 px-2 py-1 text-[10px] font-semibold text-white shadow">
+                          Primary
+                        </div>
+                      )}
+
                       <div className="absolute bottom-2 left-2 rounded-md bg-black/60 px-2 py-1 text-xs text-white">
                         Image #{media.id}
                       </div>
 
-                      {/* Delete */}
-                      <button
-                        type="button"
-                        onClick={() => handleDeleteMedia(media.id)}
-                        disabled={
-                          isDeletingMedia && deletingMediaId === media.id
-                        }
-                        className="absolute right-2 top-2 flex h-7 w-7 items-center justify-center rounded-full bg-white text-gray-500 opacity-0 shadow-sm transition group-hover:opacity-100 hover:text-red-500 disabled:cursor-not-allowed disabled:opacity-50"
-                        title="Remove image"
-                      >
-                        <X size={14} />
-                      </button>
+                      <div className="absolute right-2 top-2 flex flex-col gap-1.5 opacity-0 transition group-hover:opacity-100">
+                        {!media.is_primary && !media.isLocal && (
+                          <button
+                            type="button"
+                            onClick={() => handleSetPrimary(media.id)}
+                            disabled={isSettingPrimary}
+                            className="flex h-7 w-7 items-center justify-center rounded-full bg-white text-indigo-600 shadow-sm transition hover:bg-indigo-50 disabled:cursor-not-allowed disabled:opacity-50"
+                            title="Set as primary image"
+                          >
+                            <svg
+                              xmlns="http://www.w3.org/2000/svg"
+                              width="13"
+                              height="13"
+                              viewBox="0 0 24 24"
+                              fill="none"
+                              stroke="currentColor"
+                              strokeWidth="2.5"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                            >
+                              <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+                            </svg>
+                          </button>
+                        )}
+
+                        <button
+                          type="button"
+                          onClick={() => handleDeleteMedia(media.id)}
+                          disabled={
+                            isDeletingMedia && deletingMediaId === media.id
+                          }
+                          className="flex h-7 w-7 items-center justify-center rounded-full bg-white text-gray-500 shadow-sm transition hover:text-red-500 disabled:cursor-not-allowed disabled:opacity-50"
+                          title="Remove image"
+                        >
+                          <X size={14} />
+                        </button>
+                      </div>
                     </div>
                   ))}
                 </div>
