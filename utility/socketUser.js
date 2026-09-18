@@ -2,15 +2,17 @@ import jwt from "jsonwebtoken";
 import UserModel from "../dataBase/models/userModel.js";
 import ChatMessage from "../dataBase/models/chatMessageModel.js";
 const socketHandler = (io) => {
+  const connectedUsers = new Map();
+
   io.use(async (socket, next) => {
     try {
-      const authHeader = socket.handshake.headers.authorization;
-      if (!authHeader) {
+      const token =
+        socket.handshake.auth?.token ||
+        socket.handshake.headers?.authorization?.split(" ")[1];
+
+      if (!token) {
         return next(new Error("Token Missing"));
       }
-      const token = authHeader.startsWith("Bearer ")
-        ? authHeader.split(" ")[1]
-        : authHeader;
       const decoded = jwt.verify(token, process.env.JWT_SECRET);
       const user = await UserModel.findOne({
         where: {
@@ -41,6 +43,14 @@ const socketHandler = (io) => {
     console.log(
       `User Connected: ${user.name} | ID=${user.id} | Role=${user.role_Id}`,
     );
+
+    connectedUsers.set(user.id, {
+      id: user.id,
+      name: user.name,
+      role_Id: user.role_Id,
+      socketId: socket.id,
+    });
+    io.emit("online_users", Array.from(connectedUsers.values()).map((u) => u.id));
     socket.on("join_chat", async ({ user_id }, callback) => {
       try {
         const targetUserId = Number(user_id);
@@ -243,6 +253,8 @@ const socketHandler = (io) => {
     });
     socket.on("disconnect", () => {
       console.log(`User Disconnected: ${user.name}`);
+      connectedUsers.delete(user.id);
+      io.emit("online_users", Array.from(connectedUsers.values()).map((u) => u.id));
     });
   });
 };

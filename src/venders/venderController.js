@@ -157,8 +157,8 @@ export default class StoreController {
     }
     const accountLink = await stripe.accountLinks.create({
       account: user.stripe_account_id,
-      refresh_url: "http://localhost:5173/vendor/stripeConnectLink",
-      return_url: "http://localhost:5173/vendor/stripeConnectLink",
+      refresh_url: "http://localhost:5173/vendor/payouts",
+      return_url: "http://localhost:5173/vendor/payouts",
       type: "account_onboarding",
     });
     return sendResponse(
@@ -737,13 +737,6 @@ export default class StoreController {
       limit: currentLimit,
       offset,
     });
-    if (result.count === 0) {
-      return sendResponse(
-        res,
-        STATUS_CODE.NOT_FOUND,
-        userMessage.VENDER_ORDER_NOT_FOUND,
-      );
-    }
     const response = commanFunction.pagignation(
       currentPage,
       currentLimit,
@@ -759,7 +752,6 @@ export default class StoreController {
 
   async getVendorPayouts(req, res) {
     const { status } = req.query;
-    // Logged-in vendor ki store find karo
     const store = await this.services.getStoreByUserId(req.user.id);
     if (!store) {
       return sendResponse(
@@ -768,18 +760,11 @@ export default class StoreController {
         storeMessages.STORE_NOT_FOUND,
       );
     }
-    const payouts = await this.services.getVendorPayouts(store.id, {
+    const payouts = await this.services.getVendorPayouts(req.user.id, {
       status,
     });
-    if (!payouts || payouts.length === 0) {
-      return sendResponse(
-        res,
-        STATUS_CODE.NOT_FOUND,
-        userMessage.PAYOUT_NOT_FOUND,
-      );
-    }
     return sendResponse(res, STATUS_CODE.SUCCESS, userMessage.PAYOUT_FETCH, {
-      payouts,
+      payouts: payouts || [],
     });
   }
 

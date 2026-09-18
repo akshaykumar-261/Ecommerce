@@ -13,6 +13,7 @@ import addressRoutes from "../src/routes/addresRoutes.js";
 import orderRoutes from "../src/routes/orderRoutes.js";
 import adminRoutes from "../src/routes/adminRoutes.js";
 import reviewRoutes from "../src/routes/reviewRoutes.js";
+import chatRoutes from "../src/routes/chatRoutes.js";
 import "./association.js";
 import "../utility/queue/emailWorkers.js";
 import "./cloudnary.js";
@@ -28,6 +29,7 @@ app.use("/address", addressRoutes);
 app.use("/order", orderRoutes);
 app.use("/admin", adminRoutes);
 app.use("/users", reviewRoutes);
+app.use("/chat", chatRoutes);
 const server = http.createServer(app);
 const io = new Server(server, {
   cors: {

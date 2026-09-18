@@ -55,9 +55,14 @@ export default class AdminController {
         userMessage.USER_NOT_FOUND,
       );
     }
-    const payload = {
-      ...req.body,
-    };
+    // Whitelist: admins must not self-modify auth/role/payout state via this endpoint
+    const allowedFields = ["name", "lastname", "phoneNo", "address", "email"];
+    const payload = {};
+    for (const field of allowedFields) {
+      if (req.body?.[field] !== undefined) {
+        payload[field] = req.body[field];
+      }
+    }
     if (req.file) {
       if (existingUser.avatar_public_id) {
         await deleteFromCloudinary(existingUser.avatar_public_id);
@@ -85,10 +90,12 @@ export default class AdminController {
       status,
     );
     if (vendors.count === 0) {
+      // Empty list is a valid result; return empty pagination instead of 404
       return sendResponse(
         res,
-        STATUS_CODE.NOT_FOUND,
-        userMessage.VENDER_NOT_FOUND,
+        STATUS_CODE.SUCCESS,
+        userMessage.VENDER_LIST_FETCHED,
+        commanFunction.pagignation(page, limit, vendors),
       );
     }
     const paginationData = commanFunction.pagignation(page, limit, vendors);
@@ -168,10 +175,12 @@ export default class AdminController {
     const { page = 1, limit = 10, search = "", status } = req.query;
     const users = await this.service.getAllUsers(page, limit, search, status);
     if (users.count === 0) {
+      // Empty list is a valid result; return empty pagination instead of 404
       return sendResponse(
         res,
-        STATUS_CODE.NOT_FOUND,
-        userMessage.USER_NOT_FOUND,
+        STATUS_CODE.SUCCESS,
+        userMessage.USER_LIST_FETCHED,
+        commanFunction.pagignation(page, limit, users),
       );
     }
     const paginationData = commanFunction.pagignation(page, limit, users);
@@ -180,6 +189,76 @@ export default class AdminController {
       STATUS_CODE.SUCCESS,
       userMessage.USER_LIST_FETCHED,
       paginationData,
+    );
+  }
+
+  async getAdminDashboard(req, res) {
+    const dashboard = await this.service.getAdminDashboard();
+    return sendResponse(
+      res,
+      STATUS_CODE.SUCCESS,
+      "Admin dashboard fetched successfully.",
+      dashboard,
+    );
+  }
+
+  async getAdminProducts(req, res) {
+    const {
+      page = 1,
+      limit = 10,
+      search = "",
+      category_id,
+      vendor_id,
+      status,
+    } = req.query;
+    const products = await this.service.getAdminProducts(
+      page,
+      limit,
+      search,
+      category_id,
+      vendor_id,
+      status,
+    );
+    // Empty list is a valid result; return empty pagination instead of 404
+    return sendResponse(
+      res,
+      STATUS_CODE.SUCCESS,
+      "Admin products fetched successfully.",
+      commanFunction.pagignation(page, limit, products),
+    );
+  }
+
+  async updateProductStatus(req, res) {
+    const { id } = req.params;
+    const { status } = req.body;
+    const product = await this.service.getProductRowById(id);
+    if (!product) {
+      return sendResponse(res, STATUS_CODE.NOT_FOUND, "Product not found.");
+    }
+    await this.service.updateProductStatus(id, status);
+    const updatedProduct = await this.service.getProductRowById(id);
+    return sendResponse(
+      res,
+      STATUS_CODE.SUCCESS,
+      "Product status updated successfully.",
+      { product: updatedProduct },
+    );
+  }
+
+  async updateUserStatus(req, res) {
+    const { id } = req.params;
+    const { is_active } = req.body;
+    const user = await this.service.getCustomerById(id);
+    if (!user) {
+      return sendResponse(res, STATUS_CODE.NOT_FOUND, userMessage.USER_NOT_FOUND);
+    }
+    await this.service.updateCustomerStatus(id, is_active);
+    const updatedUser = await this.service.getUserById(id);
+    return sendResponse(
+      res,
+      STATUS_CODE.SUCCESS,
+      "User status updated successfully.",
+      { user: updatedUser },
     );
   }
 
@@ -245,10 +324,12 @@ export default class AdminController {
     const { page = 1, limit = 10, status, search = "" } = req.query;
     const orders = await this.service.getAllOrders(page, limit, status, search);
     if (orders.count === 0) {
+      // Empty list is a valid result; return empty pagination instead of 404
       return sendResponse(
         res,
-        STATUS_CODE.NOT_FOUND,
-        orderMessages.ORDER_NOT_FOUND,
+        STATUS_CODE.SUCCESS,
+        orderMessages.ORDER_FETCHED,
+        commanFunction.pagignation(page, limit, orders),
       );
     }
     const pagignationData = commanFunction.pagignation(page, limit, orders);
@@ -355,17 +436,12 @@ export default class AdminController {
   async getAllCategories(req, res) {
   const { search = "", status } = req.query;
   const categories = await this.service.getAllCategories(search, status);
-  if (categories.length === 0) {
-    return sendResponse(
-      res,
-      STATUS_CODE.NOT_FOUND,
-      categoryMessages.CATEGORIES_NOT_FOUND,
-    );
-  }
   return sendResponse(
     res,
     STATUS_CODE.SUCCESS,
-    categoryMessages.CATEGORIES_FETCHED,
+    categories.length === 0
+      ? "No categories found."
+      : categoryMessages.CATEGORIES_FETCHED,
     {
       categories,
     },

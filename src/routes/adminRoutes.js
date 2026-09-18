@@ -12,15 +12,23 @@ import Payment from "../../dataBase/models/paymetModel.js";
 import upload from "../middleweare/uploadFile.js";
 import AdminConfiguration from "../../dataBase/models/adminConfigration.js";
 import Category from "../../dataBase/models/categoryModel.js";
+import ProductMedia from "../../dataBase/models/productMedia.js";
 import Review from "../../dataBase/models/reviewModel.js"
 import authorize from "../middleweare/authmiddleweare.js";
 import limiter from "../../utility/rateLimit.js";
 import {
   validateRequest,
   validateParams,
+  validateQuery,
   venderActionValidation,
   venderIdValidation,
   updateAdminConfigurationValidation,
+  productIdValidation,
+  adminUserIdValidation,
+  productStatusValidation,
+  userStatusValidation,
+  adminProductsQueryValidation,
+  dashboardValidation,
 } from "../admin/adminValidation.js";
 const router = express.Router();
 const adminController = new AdminController();
@@ -38,14 +46,16 @@ await adminController.init({
     Payment,
     AdminConfiguration,
     Category,
+    ProductMedia,
     Review
   },
 });
 router.put(
   "/update-profile",
-  upload.single("avtar"),
+  // auth must run before multer so unauthenticated uploads never reach the handler
   authorize,
   role,
+  upload.single("avtar"),
   asyncHandler(adminController.updateAdminProfile.bind(adminController)),
 );
 router.get(
@@ -104,6 +114,36 @@ router.get(
   authorize,
   role,
   asyncHandler(adminController.getAllOrders.bind(adminController)),
+);
+router.get(
+  "/dashboard",
+  authorize,
+  role,
+  validateQuery(dashboardValidation),
+  asyncHandler(adminController.getAdminDashboard.bind(adminController)),
+);
+router.get(
+  "/products",
+  authorize,
+  role,
+  validateQuery(adminProductsQueryValidation),
+  asyncHandler(adminController.getAdminProducts.bind(adminController)),
+);
+router.patch(
+  "/products/:id/status",
+  authorize,
+  role,
+  validateParams(productIdValidation),
+  validateRequest(productStatusValidation),
+  asyncHandler(adminController.updateProductStatus.bind(adminController)),
+);
+router.patch(
+  "/users/:id/status",
+  authorize,
+  role,
+  validateParams(adminUserIdValidation),
+  validateRequest(userStatusValidation),
+  asyncHandler(adminController.updateUserStatus.bind(adminController)),
 );
 router.put(
   "/change-commision",

@@ -25,6 +25,69 @@ export const venderIdValidation = Joi.object({
     }),
 });
 
+export const productIdValidation = Joi.object({
+  id: Joi.number()
+    .integer()
+    .positive()
+    .required()
+    .messages({
+      "any.required": "Product ID is required.",
+      "number.base": "Product ID must be a number.",
+      "number.integer": "Product ID must be an integer.",
+      "number.positive": "Product ID must be greater than 0.",
+    }),
+});
+
+export const adminUserIdValidation = Joi.object({
+  id: Joi.number()
+    .integer()
+    .positive()
+    .required()
+    .messages({
+      "any.required": "User ID is required.",
+      "number.base": "User ID must be a number.",
+      "number.integer": "User ID must be an integer.",
+      "number.positive": "User ID must be greater than 0.",
+    }),
+});
+
+export const productStatusValidation = Joi.object({
+  status: Joi.number()
+    .integer()
+    .valid(0, 1)
+    .required()
+    .messages({
+      "any.required": "status is required.",
+      "any.only": "status must be 0 or 1.",
+      "number.base": "status must be 0 or 1.",
+    }),
+});
+
+export const userStatusValidation = Joi.object({
+  is_active: Joi.boolean()
+    .required()
+    .messages({
+      "any.required": "is_active is required.",
+      "boolean.base": "is_active must be a boolean.",
+    }),
+});
+
+export const dashboardValidation = Joi.object({}).unknown(false);
+
+export const adminProductsQueryValidation = Joi.object({
+  page: Joi.number().integer().min(1).max(10000).default(1),
+  limit: Joi.number().integer().min(1).max(100).default(10),
+  search: Joi.string().trim().allow("").max(100).default(""),
+  category_id: Joi.number().integer().positive(),
+  vendor_id: Joi.number().integer().positive(),
+  status: Joi.alternatives()
+    .try(
+      Joi.number().integer().valid(0, 1),
+      Joi.string().valid("0", "1"),
+    )
+    .optional(),
+});
+
 export const updateAdminConfigurationValidation = Joi.object({
   commission_percentage: Joi.number()
     .min(0)
@@ -58,6 +121,27 @@ export const validateParams = (schema) => {
         error: error.details[0].message,
       });
     }
+    next();
+  };
+};
+
+export const validateQuery = (schema) => {
+  return (req, res, next) => {
+    const { error, value } = schema.validate(req.query, {
+      stripUnknown: true,
+      convert: true,
+    });
+    if (error) {
+      return res.status(400).json({
+        error: error.details[0].message,
+      });
+    }
+    // Express 5 exposes req.query as a getter-only property, so the sanitized
+    // result must be merged key-by-key instead of reassigned.
+    for (const key of Object.keys(req.query)) {
+      if (!(key in value)) delete req.query[key];
+    }
+    Object.assign(req.query, value);
     next();
   };
 };

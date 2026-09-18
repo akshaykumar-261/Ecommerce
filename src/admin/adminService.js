@@ -131,14 +131,12 @@ export default class AdminServices {
       throw new Error("Admin dashboard models are not initialized.");
     }
     // Vendor Store
-    console.log("==============>", vendorId);
     const store = await storeModel.findOne({
       where: {
         user_id: vendorId,
         deletedAt: null,
       },
     });
-    console.log("=============================>", store);
     if (!store) {
       return {
         total_products: 0,
@@ -185,7 +183,7 @@ export default class AdminServices {
           [Op.in]: productIds,
         },
       },
-      attributes: ["order_id"],
+      attributes: ["order_id", "total"],
       raw: true,
     });
     const orderIds = [...new Set(orderItems.map((i) => i.order_id))];
@@ -233,12 +231,26 @@ export default class AdminServices {
         },
       },
     });
-    const sales = await orderModel.sum("grand_total", {
-      where: {
-        id: {
-          [Op.in]: orderIds,
+    // Paid orders only; sales restricted to this vendor's items instead of the whole order grand_total
+    const paidOrderIds = (
+      await orderModel.findAll({
+        where: {
+          id: {
+            [Op.in]: orderIds,
+          },
+          payment_status: "Paid",
         },
-        payment_status: "Paid",
+        attributes: ["id"],
+        raw: true,
+      })
+    ).map((o) => o.id);
+    const total_sales = orderItems
+      .filter((i) => paidOrderIds.includes(i.order_id))
+      .reduce((sum, i) => sum + Number(i.total || 0), 0);
+    // Earnings from actual payout records for this vendor, not an assumed ratio
+    const earnings = await this.Model.VendorPayout.sum("vendor_amount", {
+      where: {
+        vendor_id: vendorId,
       },
     });
     return {
@@ -247,8 +259,8 @@ export default class AdminServices {
       completed_orders,
       cancelled_orders,
       pending_orders,
-      total_sales: Number(sales || 0),
-      total_earnings: Number((sales || 0) * 0.9),
+      total_sales: Number(total_sales.toFixed(2)),
+      total_earnings: Number(earnings || 0),
     };
   };
 
@@ -460,6 +472,7 @@ export default class AdminServices {
     }
     return this.Model.Order.findAndCountAll({
       where,
+      distinct: true,
       include: [
         {
           model: this.Model.OrderItems,
@@ -640,5 +653,195 @@ getAllCategories = async (search, status) => {
       offset,
       order: [["id", "DESC"]],
     });
+  };
+
+  // Global admin dashboard: real counts + payout-based financials grouped by currency.
+  // No trend data: orders carry no date-based aggregate semantics beyond createdAt.
+  getAdminDashboard = async () => {
+    const [
+      total_users,
+      total_vendors,
+      total_customers,
+      total_stores,
+      total_categories,
+      total_products,
+      total_orders,
+      delivered_orders,
+      cancelled_orders,
+      pending_orders,
+      paid_orders,
+      total_payouts,
+    ] = await Promise.all([
+      this.Model.Users.count({ where: { deletedAt: null } }),
+      this.Model.Users.count({ where: { role_Id: 2, deletedAt: null } }),
+      this.Model.Users.count({ where: { role_Id: 3, deletedAt: null } }),
+      this.Model.Store.count({ where: { deletedAt: null } }),
+      this.Model.Category.count(),
+      this.Model.Products.count({ where: { deletedAt: null } }),
+      this.Model.Order.count(),
+      this.Model.Order.count({ where: { order_status: "Delivered" } }),
+      this.Model.Order.count({ where: { order_status: "Cancelled" } }),
+      this.Model.Order.count({
+        where: {
+          order_status: { [Op.in]: ["Pending", "Confirmed", "Packed", "Shipped"] },
+        },
+      }),
+      this.Model.Order.count({ where: { payment_status: "Paid" } }),
+      this.Model.VendorPayout.count(),
+    ]);
+    // Amounts live on payout records, so financial summary must be grouped per currency
+    const payoutSums = await this.Model.VendorPayout.findAll({
+      attributes: [
+        "currency",
+        [fn("SUM", col("gross_amount")), "gross_amount"],
+        [fn("SUM", col("platform_fee")), "platform_fee"],
+        [fn("SUM", col("vendor_amount")), "vendor_amount"],
+      ],
+      group: ["currency"],
+      raw: true,
+    });
+    const paidStatuses = ["pending", "paid", "failed", "refunded"];
+    const payout_breakdown = {};
+    for (const status of paidStatuses) {
+      const rows = await this.Model.VendorPayout.findAll({
+        attributes: [
+          "currency",
+          [fn("SUM", col("vendor_amount")), "vendor_amount"],
+          [fn("COUNT", col("id")), "count"],
+        ],
+        where: { payout_status: status },
+        group: ["currency"],
+        raw: true,
+      });
+      payout_breakdown[status] = rows.map((r) => ({
+        currency: r.currency,
+        vendor_amount: Number(r.vendor_amount || 0),
+        payouts: Number(r.count || 0),
+      }));
+    }
+    return {
+      counts: {
+        users: total_users,
+        vendors: total_vendors,
+        customers: total_customers,
+        stores: total_stores,
+        categories: total_categories,
+        products: total_products,
+        orders: {
+          total: total_orders,
+          delivered: delivered_orders,
+          cancelled: cancelled_orders,
+          pending: pending_orders,
+          paid: paid_orders,
+        },
+        payouts: total_payouts,
+      },
+      // All amounts are per-currency; never sum across currencies
+      financial_summary: payoutSums.map((r) => ({
+        currency: r.currency,
+        gross_amount: Number(r.gross_amount || 0),
+        platform_fee: Number(r.platform_fee || 0),
+        vendor_amount: Number(r.vendor_amount || 0),
+      })),
+      payout_breakdown,
+    };
+  };
+
+  getAdminProducts = async (page, limit, search, category_id, vendor_id, status) => {
+    const { offset } = commanFunction.pagignation(page, limit);
+    const where = { deletedAt: null };
+    if (search) {
+      where[Op.or] = [
+        { pro_name: { [Op.like]: `%${search}%` } },
+        { description: { [Op.like]: `%${search}%` } },
+      ];
+    }
+    if (category_id) {
+      where.category_id = category_id;
+    }
+    // vendor_id is a Users.id; resolve to its store id(s) since products hang off stores
+    if (vendor_id) {
+      const storeIds = (
+        await this.Model.Store.findAll({
+          where: { user_id: vendor_id },
+          attributes: ["id"],
+          raw: true,
+        })
+      ).map((s) => s.id);
+      if (!storeIds.length) {
+        return { count: 0, rows: [] };
+      }
+      where.store_id = { [Op.in]: storeIds };
+    }
+    if (status !== undefined && status !== null && status !== "") {
+      where.status = status === "1" || status === 1 ? 1 : 0;
+    }
+    return this.Model.Products.findAndCountAll({
+      where,
+      include: [
+        {
+          model: this.Model.Store,
+          attributes: ["id", "store_name", "user_id", "slug"],
+          required: false,
+        },
+        {
+          model: this.Model.Category,
+          attributes: ["id", "cat_name", "slug"],
+          required: false,
+        },
+        {
+          model: this.Model.ProductMedia,
+          attributes: ["id", "media_type", "media_url", "is_primary"],
+          required: false,
+        },
+      ],
+      limit: Number(limit),
+      offset,
+      order: [["id", "DESC"]],
+    });
+  };
+
+  updateProductStatus = async (productId, status) => {
+    return this.Model.Products.update(
+      { status: Boolean(status) },
+      {
+        where: {
+          id: productId,
+          deletedAt: null,
+        },
+      },
+    );
+  };
+
+  getProductRowById = async (productId) => {
+    return this.Model.Products.findOne({
+      where: {
+        id: productId,
+        deletedAt: null,
+      },
+    });
+  };
+
+  getCustomerById = async (userId) => {
+    return this.Model.Users.findOne({
+      where: {
+        id: userId,
+        role_Id: 3,
+        deletedAt: null,
+      },
+    });
+  };
+
+  updateCustomerStatus = async (userId, is_active) => {
+    return this.Model.Users.update(
+      { is_active: Boolean(is_active) },
+      {
+        where: {
+          id: userId,
+          role_Id: 3,
+          deletedAt: null,
+        },
+      },
+    );
   };
 }

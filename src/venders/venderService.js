@@ -389,6 +389,13 @@ export default class StoreService {
           "deletedAt",
         ],
       },
+      include: [
+        {
+          model: this.Model.Store,
+          attributes: ["id", "store_name", "slug"],
+          required: false,
+        },
+      ],
     });
   };
 
@@ -457,8 +464,10 @@ export default class StoreService {
     });
   }
 
-  async getVendorPayouts(storeId, query) {
-    const whereCondition = {};
+  async getVendorPayouts(vendorId, query) {
+    const whereCondition = {
+      vendor_id: vendorId,
+    };
     if (query.status) {
       whereCondition.payout_status = query.status;
     }
@@ -476,23 +485,6 @@ export default class StoreService {
             "order_status",
             "createdAt",
           ],
-          // include: [
-          //   {
-          //     model: this.Model.OrderItems,
-          //     required: true,
-
-          //     include: [
-          //       {
-          //         model: this.Model.Product,
-          //         where: {
-          //           store_id: storeId,
-          //           deletedAt: null,
-          //         },
-          //         attributes: ["id", "pro_name", "price", "discount_price"],
-          //       },
-          //     ],
-          //   },
-          // ],
         },
       ],
 
