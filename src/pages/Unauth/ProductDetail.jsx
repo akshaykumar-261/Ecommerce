@@ -18,6 +18,8 @@ import {
   Star,
 } from "lucide-react";
 import { GetProductById } from "../../api/productApi";
+import { useWishlist, useAddToWishlist, useRemoveFromWishlist } from "../../api/useWishlist";
+import toast from "react-hot-toast";
 
 function Navbar() {
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -272,7 +274,12 @@ export default function ProductDetail() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [quantity, setQuantity] = useState(1);
-  const [isWishlisted, setIsWishlisted] = useState(false);
+  const { data: wishlistData } = useWishlist();
+  const { mutate: addToWishlist } = useAddToWishlist();
+  const { mutate: removeFromWishlist } = useRemoveFromWishlist();
+
+  const wishlist = wishlistData?.data?.wishlist || [];
+  const isWishlisted = wishlist.some((item) => item.product_id === Number(id));
 
   useEffect(() => {
     const fetchProduct = async () => {
@@ -289,6 +296,24 @@ export default function ProductDetail() {
     };
     fetchProduct();
   }, [id]);
+
+  const handleWishlistToggle = () => {
+    if (!localStorage.getItem("accessToken")) {
+      toast.error("Please login to add to wishlist");
+      return;
+    }
+    if (isWishlisted) {
+      removeFromWishlist(id, {
+        onSuccess: (res) => toast.success(res?.message || "Removed from wishlist"),
+        onError: () => toast.error("Failed to remove from wishlist"),
+      });
+    } else {
+      addToWishlist(id, {
+        onSuccess: (res) => toast.success(res?.message || "Added to wishlist"),
+        onError: () => toast.error("Failed to add to wishlist"),
+      });
+    }
+  };
 
   if (loading) {
     return (
@@ -415,7 +440,7 @@ export default function ProductDetail() {
             {/* Wishlist & Share */}
             <div className="mb-6 flex gap-3">
               <button
-                onClick={() => setIsWishlisted(!isWishlisted)}
+                onClick={handleWishlistToggle}
                 className={`flex items-center gap-2 rounded-xl border px-5 py-2.5 text-sm font-medium transition-all duration-200 ${
                   isWishlisted
                     ? "border-red-200 bg-red-50 text-red-600"

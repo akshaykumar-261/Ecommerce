@@ -508,7 +508,10 @@ function UserProfile() {
                     </p>
                   </div>
                 </button>
-                <button className="flex w-full items-center gap-3 rounded-xl p-3 text-left transition hover:bg-gray-50">
+                <button
+                  onClick={() => navigate("/wishlist")}
+                  className="flex w-full items-center gap-3 rounded-xl p-3 text-left transition hover:bg-gray-50"
+                >
                   <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-rose-50">
                     <Heart size={18} className="text-rose-500" />
                   </div>

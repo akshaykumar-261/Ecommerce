@@ -22,6 +22,14 @@ export const SearchProducts = async (query, { page = 1, limit = 12 } = {}) => {
   return response.data;
 };
 
+export const SearchSuggestions = async (query, { limit = 8 } = {}) => {
+  const params = new URLSearchParams({ q: query, limit });
+  const response = await axiosInstance.get(
+    `/products/search-suggestions?${params.toString()}`
+  );
+  return response.data;
+};
+
 export const GetTopRatedProducts = async ({ minRating = 3, limit = 20 } = {}) => {
   const params = new URLSearchParams({ minRating, limit });
   const response = await axiosInstance.get(

@@ -3,6 +3,7 @@ import { Navigate } from "react-router-dom";
 import { useAuth } from "./ AuthContext";
 const ProtectedRoute = ({
   children,
+  requireAuth = false,
   requireRegistration = false,
   requireOtpVerified = false,
   requireBusinessDetails = false,
@@ -16,6 +17,12 @@ const ProtectedRoute = ({
     forgotPasswordEmail,
     forgotPasswordOtpVerified,
   } = useAuth();
+  const token = localStorage.getItem("accessToken");
+
+  // Auth check - redirect to login if not authenticated
+  if (requireAuth && !token) {
+    return <Navigate to="/login" replace />;
+  }
   // Registration check
   if (requireRegistration && !registrationCompleted) {
     return <Navigate to="/vendorRegister" replace />;
@@ -37,5 +44,5 @@ const ProtectedRoute = ({
     return <Navigate to="/forgot-password" replace />;
   }
   return children;
-};;
+};
 export default ProtectedRoute;

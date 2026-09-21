@@ -25,6 +25,7 @@ import VendorPayouts from "../pages/Vendor/VendorPayouts";
 import ProtectedRoute from "../components/common/ProtectedRoute";
 import Profile from "../pages/Vendor/Profile";
 import UserProfile from "../pages/Unauth/UserProfile";
+import Wishlist from "../pages/Unauth/Wishlist";
 import AdminLogin from "../pages/Admin/AdminLogin";
 import AdminDashboard from "../pages/Admin/AdminDashboard";
 import AdminVendors from "../pages/Admin/AdminVendors";
@@ -105,7 +106,22 @@ function AppRoutes() {
       <Route path="/vendor/orders" element={<VendorOrders />} />
       <Route path="/vendor/payouts" element={<VendorPayouts />} />
       <Route path="/vendor/chat" element={<VendorChat />} />
-      <Route path="/profile" element={<UserProfile />} />
+      <Route
+        path="/profile"
+        element={
+          <ProtectedRoute requireAuth>
+            <UserProfile />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/wishlist"
+        element={
+          <ProtectedRoute requireAuth>
+            <Wishlist />
+          </ProtectedRoute>
+        }
+      />
       {/* Admin console */}
       <Route path="/admin/login" element={<AdminLogin />} />
       <Route path="/admin/dashboard" element={eb(AdminDashboard)} />

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import toast from "react-hot-toast";
 import {
   ShoppingCart,
   ArrowLeft,
@@ -10,8 +11,10 @@ import {
   User,
   Menu,
   X,
+  Heart,
 } from "lucide-react";
 import { GetProductsByCategory } from "../../api/productApi";
+import { useWishlist, useAddToWishlist, useRemoveFromWishlist } from "../../api/useWishlist";
 const CATEGORY_MAP = {
   1: "Electronics",
   2: "Mobiles",
@@ -105,6 +108,12 @@ function Navbar() {
 
 function ProductCard({ product }) {
   const navigate = useNavigate();
+  const { mutate: addToWishlist } = useAddToWishlist();
+  const { mutate: removeFromWishlist } = useRemoveFromWishlist();
+  const { data: wishlistData } = useWishlist();
+  const wishlist = wishlistData?.data?.wishlist || [];
+  const isWishlisted = wishlist.some((item) => item.product_id === product.id);
+
   const price = parseFloat(product.price) || 0;
   const discountPrice = parseFloat(product.discount_price) || 0;
   const discount =
@@ -114,6 +123,19 @@ function ProductCard({ product }) {
 
   const primaryMedia = product.product_media?.find((m) => m.is_primary);
   const imageUrl = primaryMedia?.media_url || product.product_media?.[0]?.media_url || null;
+
+  const handleWishlistClick = (e) => {
+    e.stopPropagation();
+    if (!localStorage.getItem("accessToken")) {
+      toast.error("Please login to add to wishlist");
+      return;
+    }
+    if (isWishlisted) {
+      removeFromWishlist(product.id);
+    } else {
+      addToWishlist(product.id);
+    }
+  };
 
   return (
     <div
@@ -133,6 +155,16 @@ function ProductCard({ product }) {
           </div>
         )}
 
+        <button
+          onClick={handleWishlistClick}
+          className="absolute left-3 top-3 z-10 flex h-8 w-8 items-center justify-center rounded-full bg-white/90 shadow-md backdrop-blur-sm transition hover:bg-white hover:scale-110"
+        >
+          <Heart
+            size={16}
+            className={isWishlisted ? "fill-red-500 text-red-500" : "text-gray-400"}
+          />
+        </button>
+
         {discount > 0 && (
           <span className="absolute right-3 top-3 rounded-lg bg-red-500 px-2 py-1 text-[10px] font-bold text-white">
             -{discount}%
@@ -150,11 +182,9 @@ function ProductCard({ product }) {
         <h3 className="mb-1 line-clamp-2 text-sm font-semibold leading-snug text-gray-800 group-hover:text-[#4c2ed8]">
           {product.pro_name}
         </h3>
-
         <p className="mb-2 line-clamp-2 text-xs text-gray-400">
           {product.description}
         </p>
-
         <div className="mt-auto flex items-baseline gap-2">
           <span className="text-lg font-bold text-gray-900">
             ₹{discountPrice > 0 ? discountPrice.toFixed(2) : price.toFixed(2)}

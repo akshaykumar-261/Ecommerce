@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import pro4 from "../../assets/pro4.png";
-import { GetTopRatedProducts } from "../../api/productApi";
+import { GetTopRatedProducts, SearchSuggestions } from "../../api/productApi";
 import { useGetUser, useLogout } from "../../api/useAuth";
+import { useWishlist, useAddToWishlist, useRemoveFromWishlist } from "../../api/useWishlist";
+import toast from "react-hot-toast";
 import {
   Search,
   ShoppingCart,
@@ -40,6 +42,7 @@ import {
   Tag,
   LogOut,
   Store,
+  Heart,
 } from "lucide-react";
 
 /* ───────── Category ↔ Icon Map ───────── */
@@ -97,9 +100,14 @@ function Navbar() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [searchFocused, setSearchFocused] = useState(false);
   const [searchValue, setSearchValue] = useState("");
+  const [suggestions, setSuggestions] = useState([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const [suggestionsLoading, setSuggestionsLoading] = useState(false);
   const [userDropdownOpen, setUserDropdownOpen] = useState(false);
   const [showLogoutDialog, setShowLogoutDialog] = useState(false);
   const dropdownRef = React.useRef(null);
+  const searchRef = React.useRef(null);
+  const searchTimerRef = React.useRef(null);
   const navigate = useNavigate();
   const { data: userData } = useGetUser();
   const logoutMutation = useLogout();
@@ -111,16 +119,48 @@ function Navbar() {
       if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
         setUserDropdownOpen(false);
       }
+      if (searchRef.current && !searchRef.current.contains(e.target)) {
+        setShowSuggestions(false);
+      }
     };
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
+  React.useEffect(() => {
+    if (searchTimerRef.current) clearTimeout(searchTimerRef.current);
+    if (searchValue.trim().length < 2) {
+      setSuggestions([]);
+      setShowSuggestions(false);
+      return;
+    }
+    setSuggestionsLoading(true);
+    searchTimerRef.current = setTimeout(async () => {
+      try {
+        const res = await SearchSuggestions(searchValue.trim(), { limit: 8 });
+        setSuggestions(res?.data?.suggestions || []);
+        setShowSuggestions(true);
+      } catch {
+        setSuggestions([]);
+      } finally {
+        setSuggestionsLoading(false);
+      }
+    }, 300);
+    return () => clearTimeout(searchTimerRef.current);
+  }, [searchValue]);
+
   const handleSearch = (e) => {
     e.preventDefault();
     if (searchValue.trim()) {
+      setShowSuggestions(false);
       navigate(`/search/${encodeURIComponent(searchValue.trim())}`);
     }
+  };
+
+  const handleSuggestionClick = (product) => {
+    setShowSuggestions(false);
+    setSearchValue(product.pro_name);
+    navigate(`/search/${encodeURIComponent(product.pro_name)}`);
   };
 
   const confirmLogout = () => {
@@ -156,26 +196,88 @@ function Navbar() {
         </button>
 
         {/* Search Bar – desktop */}
-        <div className="hidden flex-1 px-8 md:block">
-          <form onSubmit={handleSearch} className={`flex items-center rounded-xl border-2 bg-gray-50 transition-all duration-200 ${
-            searchFocused
-              ? "border-[#4c2ed8] bg-white shadow-lg shadow-[#4c2ed8]/5"
-              : "border-transparent"
-          }`}>
-            <Search size={18} className="ml-3 text-gray-400" />
-            <input
-              type="text"
-              value={searchValue}
-              onChange={(e) => setSearchValue(e.target.value)}
-              placeholder="Search for products, brands and more..."
-              className="w-full bg-transparent px-3 py-2.5 text-sm text-gray-800 outline-none placeholder:text-gray-400"
-              onFocus={() => setSearchFocused(true)}
-              onBlur={() => setSearchFocused(false)}
-            />
-            <button type="submit" className="mr-1 rounded-lg bg-[#4c2ed8] px-5 py-2 text-sm font-medium text-white transition hover:bg-[#3a24b0]">
-              Search
-            </button>
-          </form>
+        <div className="hidden flex-1 px-8 md:block" ref={searchRef}>
+          <div className="relative">
+            <form onSubmit={handleSearch} className={`flex items-center rounded-xl border-2 bg-gray-50 transition-all duration-200 ${
+              searchFocused || showSuggestions
+                ? "border-[#4c2ed8] bg-white shadow-lg shadow-[#4c2ed8]/5"
+                : "border-transparent"
+            }`}>
+              <Search size={18} className="ml-3 text-gray-400" />
+              <input
+                type="text"
+                value={searchValue}
+                onChange={(e) => {
+                  setSearchValue(e.target.value);
+                  if (e.target.value.trim().length >= 2) setShowSuggestions(true);
+                }}
+                placeholder="Search for products, brands and more..."
+                className="w-full bg-transparent px-3 py-2.5 text-sm text-gray-800 outline-none placeholder:text-gray-400"
+                onFocus={() => {
+                  setSearchFocused(true);
+                  if (suggestions.length > 0) setShowSuggestions(true);
+                }}
+                onBlur={() => setSearchFocused(false)}
+              />
+              <button type="submit" className="mr-1 rounded-lg bg-[#4c2ed8] px-5 py-2 text-sm font-medium text-white transition hover:bg-[#3a24b0]">
+                Search
+              </button>
+            </form>
+
+            {/* Suggestions Dropdown */}
+            {showSuggestions && searchValue.trim().length >= 2 && (
+              <div className="absolute left-0 right-0 top-full z-50 mt-1 overflow-hidden rounded-xl border border-gray-100 bg-white shadow-xl shadow-gray-200/60">
+                {suggestionsLoading ? (
+                  <div className="flex items-center justify-center py-6">
+                    <div className="h-6 w-6 animate-spin rounded-full border-2 border-[#4c2ed8] border-t-transparent"></div>
+                  </div>
+                ) : suggestions.length > 0 ? (
+                  <>
+                    {suggestions.map((product) => (
+                      <button
+                        key={product.id}
+                        type="button"
+                        onMouseDown={() => handleSuggestionClick(product)}
+                        className="flex w-full items-center gap-3 px-4 py-3 text-left transition hover:bg-gray-50"
+                      >
+                        {product.product_media?.[0]?.media_url ? (
+                          <img
+                            src={product.product_media[0].media_url}
+                            alt={product.pro_name}
+                            className="h-10 w-10 rounded-lg object-cover"
+                          />
+                        ) : (
+                          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-gray-100">
+                            <Search size={16} className="text-gray-400" />
+                          </div>
+                        )}
+                        <div className="min-w-0 flex-1">
+                          <p className="truncate text-sm font-medium text-gray-800">
+                            {product.pro_name}
+                          </p>
+                          <p className="text-xs font-semibold text-[#4c2ed8]">
+                            ₹{product.discount_price > 0 ? product.discount_price : product.price}
+                          </p>
+                        </div>
+                      </button>
+                    ))}
+                    <button
+                      type="button"
+                      onMouseDown={handleSearch}
+                      className="flex w-full items-center justify-center gap-2 border-t border-gray-100 bg-gray-50 px-4 py-2.5 text-sm font-medium text-[#4c2ed8] transition hover:bg-gray-100"
+                    >
+                      <Search size={14} />
+                      Search for "{searchValue}"
+                    </button>
+                  </>
+                ) : (
+                  <div className="px-4 py-6 text-center">
+                    <p className="text-sm text-gray-500">No products found</p>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Right actions */}
@@ -294,19 +396,69 @@ function Navbar() {
       {/* Mobile menu */}
       {mobileOpen && (
         <div className="border-t border-gray-100 bg-white px-4 pb-4 pt-3 md:hidden">
-          <form onSubmit={handleSearch} className="mb-3 flex items-center rounded-xl border bg-gray-50">
-            <Search size={18} className="ml-3 text-gray-400" />
-            <input
-              type="text"
-              value={searchValue}
-              onChange={(e) => setSearchValue(e.target.value)}
-              placeholder="Search products..."
-              className="w-full bg-transparent px-3 py-2.5 text-sm outline-none"
-            />
-            <button type="submit" className="mr-2 rounded-lg bg-[#4c2ed8] px-4 py-1.5 text-xs font-medium text-white">
-              Search
-            </button>
-          </form>
+          <div className="relative mb-3">
+            <form onSubmit={handleSearch} className="flex items-center rounded-xl border bg-gray-50">
+              <Search size={18} className="ml-3 text-gray-400" />
+              <input
+                type="text"
+                value={searchValue}
+                onChange={(e) => {
+                  setSearchValue(e.target.value);
+                  if (e.target.value.trim().length >= 2) setShowSuggestions(true);
+                }}
+                placeholder="Search products..."
+                className="w-full bg-transparent px-3 py-2.5 text-sm outline-none"
+              />
+              <button type="submit" className="mr-2 rounded-lg bg-[#4c2ed8] px-4 py-1.5 text-xs font-medium text-white">
+                Search
+              </button>
+            </form>
+            {showSuggestions && searchValue.trim().length >= 2 && (
+              <div className="absolute left-0 right-0 top-full z-50 mt-1 overflow-hidden rounded-xl border border-gray-100 bg-white shadow-xl">
+                {suggestionsLoading ? (
+                  <div className="flex items-center justify-center py-4">
+                    <div className="h-5 w-5 animate-spin rounded-full border-2 border-[#4c2ed8] border-t-transparent"></div>
+                  </div>
+                ) : suggestions.length > 0 ? (
+                  suggestions.map((product) => (
+                    <button
+                      key={product.id}
+                      type="button"
+                      onMouseDown={() => {
+                        handleSuggestionClick(product);
+                        setMobileOpen(false);
+                      }}
+                      className="flex w-full items-center gap-3 px-3 py-2.5 text-left transition hover:bg-gray-50"
+                    >
+                      {product.product_media?.[0]?.media_url ? (
+                        <img
+                          src={product.product_media[0].media_url}
+                          alt={product.pro_name}
+                          className="h-9 w-9 rounded-lg object-cover"
+                        />
+                      ) : (
+                        <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-gray-100">
+                          <Search size={14} className="text-gray-400" />
+                        </div>
+                      )}
+                      <div className="min-w-0 flex-1">
+                        <p className="truncate text-sm font-medium text-gray-800">
+                          {product.pro_name}
+                        </p>
+                        <p className="text-xs font-semibold text-[#4c2ed8]">
+                          ₹{product.discount_price > 0 ? product.discount_price : product.price}
+                        </p>
+                      </div>
+                    </button>
+                  ))
+                ) : (
+                  <div className="px-3 py-4 text-center">
+                    <p className="text-sm text-gray-500">No products found</p>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
           {isLoggedIn ? (
             <>
               <div className="mb-3 flex items-center gap-3 rounded-lg px-3 py-2.5">
@@ -615,6 +767,12 @@ function CategoriesSection() {
    ──────────────────────────────────────── */
 function ProductCard({ product }) {
   const navigate = useNavigate();
+  const { mutate: addToWishlist } = useAddToWishlist();
+  const { mutate: removeFromWishlist } = useRemoveFromWishlist();
+  const { data: wishlistData } = useWishlist();
+  const wishlist = wishlistData?.data?.wishlist || [];
+  const isWishlisted = wishlist.some((item) => item.product_id === product.id);
+
   const price = parseFloat(product.price) || 0;
   const discountPrice = parseFloat(product.discount_price) || 0;
   const discount =
@@ -629,6 +787,19 @@ function ProductCard({ product }) {
   const productName = product.pro_name || product.name;
   const avgRating = parseFloat(product.avgRating) || 0;
   const reviewCount = parseInt(product.reviewCount) || 0;
+
+  const handleWishlistClick = (e) => {
+    e.stopPropagation();
+    if (!localStorage.getItem("accessToken")) {
+      toast.error("Please login to add to wishlist");
+      return;
+    }
+    if (isWishlisted) {
+      removeFromWishlist(product.id);
+    } else {
+      addToWishlist(product.id);
+    }
+  };
 
   return (
     <div
@@ -647,6 +818,16 @@ function ProductCard({ product }) {
             <ShoppingCart size={32} />
           </div>
         )}
+
+        <button
+          onClick={handleWishlistClick}
+          className="absolute left-3 top-3 z-10 flex h-8 w-8 items-center justify-center rounded-full bg-white/90 shadow-md backdrop-blur-sm transition hover:bg-white hover:scale-110"
+        >
+          <Heart
+            size={16}
+            className={isWishlisted ? "fill-red-500 text-red-500" : "text-gray-400"}
+          />
+        </button>
 
         {discount > 0 && (
           <span className="absolute right-3 top-3 rounded-lg bg-red-500 px-2 py-1 text-[10px] font-bold text-white">
@@ -817,30 +998,30 @@ function PromoBanner() {
 /* ────────────────────────────────────────
    NEWSLETTER
    ──────────────────────────────────────── */
-function Newsletter() {
-  return (
-    <section className="py-14">
-      <div className="mx-auto max-w-7xl px-4 lg:px-8">
-        <div className="overflow-hidden rounded-2xl bg-gradient-to-r from-gray-900 to-gray-800 px-6 py-12 text-center text-white md:px-16">
-          <h2 className="mb-2 text-2xl font-bold">Stay in the Loop</h2>
-          <p className="mb-6 text-sm text-gray-400">
-            Subscribe for exclusive deals, new arrivals, and more.
-          </p>
-          <div className="mx-auto flex max-w-md flex-col gap-3 sm:flex-row">
-            <input
-              type="email"
-              placeholder="Enter your email"
-              className="flex-1 rounded-xl border border-white/10 bg-white/10 px-4 py-3 text-sm text-white placeholder:text-gray-500 focus:border-[#4c2ed8] focus:outline-none"
-            />
-            <button className="rounded-xl bg-[#4c2ed8] px-6 py-3 text-sm font-semibold text-white transition hover:bg-[#3a24b0]">
-              Subscribe
-            </button>
-          </div>
-        </div>
-      </div>
-    </section>
-  );
-}
+// function Newsletter() {
+//   return (
+//     <section className="py-14">
+//       <div className="mx-auto max-w-7xl px-4 lg:px-8">
+//         <div className="overflow-hidden rounded-2xl bg-gradient-to-r from-gray-900 to-gray-800 px-6 py-12 text-center text-white md:px-16">
+//           <h2 className="mb-2 text-2xl font-bold">Stay in the Loop</h2>
+//           <p className="mb-6 text-sm text-gray-400">
+//             Subscribe for exclusive deals, new arrivals, and more.
+//           </p>
+//           <div className="mx-auto flex max-w-md flex-col gap-3 sm:flex-row">
+//             <input
+//               type="email"
+//               placeholder="Enter your email"
+//               className="flex-1 rounded-xl border border-white/10 bg-white/10 px-4 py-3 text-sm text-white placeholder:text-gray-500 focus:border-[#4c2ed8] focus:outline-none"
+//             />
+//             <button className="rounded-xl bg-[#4c2ed8] px-6 py-3 text-sm font-semibold text-white transition hover:bg-[#3a24b0]">
+//               Subscribe
+//             </button>
+//           </div>
+//         </div>
+//       </div>
+//     </section>
+//   );
+// }
 
 /* ────────────────────────────────────────
    FOOTER
@@ -907,7 +1088,7 @@ function Footer() {
         </div>
 
         <div className="mt-10 border-t border-gray-100 pt-6 text-center text-xs text-gray-400">
-          &copy; {new Date().getFullYear()} ShopHub. All rights reserved.
+          &copy; {new Date().getFullYear()} ShopEase. All rights reserved.
         </div>
       </div>
     </footer>
@@ -926,7 +1107,7 @@ export default function Home() {
       <CategoriesSection />
       <FeaturedProducts />
       <PromoBanner />
-      <Newsletter />
+      {/* <Newsletter /> */}
       <Footer />
     </div>
   );
