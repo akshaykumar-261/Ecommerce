@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import pro4 from "../../assets/pro4.png";
 import { GetTopRatedProducts } from "../../api/productApi";
+import { useGetUser, useLogout } from "../../api/useAuth";
 import {
   Search,
   ShoppingCart,
@@ -37,6 +38,8 @@ import {
   TrendingUp,
   Zap,
   Tag,
+  LogOut,
+  Store,
 } from "lucide-react";
 
 /* ───────── Category ↔ Icon Map ───────── */
@@ -95,12 +98,27 @@ function Navbar() {
   const [searchFocused, setSearchFocused] = useState(false);
   const [searchValue, setSearchValue] = useState("");
   const navigate = useNavigate();
+  const { data: userData } = useGetUser();
+  const logoutMutation = useLogout();
+  const user = userData?.data?.user;
+  const isLoggedIn = !!localStorage.getItem("accessToken");
 
   const handleSearch = (e) => {
     e.preventDefault();
     if (searchValue.trim()) {
       navigate(`/search/${encodeURIComponent(searchValue.trim())}`);
     }
+  };
+
+  const handleLogout = () => {
+    logoutMutation.mutate(undefined, {
+      onSuccess: () => {
+        localStorage.removeItem("accessToken");
+        localStorage.removeItem("refreshToken");
+        navigate("/home");
+        window.location.reload();
+      },
+    });
   };
 
   return (
@@ -144,13 +162,45 @@ function Navbar() {
 
         {/* Right actions */}
         <div className="flex items-center gap-2">
-          <button
-            onClick={() => navigate("/login")}
-            className="hidden items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-100 sm:flex"
-          >
-            <User size={18} />
-            Sign In
-          </button>
+          {isLoggedIn ? (
+            <>
+              {/* Become Seller - hidden when logged in */}
+              <div className="hidden items-center gap-3 sm:flex">
+                <div className="flex items-center gap-2 text-sm text-gray-700">
+                  <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[#4c2ed8]/10 text-[#4c2ed8] font-semibold text-xs">
+                    {user?.name?.charAt(0)?.toUpperCase() || "U"}
+                  </div>
+                  <span className="max-w-[100px] truncate font-medium">
+                    {user?.name || "User"}
+                  </span>
+                </div>
+                <button
+                  onClick={handleLogout}
+                  className="flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-medium text-red-500 transition hover:bg-red-50"
+                >
+                  <LogOut size={16} />
+                  Logout
+                </button>
+              </div>
+            </>
+          ) : (
+            <>
+              <button
+                onClick={() => navigate("/vendorRegister")}
+                className="hidden items-center gap-2 rounded-lg border border-[#4c2ed8] bg-[#4c2ed8]/5 px-4 py-2 text-sm font-medium text-[#4c2ed8] transition hover:bg-[#4c2ed8] hover:text-white sm:flex"
+              >
+                <Store size={16} />
+                Become Seller
+              </button>
+              <button
+                onClick={() => navigate("/login")}
+                className="hidden items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-100 sm:flex"
+              >
+                <User size={18} />
+                Sign In
+              </button>
+            </>
+          )}
           <button className="relative rounded-lg p-2 text-gray-700 transition hover:bg-gray-100">
             <ShoppingCart size={22} />
             <span className="absolute -right-0.5 -top-0.5 flex h-5 w-5 items-center justify-center rounded-full bg-[#4c2ed8] text-[10px] font-bold text-white">
@@ -182,15 +232,49 @@ function Navbar() {
               Search
             </button>
           </form>
-          <button
-            onClick={() => {
-              navigate("/login");
-              setMobileOpen(false);
-            }}
-            className="flex w-full items-center gap-2 rounded-lg px-3 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50"
-          >
-            <User size={18} /> Sign In
-          </button>
+          {isLoggedIn ? (
+            <>
+              <div className="mb-3 flex items-center gap-3 rounded-lg px-3 py-2.5">
+                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#4c2ed8]/10 text-[#4c2ed8] font-semibold text-sm">
+                  {user?.name?.charAt(0)?.toUpperCase() || "U"}
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-gray-900">{user?.name || "User"}</p>
+                  <p className="text-xs text-gray-500">{user?.email || ""}</p>
+                </div>
+              </div>
+              <button
+                onClick={() => {
+                  handleLogout();
+                  setMobileOpen(false);
+                }}
+                className="flex w-full items-center gap-2 rounded-lg px-3 py-2.5 text-sm font-medium text-red-500 hover:bg-red-50"
+              >
+                <LogOut size={18} /> Logout
+              </button>
+            </>
+          ) : (
+            <>
+              <button
+                onClick={() => {
+                  navigate("/vendorRegister");
+                  setMobileOpen(false);
+                }}
+                className="mb-2 flex w-full items-center gap-2 rounded-lg border border-[#4c2ed8] bg-[#4c2ed8]/5 px-3 py-2.5 text-sm font-medium text-[#4c2ed8] hover:bg-[#4c2ed8] hover:text-white"
+              >
+                <Store size={18} /> Become Seller
+              </button>
+              <button
+                onClick={() => {
+                  navigate("/login");
+                  setMobileOpen(false);
+                }}
+                className="flex w-full items-center gap-2 rounded-lg px-3 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50"
+              >
+                <User size={18} /> Sign In
+              </button>
+            </>
+          )}
         </div>
       )}
     </header>
@@ -513,9 +597,6 @@ function FeaturedProducts() {
               Top Rated Products
             </h2>
           </div>
-          <button className="hidden items-center gap-1 text-sm font-medium text-[#4c2ed8] transition hover:underline sm:flex">
-            View All <ChevronRight size={16} />
-          </button>
         </div>
 
         {loading ? (
@@ -549,11 +630,13 @@ function FeaturedProducts() {
    PROMO BANNER
    ──────────────────────────────────────── */
 function PromoBanner() {
+  const navigate = useNavigate();
+
   return (
     <section className="bg-gray-50/60 py-14">
       <div className="mx-auto max-w-7xl px-4 lg:px-8">
         <div className="grid gap-4 md:grid-cols-2">
-          {/* Banner 1 */}
+          {/* Banner 1 - Fashion Sale */}
           <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-rose-500 to-pink-600 p-8 text-white">
             <div className="pointer-events-none absolute -right-8 -top-8 h-40 w-40 rounded-full bg-white/10" />
             <div className="pointer-events-none absolute -bottom-6 -left-6 h-32 w-32 rounded-full bg-white/10" />
@@ -564,12 +647,15 @@ function PromoBanner() {
             <p className="mb-5 max-w-xs text-sm text-white/80">
               Up to 60% off on top brands. Don't miss out on the latest trends.
             </p>
-            <button className="flex items-center gap-2 rounded-xl bg-white px-6 py-2.5 text-sm font-semibold text-rose-600 transition hover:bg-white/90">
+            <button
+              onClick={() => navigate("/products/fashion")}
+              className="flex items-center gap-2 rounded-xl bg-white px-6 py-2.5 text-sm font-semibold text-rose-600 transition hover:bg-white/90"
+            >
               Shop Fashion <ArrowRight size={14} />
             </button>
           </div>
 
-          {/* Banner 2 */}
+          {/* Banner 2 - Gadget Deals */}
           <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-[#4c2ed8] to-[#368de8] p-8 text-white">
             <div className="pointer-events-none absolute -right-8 -top-8 h-40 w-40 rounded-full bg-white/10" />
             <div className="pointer-events-none absolute -bottom-6 -left-6 h-32 w-32 rounded-full bg-white/10" />
@@ -581,7 +667,10 @@ function PromoBanner() {
               Save big on phones, laptops, and accessories. Free shipping on all
               orders.
             </p>
-            <button className="flex items-center gap-2 rounded-xl bg-white px-6 py-2.5 text-sm font-semibold text-[#4c2ed8] transition hover:bg-white/90">
+            <button
+              onClick={() => navigate("/products/electronics")}
+              className="flex items-center gap-2 rounded-xl bg-white px-6 py-2.5 text-sm font-semibold text-[#4c2ed8] transition hover:bg-white/90"
+            >
               Shop Electronics <ArrowRight size={14} />
             </button>
           </div>

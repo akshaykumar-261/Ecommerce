@@ -4,6 +4,7 @@ import Register from "../pages/Auth/Register";
 import ForgotPassword from "../pages/Auth/ForgotPwd";
 import Home from "../pages/Unauth/Home";
 import Products from "../pages/Unauth/Products";
+import CategoryGroup from "../pages/Unauth/CategoryGroup";
 import ProductDetail from "../pages/Unauth/ProductDetail";
 import SearchResults from "../pages/Unauth/SearchResults";
 import OtpVerify from "../pages/Auth/OtpVerify";
@@ -53,6 +54,7 @@ function AppRoutes() {
       <Route path="/forgot-password" element={<ForgotPassword />} />
       <Route path="/home" element={<Home />} />
       <Route path="/products/category/:id" element={<Products />} />
+      <Route path="/products/:group" element={<CategoryGroup />} />
       <Route path="/product/:id" element={<ProductDetail />} />
       <Route path="/search/:query" element={<SearchResults />} />
       <Route
