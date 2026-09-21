@@ -44,10 +44,66 @@
   animation: adminPop 0.25s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
+/* ── Home page animations ── */
+@keyframes homeSlideUp {
+  from {
+    opacity: 0;
+    transform: translateY(24px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes homeScaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.92);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.animate-home-slide-up {
+  animation: homeSlideUp 0.6s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.animate-home-scale-in {
+  animation: homeScaleIn 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+/* Stagger children for category grid */
+.stagger-children > *:nth-child(1) { animation-delay: 0.02s; }
+.stagger-children > *:nth-child(2) { animation-delay: 0.04s; }
+.stagger-children > *:nth-child(3) { animation-delay: 0.06s; }
+.stagger-children > *:nth-child(4) { animation-delay: 0.08s; }
+.stagger-children > *:nth-child(5) { animation-delay: 0.10s; }
+.stagger-children > *:nth-child(6) { animation-delay: 0.12s; }
+.stagger-children > *:nth-child(7) { animation-delay: 0.14s; }
+.stagger-children > *:nth-child(8) { animation-delay: 0.16s; }
+.stagger-children > *:nth-child(9) { animation-delay: 0.18s; }
+.stagger-children > *:nth-child(10) { animation-delay: 0.20s; }
+.stagger-children > *:nth-child(11) { animation-delay: 0.22s; }
+.stagger-children > *:nth-child(12) { animation-delay: 0.24s; }
+.stagger-children > *:nth-child(13) { animation-delay: 0.26s; }
+.stagger-children > *:nth-child(14) { animation-delay: 0.28s; }
+.stagger-children > *:nth-child(15) { animation-delay: 0.30s; }
+.stagger-children > *:nth-child(16) { animation-delay: 0.32s; }
+.stagger-children > *:nth-child(17) { animation-delay: 0.34s; }
+.stagger-children > *:nth-child(18) { animation-delay: 0.36s; }
+.stagger-children > *:nth-child(19) { animation-delay: 0.38s; }
+.stagger-children > *:nth-child(20) { animation-delay: 0.40s; }
+.stagger-children > *:nth-child(21) { animation-delay: 0.42s; }
+
 @media (prefers-reduced-motion: reduce) {
   .animate-fade-up,
   .animate-fade-in,
-  .animate-pop {
+  .animate-pop,
+  .animate-home-slide-up,
+  .animate-home-scale-in {
     animation: none;
   }
 }

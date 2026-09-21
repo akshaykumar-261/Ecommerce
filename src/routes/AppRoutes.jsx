@@ -3,6 +3,9 @@ import Login from "../pages/Auth/Login";
 import Register from "../pages/Auth/Register";
 import ForgotPassword from "../pages/Auth/ForgotPwd";
 import Home from "../pages/Unauth/Home";
+import Products from "../pages/Unauth/Products";
+import ProductDetail from "../pages/Unauth/ProductDetail";
+import SearchResults from "../pages/Unauth/SearchResults";
 import OtpVerify from "../pages/Auth/OtpVerify";
 import OtpVerifyForgotPassword from "../pages/Auth/OtpVerifyForgotPassword";
 import ResetPassword from "../pages/Auth/ResetPassword";
@@ -19,7 +22,7 @@ import StoreSettings from "../pages/Vendor/StoreSettings";
 import VendorOrders from "../pages/Vendor/VendorOrders";
 import VendorPayouts from "../pages/Vendor/VendorPayouts";
 import ProtectedRoute from "../components/common/ProtectedRoute";
-import Profile from "../pages/Unauth/Profile";
+import Profile from "../pages/Vendor/Profile";
 import AdminLogin from "../pages/Admin/AdminLogin";
 import AdminDashboard from "../pages/Admin/AdminDashboard";
 import AdminVendors from "../pages/Admin/AdminVendors";
@@ -49,6 +52,9 @@ function AppRoutes() {
       <Route path="/register" element={<Register />} />
       <Route path="/forgot-password" element={<ForgotPassword />} />
       <Route path="/home" element={<Home />} />
+      <Route path="/products/category/:id" element={<Products />} />
+      <Route path="/product/:id" element={<ProductDetail />} />
+      <Route path="/search/:query" element={<SearchResults />} />
       <Route
         path="/otpVerify"
         element={
