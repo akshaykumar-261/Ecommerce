@@ -82,4 +82,20 @@ export default class productController {
       { products: paginationData }
     );
   }
+
+  async searchSuggestions(req, res) {
+    const { q = "", limit = 8 } = req.query;
+    if (!q.trim()) {
+      return sendResponse(res, STATUS_CODE.SUCCESS, "Suggestions fetched.", {
+        suggestions: [],
+      });
+    }
+    const suggestions = await this.service.searchSuggestions(q, limit);
+    return sendResponse(
+      res,
+      STATUS_CODE.SUCCESS,
+      "Suggestions fetched successfully.",
+      { suggestions }
+    );
+  }
 }

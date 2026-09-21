@@ -90,4 +90,29 @@ export default class ProductServices {
       order: [["id", "DESC"]],
     });
   };
+
+  searchSuggestions = async (search, limit = 8) => {
+    return await this.Model.Products.findAll({
+      where: {
+        deletedAt: null,
+        status: true,
+        [Op.or]: [
+          { pro_name: { [Op.like]: `%${search}%` } },
+          { description: { [Op.like]: `%${search}%` } },
+        ],
+      },
+      attributes: ["id", "pro_name", "price", "discount_price"],
+      include: [
+        {
+          model: this.Model.ProductMedia,
+          attributes: ["id", "media_url", "is_primary"],
+          required: false,
+          where: { is_primary: true },
+          required: false,
+        },
+      ],
+      limit: Number(limit),
+      order: [["id", "DESC"]],
+    });
+  };
 }

@@ -38,6 +38,11 @@ router.get(
 );
 
 router.get(
+  "/search-suggestions",
+  asyncHandler(productCtrl.searchSuggestions.bind(productCtrl))
+);
+
+router.get(
   "/:id",
   authorize,
   validateParams(productIdParamValidation),

@@ -65,6 +65,20 @@ export default class ReviewService {
       where: {
         user_id: userId,
       },
+      include: [
+        {
+          model: this.Model.Products,
+          attributes: ["id", "pro_name", "description", "price", "discount_price"],
+          include: [
+            {
+              model: this.Model.ProductMedia,
+              attributes: ["id", "media_url", "is_primary"],
+              required: false,
+            },
+          ],
+          required: false,
+        },
+      ],
       order: [["createdAt", "DESC"]],
     });
   }
