@@ -97,11 +97,24 @@ function Navbar() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [searchFocused, setSearchFocused] = useState(false);
   const [searchValue, setSearchValue] = useState("");
+  const [userDropdownOpen, setUserDropdownOpen] = useState(false);
+  const [showLogoutDialog, setShowLogoutDialog] = useState(false);
+  const dropdownRef = React.useRef(null);
   const navigate = useNavigate();
   const { data: userData } = useGetUser();
   const logoutMutation = useLogout();
-  const user = userData?.data?.user;
+  const user = userData?.data;
   const isLoggedIn = !!localStorage.getItem("accessToken");
+
+  React.useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
+        setUserDropdownOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   const handleSearch = (e) => {
     e.preventDefault();
@@ -110,16 +123,21 @@ function Navbar() {
     }
   };
 
-  const handleLogout = () => {
+  const confirmLogout = () => {
+    setShowLogoutDialog(false);
     logoutMutation.mutate(undefined, {
-      onSuccess: () => {
+      onSettled: () => {
         localStorage.removeItem("accessToken");
         localStorage.removeItem("refreshToken");
-        navigate("/home");
-        window.location.reload();
+        navigate("/home", { replace: true });
       },
     });
   };
+
+  const userAvatar = user?.avtar;
+  const userName = user?.name || "User";
+  const userEmail = user?.email || "";
+  const userInitial = userName.charAt(0).toUpperCase();
 
   return (
     <header className="sticky top-0 z-50 border-b border-gray-100 bg-white/80 backdrop-blur-md">
@@ -163,26 +181,83 @@ function Navbar() {
         {/* Right actions */}
         <div className="flex items-center gap-2">
           {isLoggedIn ? (
-            <>
-              {/* Become Seller - hidden when logged in */}
-              <div className="hidden items-center gap-3 sm:flex">
-                <div className="flex items-center gap-2 text-sm text-gray-700">
-                  <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[#4c2ed8]/10 text-[#4c2ed8] font-semibold text-xs">
-                    {user?.name?.charAt(0)?.toUpperCase() || "U"}
+            <div className="relative hidden sm:block" ref={dropdownRef}>
+              <button
+                onClick={() => setUserDropdownOpen(!userDropdownOpen)}
+                className="flex items-center gap-2 rounded-lg px-2 py-1.5 transition hover:bg-gray-100"
+              >
+                {userAvatar ? (
+                  <img
+                    src={userAvatar}
+                    alt={userName}
+                    className="h-8 w-8 rounded-full object-cover ring-2 ring-[#4c2ed8]/20"
+                  />
+                ) : (
+                  <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-[#4c2ed8] to-[#368de8] text-white font-semibold text-xs">
+                    {userInitial}
                   </div>
-                  <span className="max-w-[100px] truncate font-medium">
-                    {user?.name || "User"}
-                  </span>
+                )}
+                <span className="max-w-[100px] truncate text-sm font-medium text-gray-700">
+                  {userName}
+                </span>
+              </button>
+
+              {userDropdownOpen && (
+                <div className="absolute right-0 top-full mt-2 w-64 rounded-xl border border-gray-100 bg-white py-2 shadow-xl shadow-gray-200/60">
+                  <div className="flex items-center gap-3 border-b border-gray-100 px-4 py-3">
+                    {userAvatar ? (
+                      <img
+                        src={userAvatar}
+                        alt={userName}
+                        className="h-11 w-11 rounded-full object-cover ring-2 ring-[#4c2ed8]/20"
+                      />
+                    ) : (
+                      <div className="flex h-11 w-11 items-center justify-center rounded-full bg-gradient-to-br from-[#4c2ed8] to-[#368de8] text-white font-semibold text-sm">
+                        {userInitial}
+                      </div>
+                    )}
+                    <div className="min-w-0">
+                      <p className="text-sm font-semibold text-gray-900 truncate">{userName}</p>
+                      <p className="text-xs text-gray-500 truncate">{userEmail}</p>
+                    </div>
+                  </div>
+                  <div className="py-1">
+                    <button
+                      onClick={() => {
+                        setUserDropdownOpen(false);
+                        navigate("/profile");
+                      }}
+                      className="flex w-full items-center gap-2 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50"
+                    >
+                      <User size={16} />
+                      My Profile
+                    </button>
+                    <button
+                      onClick={() => {
+                        setUserDropdownOpen(false);
+                        navigate("/orders");
+                      }}
+                      className="flex w-full items-center gap-2 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50"
+                    >
+                      <ShoppingCart size={16} />
+                      My Orders
+                    </button>
+                  </div>
+                  <div className="border-t border-gray-100 pt-1">
+                    <button
+                      onClick={() => {
+                        setUserDropdownOpen(false);
+                        setShowLogoutDialog(true);
+                      }}
+                      className="flex w-full items-center gap-2 px-4 py-2.5 text-sm font-medium text-red-500 hover:bg-red-50"
+                    >
+                      <LogOut size={16} />
+                      Logout
+                    </button>
+                  </div>
                 </div>
-                <button
-                  onClick={handleLogout}
-                  className="flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-medium text-red-500 transition hover:bg-red-50"
-                >
-                  <LogOut size={16} />
-                  Logout
-                </button>
-              </div>
-            </>
+              )}
+            </div>
           ) : (
             <>
               <button
@@ -194,10 +269,10 @@ function Navbar() {
               </button>
               <button
                 onClick={() => navigate("/login")}
-                className="hidden items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-100 sm:flex"
+                className="hidden items-center gap-2 rounded-lg bg-[#4c2ed8] px-4 py-2 text-sm font-medium text-white transition hover:bg-[#3a24b0] sm:flex"
               >
-                <User size={18} />
-                Sign In
+                <User size={16} />
+                Login
               </button>
             </>
           )}
@@ -235,18 +310,46 @@ function Navbar() {
           {isLoggedIn ? (
             <>
               <div className="mb-3 flex items-center gap-3 rounded-lg px-3 py-2.5">
-                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#4c2ed8]/10 text-[#4c2ed8] font-semibold text-sm">
-                  {user?.name?.charAt(0)?.toUpperCase() || "U"}
-                </div>
+                {userAvatar ? (
+                  <img
+                    src={userAvatar}
+                    alt={userName}
+                    className="h-11 w-11 rounded-full object-cover ring-2 ring-[#4c2ed8]/20"
+                  />
+                ) : (
+                  <div className="flex h-11 w-11 items-center justify-center rounded-full bg-gradient-to-br from-[#4c2ed8] to-[#368de8] text-white font-semibold text-sm">
+                    {userInitial}
+                  </div>
+                )}
                 <div>
-                  <p className="text-sm font-medium text-gray-900">{user?.name || "User"}</p>
-                  <p className="text-xs text-gray-500">{user?.email || ""}</p>
+                  <p className="text-sm font-medium text-gray-900">{userName}</p>
+                  <p className="text-xs text-gray-500">{userEmail}</p>
                 </div>
+              </div>
+              <div className="mb-2 space-y-1">
+                <button
+                  onClick={() => {
+                    navigate("/profile");
+                    setMobileOpen(false);
+                  }}
+                  className="flex w-full items-center gap-2 rounded-lg px-3 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50"
+                >
+                  <User size={18} /> My Profile
+                </button>
+                <button
+                  onClick={() => {
+                    navigate("/orders");
+                    setMobileOpen(false);
+                  }}
+                  className="flex w-full items-center gap-2 rounded-lg px-3 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50"
+                >
+                  <ShoppingCart size={18} /> My Orders
+                </button>
               </div>
               <button
                 onClick={() => {
-                  handleLogout();
                   setMobileOpen(false);
+                  setShowLogoutDialog(true);
                 }}
                 className="flex w-full items-center gap-2 rounded-lg px-3 py-2.5 text-sm font-medium text-red-500 hover:bg-red-50"
               >
@@ -269,12 +372,43 @@ function Navbar() {
                   navigate("/login");
                   setMobileOpen(false);
                 }}
-                className="flex w-full items-center gap-2 rounded-lg px-3 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50"
+                className="flex w-full items-center gap-2 rounded-lg bg-[#4c2ed8] px-3 py-2.5 text-sm font-medium text-white hover:bg-[#3a24b0]"
               >
-                <User size={18} /> Sign In
+                <User size={18} /> Login
               </button>
             </>
           )}
+        </div>
+      )}
+
+      {/* Logout Confirmation Dialog */}
+      {showLogoutDialog && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/40 backdrop-blur-sm">
+          <div className="mx-4 w-full max-w-sm rounded-2xl bg-white p-6 shadow-2xl">
+            <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-red-100">
+              <LogOut size={24} className="text-red-500" />
+            </div>
+            <h3 className="mb-1 text-lg font-semibold text-gray-900">
+              Confirm Logout
+            </h3>
+            <p className="mb-6 text-sm text-gray-500">
+              Are you sure you want to logout from your account?
+            </p>
+            <div className="flex gap-3">
+              <button
+                onClick={() => setShowLogoutDialog(false)}
+                className="flex-1 rounded-xl border border-gray-200 px-4 py-2.5 text-sm font-medium text-gray-700 transition hover:bg-gray-50"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={confirmLogout}
+                className="flex-1 rounded-xl bg-red-500 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-red-600"
+              >
+                Logout
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </header>

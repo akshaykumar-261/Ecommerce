@@ -196,8 +196,12 @@ export const useUpdateUser = () => {
   });
 };
 export const useLogout = () => {
+  const queryClient = useQueryClient();
   return useMutation({
     mutationFn: LogoutUser,
+    onSuccess: () => {
+      queryClient.removeQueries({ queryKey: ["user"] });
+    },
     onError: (error) => {
       console.error("STATUS:", error.response?.status);
       console.error("BACKEND ERROR:", error.response?.data);
