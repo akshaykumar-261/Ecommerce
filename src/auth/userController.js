@@ -467,34 +467,40 @@ export default class userController {
       userInDb,
       sessionId,
     );
-    if (device_id) {
-      const existingDevice = await this.Models.UserDevices.findOne({
-        where: {
-          user_Id: userInDb.id,
-          device_id,
-        },
+    const existingDevice = device_id
+      ? await this.Models.UserDevices.findOne({
+          where: {
+            user_Id: userInDb.id,
+            device_id,
+          },
+        })
+      : await this.Models.UserDevices.findOne({
+          where: {
+            user_Id: userInDb.id,
+            session_id: sessionId,
+          },
+        });
+    if (existingDevice) {
+      await existingDevice.update({
+        device_token,
+        device_type,
+        device_id: device_id || existingDevice.device_id,
+        is_login: true,
+        login_time: new Date(),
+        logout_time: null,
+        session_id: sessionId,
       });
-      if (existingDevice) {
-        await existingDevice.update({
-          device_token,
-          device_type,
-          is_login: true,
-          login_time: new Date(),
-          logout_time: null,
-          session_id: sessionId,
-        });
-      } else {
-        await this.Models.UserDevices.create({
-          user_Id: userInDb.id,
-          device_token,
-          device_type,
-          device_id,
-          is_login: true,
-          login_time: new Date(),
-          logout_time: null,
-          session_id: sessionId,
-        });
-      }
+    } else {
+      await this.Models.UserDevices.create({
+        user_Id: userInDb.id,
+        device_token,
+        device_type,
+        device_id,
+        is_login: true,
+        login_time: new Date(),
+        logout_time: null,
+        session_id: sessionId,
+      });
     }
     return sendResponse(res, STATUS_CODE.SUCCESS, userMessage.LOGIN_SUCCESS, {
       accessToken,
