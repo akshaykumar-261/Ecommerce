@@ -1,4 +1,4 @@
-import { where } from "sequelize";
+import { literal } from "sequelize";
 
 export default class ReviewService {
   async init(db) {
@@ -84,6 +84,21 @@ export default class ReviewService {
         user_id: userId,
         product_id: productId,
       },
+    });
+  }
+
+  async getTopRatedProducts(minRating = 3, limit = 20) {
+    return await this.Model.ReviewModel.findAll({
+      attributes: [
+        "product_id",
+        [literal("AVG(CAST(rating AS DECIMAL(10,2)))"), "avgRating"],
+        [literal("COUNT(review.id)"), "reviewCount"],
+      ],
+      group: ["product_id"],
+      having: literal(`AVG(CAST(rating AS DECIMAL(10,2))) >= ${minRating}`),
+      order: literal(`avgRating ASC`),
+      limit: Number(limit),
+      raw: true,
     });
   }
 }

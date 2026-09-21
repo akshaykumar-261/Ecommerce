@@ -6,6 +6,9 @@ import authorize from "../middleweare/authmiddleweare.js";
 import Users from "../../dataBase/models/userModel.js";
 import ReviewModel from "../../dataBase/models/reviewModel.js";
 import WishListModel from "../../dataBase/models/wishListModel.js";
+import Products from "../../dataBase/models/productModel.js";
+import Category from "../../dataBase/models/categoryModel.js";
+import ProductMedia from "../../dataBase/models/productMedia.js";
 import checkRole from "../middleweare/roleBasemiddleweare.js";
 import {
   addReviewValidation,
@@ -15,12 +18,14 @@ import {
 const router = express.Router();
 const reviewController = new ReviewController();
 const role = checkRole("Customer");
-await reviewController.init(sequelize);
-reviewController.init({
+await reviewController.init({
   models: {
     Users,
     ReviewModel,
     WishListModel,
+    Products,
+    Category,
+    ProductMedia,
   },
 });
 router.post(
@@ -72,5 +77,9 @@ router.delete(
   authorize,
   role,
   asyncHandler(reviewController.removeFromWishlist.bind(reviewController)),
+);
+router.get(
+  "/top-rated-products",
+  asyncHandler(reviewController.getTopRatedProducts.bind(reviewController)),
 );
 export default router;

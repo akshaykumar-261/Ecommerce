@@ -45,4 +45,41 @@ export default class productController {
       }
     );
   }
+
+  async getProductById(req, res) {
+    const { id } = req.params;
+    const product = await this.service.getProductById(id);
+    if (!product) {
+      return sendResponse(
+        res,
+        STATUS_CODE.NOT_FOUND,
+        "Product not found."
+      );
+    }
+    return sendResponse(
+      res,
+      STATUS_CODE.SUCCESS,
+      "Product fetched successfully.",
+      { product }
+    );
+  }
+
+  async searchProducts(req, res) {
+    const { q = "", page = 1, limit = 12 } = req.query;
+    if (!q.trim()) {
+      return sendResponse(
+        res,
+        STATUS_CODE.BAD_REQUEST,
+        "Search query is required."
+      );
+    }
+    const products = await this.service.searchProducts(q, page, limit);
+    const paginationData = commanFunction.pagignation(page, limit, products);
+    return sendResponse(
+      res,
+      STATUS_CODE.SUCCESS,
+      "Products searched successfully.",
+      { products: paginationData }
+    );
+  }
 }

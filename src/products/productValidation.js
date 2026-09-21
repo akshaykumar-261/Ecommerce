@@ -13,6 +13,19 @@ export const categoryIdParamValidation = Joi.object({
     }),
 });
 
+export const productIdParamValidation = Joi.object({
+  id: Joi.number()
+    .integer()
+    .positive()
+    .required()
+    .messages({
+      "any.required": "Product ID is required.",
+      "number.base": "Product ID must be a number.",
+      "number.integer": "Product ID must be an integer.",
+      "number.positive": "Product ID must be greater than 0.",
+    }),
+});
+
 export const productsByCategoryQueryValidation = Joi.object({
   page: Joi.number().integer().min(1).max(10000).default(1),
   limit: Joi.number().integer().min(1).max(100).default(10),

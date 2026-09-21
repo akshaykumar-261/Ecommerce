@@ -7,6 +7,7 @@ import Category from "../../dataBase/models/categoryModel.js";
 import ProductMedia from "../../dataBase/models/productMedia.js";
 import {
   categoryIdParamValidation,
+  productIdParamValidation,
   productsByCategoryQueryValidation,
   validateParams,
   validateQuery,
@@ -29,6 +30,18 @@ router.get(
   validateParams(categoryIdParamValidation),
   validateQuery(productsByCategoryQueryValidation),
   asyncHandler(productCtrl.getProductsByCategoryId.bind(productCtrl))
+);
+
+router.get(
+  "/search",
+  asyncHandler(productCtrl.searchProducts.bind(productCtrl))
+);
+
+router.get(
+  "/:id",
+  authorize,
+  validateParams(productIdParamValidation),
+  asyncHandler(productCtrl.getProductById.bind(productCtrl))
 );
 
 export default router;

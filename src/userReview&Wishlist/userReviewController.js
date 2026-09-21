@@ -2,17 +2,13 @@ import ReviewService from "./userReviewService.js";
 import { STATUS_CODE } from "../helper/statusCode.js";
 import { sendResponse } from "../helper/responseHandler.js";
 import {
-  orderMessages,
-  paymentMessage,
-  productMessage,
-  adminMessage,
-  userMessage,
   reviewMessages,
   wishlistMessages,
 } from "../helper/commanMessages.js";
 import { sequelize } from "../../config/db.js";
 export default class ReviewController {
   async init(db) {
+     this.Model = db.models;
     this.services = new ReviewService();
     await this.services.init(db);
   }
@@ -192,6 +188,54 @@ export default class ReviewController {
       res,
       STATUS_CODE.SUCCESS,
       wishlistMessages.REMOVED_FROM_WISHLIST,
+    );
+  }
+
+  async getTopRatedProducts(req, res) {
+    const { minRating = 3, limit = 20 } = req.query;
+    const reviews = await this.services.getTopRatedProducts(
+      Number(minRating),
+      Number(limit),
+    );
+    const productIds = reviews.map((r) => r.product_id);
+    if (productIds.length === 0) {
+      return sendResponse(
+        res,
+        STATUS_CODE.SUCCESS,
+        "No rated products found.",
+        { products: [] }
+      );
+    }
+    const products = await this.Model.Products.findAll({
+      where: { id: productIds, deletedAt: null, status: true },
+      include: [
+        {
+          model: this.Model.Category,
+          attributes: ["id", "cat_name", "slug"],
+          required: false,
+        },
+        {
+          model: this.Model.ProductMedia,
+          attributes: ["id", "media_type", "media_url", "is_primary"],
+          required: false,
+        },
+      ],
+    });
+
+    const productsWithRating = products.map((p) => {
+      const review = reviews.find((r) => r.product_id === p.id);
+      return {
+        ...p.toJSON(),
+        avgRating: review?.avgRating || 0,
+        reviewCount: review?.reviewCount || 0,
+      };
+    });
+
+    return sendResponse(
+      res,
+      STATUS_CODE.SUCCESS,
+      "Top rated products fetched successfully.",
+      { products: productsWithRating }
     );
   }
 }
