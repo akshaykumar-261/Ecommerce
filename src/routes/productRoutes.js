@@ -26,7 +26,6 @@ await productCtrl.init({
 
 router.get(
   "/category/:id",
-  authorize,
   validateParams(categoryIdParamValidation),
   validateQuery(productsByCategoryQueryValidation),
   asyncHandler(productCtrl.getProductsByCategoryId.bind(productCtrl))
@@ -44,7 +43,6 @@ router.get(
 
 router.get(
   "/:id",
-  authorize,
   validateParams(productIdParamValidation),
   asyncHandler(productCtrl.getProductById.bind(productCtrl))
 );
