@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import pro4 from "../../assets/pro4.png";
 import { GetTopRatedProducts } from "../../api/productApi";
 import { useAddToWishlist, useRemoveFromWishlist, useWishlist } from "../../api/useWishlist";
+import { useGetCategory } from "../../api/useVendorApi";
 import Navbar from "../../components/common/Navbar";
 import toast from "react-hot-toast";
 import {
@@ -63,30 +64,6 @@ const CATEGORY_ICONS = {
   "bags-luggage": BriefcaseBusiness,
   "toys-games": Gamepad2,
 };
-const CATEGORIES = [
-  { id: 1, cat_name: "Electronics", slug: "electronics" },
-  { id: 2, cat_name: "Mobiles", slug: "mobiles" },
-  { id: 3, cat_name: "Laptops", slug: "laptops" },
-  { id: 4, cat_name: "Computers & Accessories", slug: "computers-accessories" },
-  { id: 5, cat_name: "Fashion", slug: "fashion" },
-  { id: 6, cat_name: "Men's Clothing", slug: "mens-clothing" },
-  { id: 7, cat_name: "Children's Clothing", slug: "childs-clothing" },
-  { id: 8, cat_name: "Women's Clothing", slug: "womens-clothing" },
-  { id: 9, cat_name: "Footwear", slug: "footwear" },
-  { id: 10, cat_name: "Beauty & Personal Care", slug: "beauty-personal-care" },
-  { id: 11, cat_name: "Home & Kitchen", slug: "home-kitchen" },
-  { id: 12, cat_name: "Furniture", slug: "furniture" },
-  { id: 13, cat_name: "Grocery", slug: "grocery" },
-  { id: 14, cat_name: "Books", slug: "books" },
-  { id: 15, cat_name: "Sports & Fitness", slug: "sports-fitness" },
-  { id: 16, cat_name: "Automotive", slug: "automotive" },
-  { id: 17, cat_name: "Pet Supplies", slug: "pet-supplies" },
-  { id: 18, cat_name: "Office Supplies", slug: "office-supplies" },
-  { id: 19, cat_name: "Jewellery", slug: "jewellery" },
-  { id: 20, cat_name: "Bags & Luggage", slug: "bags-luggage" },
-  { id: 21, cat_name: "Toys & Games", slug: "toys-games" },
-];
-
 /* ────────────────────────────────────────
    HERO BANNER
    ──────────────────────────────────────── */
@@ -149,7 +126,7 @@ function TrustBadges() {
 
   return (
     <section className="border-b border-gray-100 bg-white">
-      <div className="mx-auto grid max-w-7xl grid-cols-2 gap-4 px-4 py-6 md:grid-cols-4 lg:px-8">
+      <div className="mx-auto grid max-w-7xl grid-cols-2 gap-4 px-4 py-3 md:grid-cols-4 lg:px-8">
         {badges.map((b, i) => (
           <div
             key={i}
@@ -177,6 +154,8 @@ function CategoriesSection() {
   const scrollRef = React.useRef(null);
   const [canScrollLeft, setCanScrollLeft] = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(true);
+  const { data: categoryData, isLoading } = useGetCategory();
+  const categories = categoryData?.data?.categories || [];
 
   const checkScroll = () => {
     const el = scrollRef.current;
@@ -210,9 +189,9 @@ function CategoriesSection() {
   };
 
   return (
-    <section className="bg-gray-50/60 py-14">
-      <div className="mx-auto max-w-7xl px-4 lg:px-8">
-        <div className="mb-8">
+    <section className="bg-gray-50/60">
+      <div className="mx-auto max-w-7xl px-4 py-4 lg:px-8">
+        <div className="mb-4">
           <h2 className="text-2xl font-bold text-gray-900">
             Shop by Category
           </h2>
@@ -258,7 +237,11 @@ function CategoriesSection() {
             className="flex gap-4 overflow-x-auto scroll-smooth pb-4"
             style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
           >
-            {CATEGORIES.map((cat) => {
+            {isLoading ? (
+              <div className="flex items-center justify-center py-8">
+                <div className="h-8 w-8 animate-spin rounded-full border-4 border-[#4c2ed8] border-t-transparent" />
+              </div>
+            ) : categories.map((cat) => {
               const Icon = CATEGORY_ICONS[cat.slug] || Tag;
               return (
                 <button
@@ -424,16 +407,10 @@ function FeaturedProducts() {
   }, []);
 
   return (
-    <section className="py-14">
-      <div className="mx-auto max-w-7xl px-4 lg:px-8">
-        <div className="mb-8 flex items-end justify-between">
+    <section>
+      <div className="mx-auto max-w-7xl px-4 py-4 lg:px-8">
+        <div className="mb-4 flex items-end justify-between">
           <div>
-            <div className="mb-2 flex items-center gap-2">
-              <TrendingUp size={20} className="text-[#4c2ed8]" />
-              <span className="text-xs font-bold uppercase tracking-widest text-[#4c2ed8]">
-                Trending Now
-              </span>
-            </div>
             <h2 className="text-2xl font-bold text-gray-900">
               Top Rated Products
             </h2>
@@ -474,8 +451,8 @@ function PromoBanner() {
   const navigate = useNavigate();
 
   return (
-    <section className="bg-gray-50/60 py-14">
-      <div className="mx-auto max-w-7xl px-4 lg:px-8">
+    <section className="bg-gray-50/60">
+      <div className="mx-auto max-w-7xl px-4 py-4 lg:px-8">
         <div className="grid gap-4 md:grid-cols-2">
           {/* Banner 1 - Fashion Sale */}
           <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-rose-500 to-pink-600 p-8 text-white">
@@ -628,12 +605,14 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-white">
       <Navbar />
-      <HeroBanner />
-      <TrustBadges />
-      <CategoriesSection />
-      <FeaturedProducts />
-      <PromoBanner />
-      {/* <Newsletter /> */}
+      <div className="space-y-0">
+        <HeroBanner />
+        <TrustBadges />
+        <CategoriesSection />
+        <FeaturedProducts />
+        <PromoBanner />
+        {/* <Newsletter /> */}
+      </div>
       <Footer />
     </div>
   );

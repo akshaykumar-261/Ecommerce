@@ -423,7 +423,7 @@ export default function ProductDetail() {
               <h3 className="mb-3 text-sm font-semibold text-gray-900">
                 Delivery Options
               </h3>
-              <div className="space-y-3">
+              <div className="flex flex-col gap-3 sm:flex-row">
                 <div className="flex items-center gap-3">
                   <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-blue-50 text-blue-600">
                     <Truck size={18} />

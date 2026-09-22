@@ -10,30 +10,8 @@ import {
 } from "lucide-react";
 import { GetProductsByCategory } from "../../api/productApi";
 import { useWishlist, useAddToWishlist, useRemoveFromWishlist } from "../../api/useWishlist";
+import { useGetCategory } from "../../api/useVendorApi";
 import Navbar from "../../components/common/Navbar";
-const CATEGORY_MAP = {
-  1: "Electronics",
-  2: "Mobiles",
-  3: "Laptops",
-  4: "Computers & Accessories",
-  5: "Fashion",
-  6: "Men's Clothing",
-  7: "Children's Clothing",
-  8: "Women's Clothing",
-  9: "Footwear",
-  10: "Beauty & Personal Care",
-  11: "Home & Kitchen",
-  12: "Furniture",
-  13: "Grocery",
-  14: "Books",
-  15: "Sports & Fitness",
-  16: "Automotive",
-  17: "Pet Supplies",
-  18: "Office Supplies",
-  19: "Jewellery",
-  20: "Bags & Luggage",
-  21: "Toys & Games",
-};
 
 function ProductCard({ product }) {
   const navigate = useNavigate();
@@ -169,7 +147,9 @@ export default function Products() {
   const [error, setError] = useState(null);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
-  const categoryName = CATEGORY_MAP[id] || "Unknown";
+  const { data: categoryData } = useGetCategory();
+  const categories = categoryData?.data?.categories || [];
+  const categoryName = categories.find((c) => c.id === Number(id))?.cat_name || "Unknown";
 
   useEffect(() => {
     const fetchProducts = async () => {
