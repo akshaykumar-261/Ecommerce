@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import {
   ShoppingCart,
@@ -7,7 +7,6 @@ import {
   ChevronRight,
   ChevronLeft,
   X,
-  Heart,
   Share2,
   Truck,
   Shield,
@@ -15,12 +14,12 @@ import {
   Star,
 } from "lucide-react";
 import { GetProductById } from "../../api/productApi";
-import { useWishlist, useAddToWishlist, useRemoveFromWishlist } from "../../api/useWishlist";
 import { useAddToCart, useCart } from "../../api/useCart";
+import WishlistButton from "../../components/common/WishlistButton";
 import Navbar from "../../components/common/Navbar";
 import toast from "react-hot-toast";
 
-function ImageGallery({ images, isWishlisted, handleWishlistToggle }) {
+function ImageGallery({ images, productId }) {
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [lightboxOpen, setLightboxOpen] = useState(false);
 
@@ -77,22 +76,13 @@ function ImageGallery({ images, isWishlisted, handleWishlistToggle }) {
           </div>
 
           {/* Wishlist Button */}
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              handleWishlistToggle();
-            }}
-            className={`absolute right-3 top-3 z-10 flex h-10 w-10 items-center justify-center rounded-full shadow-md backdrop-blur-sm transition-all hover:scale-110 ${
-              isWishlisted
-                ? "bg-red-50 shadow-red-200"
-                : "bg-white/90 hover:bg-white"
-            }`}
-          >
-            <Heart
-              size={18}
-              className={isWishlisted ? "fill-red-500 text-red-500" : "text-gray-500"}
-            />
-          </button>
+          <WishlistButton
+            productId={productId}
+            iconSize={18}
+            inactiveIconClassName="text-gray-500"
+            className="absolute right-3 top-3 z-10 flex h-10 w-10 items-center justify-center rounded-full bg-white/90 shadow-md backdrop-blur-sm transition-all hover:scale-110 hover:bg-white"
+            activeClassName="bg-red-50 shadow-red-200"
+          />
 
           {/* Zoom Hint */}
           <div className="absolute bottom-3 right-3 flex items-center gap-1.5 rounded-lg bg-black/50 px-2.5 py-1.5 text-[11px] font-medium text-white backdrop-blur-sm">
@@ -235,15 +225,9 @@ export default function ProductDetail() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [quantity, setQuantity] = useState(1);
-  const { data: wishlistData } = useWishlist();
-  const { mutate: addToWishlist } = useAddToWishlist();
-  const { mutate: removeFromWishlist } = useRemoveFromWishlist();
   const { mutate: addToCart, isPending: addingToCart } = useAddToCart();
   const { data: cartData } = useCart();
   const [justAdded, setJustAdded] = useState(false);
-
-  const wishlist = wishlistData?.data?.wishlists || [];
-  const isWishlisted = wishlist.some((item) => item.product_id === Number(id));
 
   const cartItems = cartData?.data?.cart?.cartItems || [];
   const isInCart =
@@ -265,24 +249,6 @@ export default function ProductDetail() {
     };
     fetchProduct();
   }, [id]);
-
-  const handleWishlistToggle = () => {
-    if (!localStorage.getItem("accessToken")) {
-      toast.error("Please login to add to wishlist");
-      return;
-    }
-    if (isWishlisted) {
-      removeFromWishlist(id, {
-        onSuccess: (res) => toast.success(res?.message || "Removed from wishlist"),
-        onError: () => toast.error("Failed to remove from wishlist"),
-      });
-    } else {
-      addToWishlist(id, {
-        onSuccess: (res) => toast.success(res?.message || "Added to wishlist"),
-        onError: () => toast.error("Failed to add to wishlist"),
-      });
-    }
-  };
 
   const handleAddToCart = (buyNow = false) => {
     if (!localStorage.getItem("accessToken")) {
@@ -376,7 +342,7 @@ export default function ProductDetail() {
         <div className="grid gap-8 lg:grid-cols-2">
           {/* Left: Image Gallery */}
           <div>
-            <ImageGallery images={images} isWishlisted={isWishlisted} handleWishlistToggle={handleWishlistToggle} />
+            <ImageGallery images={images} productId={Number(id)} />
           </div>
 
           {/* Right: Product Info */}
@@ -452,20 +418,14 @@ export default function ProductDetail() {
 
             {/* Wishlist & Share */}
             <div className="mb-6 flex gap-3">
-              <button
-                onClick={handleWishlistToggle}
-                className={`flex items-center gap-2 rounded-xl border px-5 py-2.5 text-sm font-medium transition-all duration-200 ${
-                  isWishlisted
-                    ? "border-red-200 bg-red-50 text-red-600"
-                    : "border-gray-200 text-gray-600 hover:bg-gray-50"
-                }`}
-              >
-                <Heart
-                  size={16}
-                  className={isWishlisted ? "fill-red-500 text-red-500" : ""}
-                />
-                {isWishlisted ? "Wishlisted" : "Wishlist"}
-              </button>
+              <WishlistButton
+                productId={Number(id)}
+                label="Wishlist"
+                activeLabel="Wishlisted"
+                inactiveIconClassName=""
+                className="flex items-center gap-2 rounded-xl border border-gray-200 px-5 py-2.5 text-sm font-medium text-gray-600 transition-all duration-200 hover:bg-gray-50"
+                activeClassName="border-red-200 bg-red-50 text-red-600"
+              />
               <button className="flex items-center gap-2 rounded-xl border border-gray-200 px-5 py-2.5 text-sm font-medium text-gray-600 transition hover:bg-gray-50">
                 <Share2 size={16} />
                 Share

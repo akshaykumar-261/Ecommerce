@@ -2,9 +2,9 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import pro4 from "../../assets/pro4.png";
 import { GetTopRatedProducts } from "../../api/productApi";
-import { useAddToWishlist, useRemoveFromWishlist, useWishlist } from "../../api/useWishlist";
 import { useAddToCart, useCart } from "../../api/useCart";
 import { useGetCategory } from "../../api/useVendorApi";
+import WishlistButton from "../../components/common/WishlistButton";
 import Navbar from "../../components/common/Navbar";
 import toast from "react-hot-toast";
 import {
@@ -37,7 +37,6 @@ import {
   TrendingUp,
   Zap,
   Tag,
-  Heart,
   Gem,
 } from "lucide-react";
 
@@ -271,13 +270,8 @@ function CategoriesSection() {
    ──────────────────────────────────────── */
 function ProductCard({ product }) {
   const navigate = useNavigate();
-  const { mutate: addToWishlist } = useAddToWishlist();
-  const { mutate: removeFromWishlist } = useRemoveFromWishlist();
   const { mutate: addToCart, isPending: addingToCart } = useAddToCart();
   const { data: cartData } = useCart();
-  const { data: wishlistData } = useWishlist();
-  const wishlist = wishlistData?.data?.wishlists || [];
-  const isWishlisted = wishlist.some((item) => item.product_id === product.id);
   const isInCart = (cartData?.data?.cart?.cartItems || []).some(
     (item) => item.product_id === product.id,
   );
@@ -296,25 +290,6 @@ function ProductCard({ product }) {
   const productName = product.pro_name || product.name;
   const avgRating = parseFloat(product.avgRating) || 0;
   const reviewCount = parseInt(product.reviewCount) || 0;
-
-  const handleWishlistClick = (e) => {
-    e.stopPropagation();
-    if (!localStorage.getItem("accessToken")) {
-      toast.error("Please login to add to wishlist");
-      return;
-    }
-    if (isWishlisted) {
-      removeFromWishlist(product.id, {
-        onSuccess: () => toast.success("Removed from wishlist"),
-        onError: () => toast.error("Failed to remove from wishlist"),
-      });
-    } else {
-      addToWishlist(product.id, {
-        onSuccess: () => toast.success("Added to wishlist"),
-        onError: () => toast.error("Failed to add to wishlist"),
-      });
-    }
-  };
 
   const handleAddToCartClick = (e) => {
     e.stopPropagation();
@@ -365,15 +340,10 @@ function ProductCard({ product }) {
           </span>
         )}
 
-        <button
-          onClick={handleWishlistClick}
+        <WishlistButton
+          productId={product.id}
           className="absolute right-3 top-3 z-10 flex h-8 w-8 items-center justify-center rounded-full bg-white/90 shadow-md backdrop-blur-sm transition hover:bg-white hover:scale-110"
-        >
-          <Heart
-            size={16}
-            className={isWishlisted ? "fill-red-500 text-red-500" : "text-gray-400"}
-          />
-        </button>
+        />
 
         <div className="absolute bottom-0 left-0 right-0 flex translate-y-full justify-center gap-2 bg-gradient-to-t from-black/30 to-transparent pb-4 pt-10 transition-transform duration-300 group-hover:translate-y-0">
           <button

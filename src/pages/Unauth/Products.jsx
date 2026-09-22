@@ -6,23 +6,17 @@ import {
   ArrowLeft,
   Package,
   ChevronRight,
-  Heart,
 } from "lucide-react";
 import { GetProductsByCategory } from "../../api/productApi";
-import { useWishlist, useAddToWishlist, useRemoveFromWishlist } from "../../api/useWishlist";
 import { useAddToCart, useCart } from "../../api/useCart";
 import { useGetCategory } from "../../api/useVendorApi";
+import WishlistButton from "../../components/common/WishlistButton";
 import Navbar from "../../components/common/Navbar";
 
 function ProductCard({ product }) {
   const navigate = useNavigate();
-  const { mutate: addToWishlist } = useAddToWishlist();
-  const { mutate: removeFromWishlist } = useRemoveFromWishlist();
   const { mutate: addToCart, isPending: addingToCart } = useAddToCart();
   const { data: cartData } = useCart();
-  const { data: wishlistData } = useWishlist();
-  const wishlist = wishlistData?.data?.wishlists || [];
-  const isWishlisted = wishlist.some((item) => item.product_id === product.id);
   const isInCart = (cartData?.data?.cart?.cartItems || []).some(
     (item) => item.product_id === product.id,
   );
@@ -36,25 +30,6 @@ function ProductCard({ product }) {
 
   const primaryMedia = product.product_media?.find((m) => m.is_primary);
   const imageUrl = primaryMedia?.media_url || product.product_media?.[0]?.media_url || null;
-
-  const handleWishlistClick = (e) => {
-    e.stopPropagation();
-    if (!localStorage.getItem("accessToken")) {
-      toast.error("Please login to add to wishlist");
-      return;
-    }
-    if (isWishlisted) {
-      removeFromWishlist(product.id, {
-        onSuccess: () => toast.success("Removed from wishlist"),
-        onError: () => toast.error("Failed to remove from wishlist"),
-      });
-    } else {
-      addToWishlist(product.id, {
-        onSuccess: () => toast.success("Added to wishlist"),
-        onError: () => toast.error("Failed to add to wishlist"),
-      });
-    }
-  };
 
   const handleAddToCartClick = (e) => {
     e.stopPropagation();
@@ -99,15 +74,10 @@ function ProductCard({ product }) {
           </div>
         )}
 
-        <button
-          onClick={handleWishlistClick}
+        <WishlistButton
+          productId={product.id}
           className="absolute right-3 top-3 z-10 flex h-8 w-8 items-center justify-center rounded-full bg-white/90 shadow-md backdrop-blur-sm transition hover:bg-white hover:scale-110"
-        >
-          <Heart
-            size={16}
-            className={isWishlisted ? "fill-red-500 text-red-500" : "text-gray-400"}
-          />
-        </button>
+        />
 
         {discount > 0 && (
           <span className="absolute left-3 top-3 z-10 rounded-lg bg-red-500 px-2 py-1 text-[10px] font-bold text-white">
