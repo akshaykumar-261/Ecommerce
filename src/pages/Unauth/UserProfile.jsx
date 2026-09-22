@@ -21,6 +21,7 @@ import { useGetUser, useUpdateUser, useLogout } from "../../api/useAuth";
 import { useWishlist, useRemoveFromWishlist } from "../../api/useWishlist";
 import toast from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
+import Navbar from "../../components/common/Navbar";
 
 function UserProfile() {
   const { data, isLoading, isError } = useGetUser();
@@ -129,23 +130,7 @@ function UserProfile() {
 
   return (
     <div className="min-h-screen bg-[#f8f9fc]">
-      {/* Top Navigation Bar */}
-      <div className="sticky top-0 z-50 border-b border-gray-100 bg-white/80 backdrop-blur-md">
-        <div className="mx-auto flex h-16 max-w-5xl items-center justify-between px-4">
-          <button
-            onClick={() => navigate(-1)}
-            className="group flex items-center gap-2 rounded-xl px-3 py-2 text-sm font-medium text-gray-600 transition hover:bg-gray-100"
-          >
-            <ArrowLeft
-              size={18}
-              className="transition-transform group-hover:-translate-x-1"
-            />
-            Back
-          </button>
-          <h1 className="text-lg font-bold text-gray-900">My Profile</h1>
-          <div className="w-[80px]"></div>
-        </div>
-      </div>
+      <Navbar />
 
       <main className="mx-auto max-w-5xl px-4 py-6">
         {/* Profile Header Card */}

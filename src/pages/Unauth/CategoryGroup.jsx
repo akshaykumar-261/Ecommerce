@@ -4,19 +4,15 @@ import toast from "react-hot-toast";
 import {
   ShoppingCart,
   ArrowLeft,
-  Search,
   Package,
   ChevronRight,
-  Zap,
-  User,
-  Menu,
-  X,
   Star,
   Heart,
 } from "lucide-react";
 import { GetProductsByCategory } from "../../api/productApi";
 import { useWishlist, useAddToWishlist, useRemoveFromWishlist } from "../../api/useWishlist";
 import { useGetCategory } from "../../api/useVendorApi";
+import Navbar from "../../components/common/Navbar";
 
 const GROUP_CONFIG = {
   fashion: {
@@ -28,73 +24,6 @@ const GROUP_CONFIG = {
     slugs: ["electronics", "mobiles", "laptops", "computers-accessories"],
   },
 };
-
-function Navbar() {
-  const [mobileOpen, setMobileOpen] = useState(false);
-  const navigate = useNavigate();
-
-  return (
-    <header className="sticky top-0 z-50 border-b border-gray-100 bg-white/80 backdrop-blur-md">
-      <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 lg:px-8">
-        <button onClick={() => navigate("/home")} className="flex items-center gap-2">
-          <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-[#4c2ed8] to-[#368de8]">
-            <Zap size={20} className="text-white" />
-          </div>
-          <span className="text-xl font-bold tracking-tight text-gray-900">
-            Shop<span className="text-[#4c2ed8]">Ease</span>
-          </span>
-        </button>
-
-        <div className="hidden flex-1 px-8 md:block">
-          <div className="flex items-center rounded-xl border-2 border-transparent bg-gray-50">
-            <Search size={18} className="ml-3 text-gray-400" />
-            <input
-              type="text"
-              placeholder="Search for products, brands and more..."
-              className="w-full bg-transparent px-3 py-2.5 text-sm text-gray-800 outline-none placeholder:text-gray-400"
-            />
-            <button className="mr-1 rounded-lg bg-[#4c2ed8] px-5 py-2 text-sm font-medium text-white transition hover:bg-[#3a24b0]">
-              Search
-            </button>
-          </div>
-        </div>
-
-        <div className="flex items-center gap-2">
-          <button
-            onClick={() => navigate("/login")}
-            className="hidden items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-100 sm:flex"
-          >
-            <User size={18} />
-            Sign In
-          </button>
-          <button className="relative rounded-lg p-2 text-gray-700 transition hover:bg-gray-100">
-            <ShoppingCart size={22} />
-            <span className="absolute -right-0.5 -top-0.5 flex h-5 w-5 items-center justify-center rounded-full bg-[#4c2ed8] text-[10px] font-bold text-white">
-              3
-            </span>
-          </button>
-          <button
-            className="rounded-lg p-2 text-gray-700 transition hover:bg-gray-100 md:hidden"
-            onClick={() => setMobileOpen(!mobileOpen)}
-          >
-            {mobileOpen ? <X size={22} /> : <Menu size={22} />}
-          </button>
-        </div>
-      </div>
-
-      {mobileOpen && (
-        <div className="border-t border-gray-100 bg-white px-4 pb-4 pt-3 md:hidden">
-          <button
-            onClick={() => { navigate("/login"); setMobileOpen(false); }}
-            className="flex w-full items-center gap-2 rounded-lg px-3 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50"
-          >
-            <User size={18} /> Sign In
-          </button>
-        </div>
-      )}
-    </header>
-  );
-}
 
 function ProductCard({ product }) {
   const navigate = useNavigate();
