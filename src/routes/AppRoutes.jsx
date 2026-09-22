@@ -7,6 +7,10 @@ import Products from "../pages/Unauth/Products";
 import CategoryGroup from "../pages/Unauth/CategoryGroup";
 import ProductDetail from "../pages/Unauth/ProductDetail";
 import SearchResults from "../pages/Unauth/SearchResults";
+import About from "../pages/Unauth/About";
+import Contact from "../pages/Unauth/Contact";
+import Faq from "../pages/Unauth/Faq";
+import Blog from "../pages/Unauth/Blog";
 import OtpVerify from "../pages/Auth/OtpVerify";
 import OtpVerifyForgotPassword from "../pages/Auth/OtpVerifyForgotPassword";
 import ResetPassword from "../pages/Auth/ResetPassword";
@@ -60,6 +64,10 @@ function AppRoutes() {
       <Route path="/products/:group" element={<CategoryGroup />} />
       <Route path="/product/:id" element={<ProductDetail />} />
       <Route path="/search/:query" element={<SearchResults />} />
+      <Route path="/about" element={<About />} />
+      <Route path="/contact" element={<Contact />} />
+      <Route path="/faq" element={<Faq />} />
+      <Route path="/blog" element={<Blog />} />
       <Route
         path="/otpVerify"
         element={

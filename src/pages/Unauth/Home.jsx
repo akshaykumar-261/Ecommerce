@@ -6,6 +6,7 @@ import { useAddToCart, useCart } from "../../api/useCart";
 import { useGetCategory } from "../../api/useVendorApi";
 import WishlistButton from "../../components/common/WishlistButton";
 import Navbar from "../../components/common/Navbar";
+import Footer from "../../components/common/Footer";
 import toast from "react-hot-toast";
 import {
   Search,
@@ -35,7 +36,6 @@ import {
   ArrowRight,
   Flame,
   TrendingUp,
-  Zap,
   Tag,
   Gem,
 } from "lucide-react";
@@ -535,78 +535,6 @@ function PromoBanner() {
 //     </section>
 //   );
 // }
-
-/* ────────────────────────────────────────
-   FOOTER
-   ──────────────────────────────────────── */
-function Footer() {
-  return (
-    <footer className="border-t border-gray-100 bg-white">
-      <div className="mx-auto max-w-7xl px-4 py-12 lg:px-8">
-        <div className="grid gap-8 md:grid-cols-4">
-          {/* Brand */}
-          <div>
-            <div className="mb-3 flex items-center gap-2">
-              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-[#4c2ed8] to-[#368de8]">
-                <Zap size={16} className="text-white" />
-              </div>
-              <span className="text-lg font-bold text-gray-900">
-                Shop<span className="text-[#4c2ed8]">Hub</span>
-              </span>
-            </div>
-            <p className="max-w-xs text-sm leading-relaxed text-gray-500">
-              Your one-stop destination for the best products at unbeatable
-              prices. Shop with confidence.
-            </p>
-          </div>
-
-          {/* Links */}
-          {[
-            {
-              title: "Quick Links",
-              links: ["About Us", "Contact", "FAQs", "Blog"],
-            },
-            {
-              title: "Categories",
-              links: ["Electronics", "Fashion", "Home & Kitchen", "Sports"],
-            },
-            {
-              title: "Support",
-              links: [
-                "Help Center",
-                "Shipping Info",
-                "Returns",
-                "Privacy Policy",
-              ],
-            },
-          ].map((col, i) => (
-            <div key={i}>
-              <h4 className="mb-3 text-sm font-semibold text-gray-900">
-                {col.title}
-              </h4>
-              <ul className="space-y-2">
-                {col.links.map((link, j) => (
-                  <li key={j}>
-                    <a
-                      href="#"
-                      className="text-sm text-gray-500 transition hover:text-[#4c2ed8]"
-                    >
-                      {link}
-                    </a>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          ))}
-        </div>
-
-        <div className="mt-10 border-t border-gray-100 pt-6 text-center text-xs text-gray-400">
-          &copy; {new Date().getFullYear()} ShopEase. All rights reserved.
-        </div>
-      </div>
-    </footer>
-  );
-}
 
 /* ────────────────────────────────────────
    HOME PAGE (default export)
