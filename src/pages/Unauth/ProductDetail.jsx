@@ -3,6 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import {
   ShoppingCart,
   ArrowLeft,
+  ArrowRight,
   ChevronRight,
   ChevronLeft,
   X,
@@ -15,7 +16,7 @@ import {
 } from "lucide-react";
 import { GetProductById } from "../../api/productApi";
 import { useWishlist, useAddToWishlist, useRemoveFromWishlist } from "../../api/useWishlist";
-import { useAddToCart } from "../../api/useCart";
+import { useAddToCart, useCart } from "../../api/useCart";
 import Navbar from "../../components/common/Navbar";
 import toast from "react-hot-toast";
 
@@ -238,9 +239,16 @@ export default function ProductDetail() {
   const { mutate: addToWishlist } = useAddToWishlist();
   const { mutate: removeFromWishlist } = useRemoveFromWishlist();
   const { mutate: addToCart, isPending: addingToCart } = useAddToCart();
+  const { data: cartData } = useCart();
+  const [justAdded, setJustAdded] = useState(false);
 
   const wishlist = wishlistData?.data?.wishlists || [];
   const isWishlisted = wishlist.some((item) => item.product_id === Number(id));
+
+  const cartItems = cartData?.data?.cart?.cartItems || [];
+  const isInCart =
+    justAdded ||
+    cartItems.some((item) => item.product_id === Number(id));
 
   useEffect(() => {
     const fetchProduct = async () => {
@@ -281,6 +289,10 @@ export default function ProductDetail() {
       toast.error("Please login to add to cart");
       return;
     }
+    if (isInCart) {
+      navigate("/cart");
+      return;
+    }
     if (product.quantity < quantity) {
       toast.error("This product is currently out of stock.");
       return;
@@ -289,10 +301,8 @@ export default function ProductDetail() {
       { product_id: Number(id), quantity },
       {
         onSuccess: (res) => {
-          toast.success(
-            res?.message ||
-              (buyNow ? "Proceeding to cart..." : "Added to cart successfully"),
-          );
+          setJustAdded(true);
+          toast.success(res?.message || "Added to cart successfully");
           if (buyNow) navigate("/cart");
         },
         onError: (err) => {
@@ -424,10 +434,12 @@ export default function ProductDetail() {
               >
                 {addingToCart ? (
                   <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent"></div>
+                ) : isInCart ? (
+                  <ArrowRight size={18} />
                 ) : (
                   <ShoppingCart size={18} />
                 )}
-                Add to Cart
+                {isInCart ? "Go to Cart" : "Add to Cart"}
               </button>
               <button
                 onClick={() => handleAddToCart(true)}

@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import pro4 from "../../assets/pro4.png";
 import { GetTopRatedProducts } from "../../api/productApi";
 import { useAddToWishlist, useRemoveFromWishlist, useWishlist } from "../../api/useWishlist";
-import { useAddToCart } from "../../api/useCart";
+import { useAddToCart, useCart } from "../../api/useCart";
 import { useGetCategory } from "../../api/useVendorApi";
 import Navbar from "../../components/common/Navbar";
 import toast from "react-hot-toast";
@@ -274,9 +274,13 @@ function ProductCard({ product }) {
   const { mutate: addToWishlist } = useAddToWishlist();
   const { mutate: removeFromWishlist } = useRemoveFromWishlist();
   const { mutate: addToCart, isPending: addingToCart } = useAddToCart();
+  const { data: cartData } = useCart();
   const { data: wishlistData } = useWishlist();
   const wishlist = wishlistData?.data?.wishlists || [];
   const isWishlisted = wishlist.some((item) => item.product_id === product.id);
+  const isInCart = (cartData?.data?.cart?.cartItems || []).some(
+    (item) => item.product_id === product.id,
+  );
 
   const price = parseFloat(product.price) || 0;
   const discountPrice = parseFloat(product.discount_price) || 0;
@@ -316,6 +320,10 @@ function ProductCard({ product }) {
     e.stopPropagation();
     if (!localStorage.getItem("accessToken")) {
       toast.error("Please login to add to cart");
+      return;
+    }
+    if (isInCart) {
+      navigate("/cart");
       return;
     }
     if (product.quantity < 1) {
@@ -378,7 +386,7 @@ function ProductCard({ product }) {
             ) : (
               <ShoppingCart size={14} />
             )}
-            Add to Cart
+            {isInCart ? "Go to Cart" : "Add to Cart"}
           </button>
         </div>
       </div>
