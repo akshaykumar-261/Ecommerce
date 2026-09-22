@@ -770,7 +770,7 @@ function ProductCard({ product }) {
   const { mutate: addToWishlist } = useAddToWishlist();
   const { mutate: removeFromWishlist } = useRemoveFromWishlist();
   const { data: wishlistData } = useWishlist();
-  const wishlist = wishlistData?.data?.wishlist || [];
+  const wishlist = wishlistData?.data?.wishlists || [];
   const isWishlisted = wishlist.some((item) => item.product_id === product.id);
 
   const price = parseFloat(product.price) || 0;
@@ -795,9 +795,15 @@ function ProductCard({ product }) {
       return;
     }
     if (isWishlisted) {
-      removeFromWishlist(product.id);
+      removeFromWishlist(product.id, {
+        onSuccess: () => toast.success("Removed from wishlist"),
+        onError: () => toast.error("Failed to remove from wishlist"),
+      });
     } else {
-      addToWishlist(product.id);
+      addToWishlist(product.id, {
+        onSuccess: () => toast.success("Added to wishlist"),
+        onError: () => toast.error("Failed to add to wishlist"),
+      });
     }
   };
 
@@ -819,21 +825,21 @@ function ProductCard({ product }) {
           </div>
         )}
 
+        {discount > 0 && (
+          <span className="absolute left-3 top-3 z-10 rounded-lg bg-red-500 px-2 py-1 text-[10px] font-bold text-white">
+            -{discount}%
+          </span>
+        )}
+
         <button
           onClick={handleWishlistClick}
-          className="absolute left-3 top-3 z-10 flex h-8 w-8 items-center justify-center rounded-full bg-white/90 shadow-md backdrop-blur-sm transition hover:bg-white hover:scale-110"
+          className="absolute right-3 top-3 z-10 flex h-8 w-8 items-center justify-center rounded-full bg-white/90 shadow-md backdrop-blur-sm transition hover:bg-white hover:scale-110"
         >
           <Heart
             size={16}
             className={isWishlisted ? "fill-red-500 text-red-500" : "text-gray-400"}
           />
         </button>
-
-        {discount > 0 && (
-          <span className="absolute right-3 top-3 rounded-lg bg-red-500 px-2 py-1 text-[10px] font-bold text-white">
-            -{discount}%
-          </span>
-        )}
 
         <div className="absolute bottom-0 left-0 right-0 flex translate-y-full justify-center gap-2 bg-gradient-to-t from-black/30 to-transparent pb-4 pt-10 transition-transform duration-300 group-hover:translate-y-0">
           <button className="rounded-lg bg-white/90 px-4 py-2 text-xs font-semibold text-gray-800 shadow backdrop-blur-sm transition hover:bg-white">

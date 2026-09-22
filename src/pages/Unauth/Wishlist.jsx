@@ -17,7 +17,7 @@ function Wishlist() {
     useRemoveFromWishlist();
   const [removingId, setRemovingId] = useState(null);
 
-  const wishlist = data?.data?.wishlist || [];
+  const wishlist = data?.data?.wishlists || data?.data?.wishlist || [];
 
   const handleRemove = (productId) => {
     setRemovingId(productId);

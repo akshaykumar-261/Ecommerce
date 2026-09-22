@@ -77,7 +77,7 @@ function Navbar() {
   );
 }
 
-function ImageGallery({ images }) {
+function ImageGallery({ images, isWishlisted, handleWishlistToggle }) {
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [lightboxOpen, setLightboxOpen] = useState(false);
 
@@ -132,6 +132,24 @@ function ImageGallery({ images }) {
               className="h-full w-full object-contain transition-transform duration-500 hover:scale-110"
             />
           </div>
+
+          {/* Wishlist Button */}
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              handleWishlistToggle();
+            }}
+            className={`absolute right-3 top-3 z-10 flex h-10 w-10 items-center justify-center rounded-full shadow-md backdrop-blur-sm transition-all hover:scale-110 ${
+              isWishlisted
+                ? "bg-red-50 shadow-red-200"
+                : "bg-white/90 hover:bg-white"
+            }`}
+          >
+            <Heart
+              size={18}
+              className={isWishlisted ? "fill-red-500 text-red-500" : "text-gray-500"}
+            />
+          </button>
 
           {/* Zoom Hint */}
           <div className="absolute bottom-3 right-3 flex items-center gap-1.5 rounded-lg bg-black/50 px-2.5 py-1.5 text-[11px] font-medium text-white backdrop-blur-sm">
@@ -278,7 +296,7 @@ export default function ProductDetail() {
   const { mutate: addToWishlist } = useAddToWishlist();
   const { mutate: removeFromWishlist } = useRemoveFromWishlist();
 
-  const wishlist = wishlistData?.data?.wishlist || [];
+  const wishlist = wishlistData?.data?.wishlists || [];
   const isWishlisted = wishlist.some((item) => item.product_id === Number(id));
 
   useEffect(() => {
@@ -377,7 +395,7 @@ export default function ProductDetail() {
         <div className="grid gap-8 lg:grid-cols-2">
           {/* Left: Image Gallery */}
           <div>
-            <ImageGallery images={images} />
+            <ImageGallery images={images} isWishlisted={isWishlisted} handleWishlistToggle={handleWishlistToggle} />
           </div>
 
           {/* Right: Product Info */}

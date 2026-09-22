@@ -2,9 +2,11 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { AddToWishlist, GetWishlist, RemoveFromWishlist } from "./wishlistApi";
 
 export const useWishlist = () => {
+  const isLoggedIn = !!localStorage.getItem("accessToken");
   return useQuery({
     queryKey: ["wishlist"],
     queryFn: GetWishlist,
+    enabled: isLoggedIn,
   });
 };
 

@@ -88,7 +88,7 @@ function ProductCard({ product }) {
   const { mutate: addToWishlist } = useAddToWishlist();
   const { mutate: removeFromWishlist } = useRemoveFromWishlist();
   const { data: wishlistData } = useWishlist();
-  const wishlist = wishlistData?.data?.wishlist || [];
+  const wishlist = wishlistData?.data?.wishlists || [];
   const isWishlisted = wishlist.some((item) => item.product_id === product.id);
 
   const price = parseFloat(product.price) || 0;
@@ -108,9 +108,15 @@ function ProductCard({ product }) {
       return;
     }
     if (isWishlisted) {
-      removeFromWishlist(product.id);
+      removeFromWishlist(product.id, {
+        onSuccess: () => toast.success("Removed from wishlist"),
+        onError: () => toast.error("Failed to remove from wishlist"),
+      });
     } else {
-      addToWishlist(product.id);
+      addToWishlist(product.id, {
+        onSuccess: () => toast.success("Added to wishlist"),
+        onError: () => toast.error("Failed to add to wishlist"),
+      });
     }
   };
 
@@ -134,7 +140,7 @@ function ProductCard({ product }) {
 
         <button
           onClick={handleWishlistClick}
-          className="absolute left-3 top-3 z-10 flex h-8 w-8 items-center justify-center rounded-full bg-white/90 shadow-md backdrop-blur-sm transition hover:bg-white hover:scale-110"
+          className="absolute right-3 top-3 z-10 flex h-8 w-8 items-center justify-center rounded-full bg-white/90 shadow-md backdrop-blur-sm transition hover:bg-white hover:scale-110"
         >
           <Heart
             size={16}
@@ -143,7 +149,7 @@ function ProductCard({ product }) {
         </button>
 
         {discount > 0 && (
-          <span className="absolute right-3 top-3 rounded-lg bg-red-500 px-2 py-1 text-[10px] font-bold text-white">
+          <span className="absolute left-3 top-3 z-10 rounded-lg bg-red-500 px-2 py-1 text-[10px] font-bold text-white">
             -{discount}%
           </span>
         )}
