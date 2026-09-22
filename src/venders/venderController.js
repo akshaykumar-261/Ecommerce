@@ -367,6 +367,12 @@ export default class StoreController {
           public_id: result.public_id,
         });
       }
+    } else {
+      return sendResponse(
+        res,
+        STATUS_CODE.BAD_REQUEST,
+        productMessage.IMAGE_REQUIRED,
+      );
     }
     // Videos
     if (req.files?.product_videos?.length > 0) {

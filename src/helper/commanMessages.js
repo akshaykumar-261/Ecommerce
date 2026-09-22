@@ -109,6 +109,7 @@ export const productMessage = {
   PRODUCT_UPDATED: "Product updated successfully.",
   NOT_ALLOW: "You are not allowed to update this product.",
   MEDIA_UPLOAD: "Product media uploaded successfully.",
+  IMAGE_REQUIRED: "At least one product image is required.",
   MEDIA_NOT_FOUND: "Media not found.",
   MEDIA_DELETED: "Media deleted successfully.",
   ONLY_PRODUCT_IMAGE: "Only image can be set as primary",

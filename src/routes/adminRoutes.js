@@ -166,8 +166,6 @@ router.post(
 );
 router.get(
   "/get-categories",
-  authorize,
-   checkRole("Super Admin","Vendors","Customer"),
   asyncHandler(adminController.getAllCategories.bind(adminController)),
 );
 router.put(
@@ -184,7 +182,6 @@ router.delete(
 );
 router.get(
   "/getProductByCategoryId/:id",
-  authorize,
   role,
   asyncHandler(adminController.getProductByCategoryId.bind(adminController)),
 );

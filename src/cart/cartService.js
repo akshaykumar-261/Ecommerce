@@ -61,6 +61,7 @@ export default class CartServices {
               include: [
                 {
                   model: this.Model.ProductMediaModel,
+                  required: false,
                   where: {
                     is_primary: true,
                   },
