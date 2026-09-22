@@ -26,6 +26,7 @@ import ProtectedRoute from "../components/common/ProtectedRoute";
 import Profile from "../pages/Vendor/Profile";
 import UserProfile from "../pages/Unauth/UserProfile";
 import Wishlist from "../pages/Unauth/Wishlist";
+import Cart from "../pages/Unauth/Cart";
 import AdminLogin from "../pages/Admin/AdminLogin";
 import AdminDashboard from "../pages/Admin/AdminDashboard";
 import AdminVendors from "../pages/Admin/AdminVendors";
@@ -119,6 +120,14 @@ function AppRoutes() {
         element={
           <ProtectedRoute requireAuth>
             <Wishlist />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/cart"
+        element={
+          <ProtectedRoute requireAuth>
+            <Cart />
           </ProtectedRoute>
         }
       />

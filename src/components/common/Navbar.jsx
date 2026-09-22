@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import { SearchSuggestions } from "../../api/productApi";
 import { useGetUser, useLogout } from "../../api/useAuth";
+import { useCartCount } from "../../api/useCart";
 
 export default function Navbar() {
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -28,8 +29,20 @@ export default function Navbar() {
   const navigate = useNavigate();
   const { data: userData } = useGetUser();
   const logoutMutation = useLogout();
+  const { data: cartCountData } = useCartCount();
   const user = userData?.data;
   const isLoggedIn = !!localStorage.getItem("accessToken");
+  const cartCount = isLoggedIn
+    ? Number(cartCountData?.data?.count) || 0
+    : 0;
+
+  const handleCartClick = () => {
+    if (!isLoggedIn) {
+      navigate("/login");
+      return;
+    }
+    navigate("/cart");
+  };
 
   useEffect(() => {
     const handleClickOutside = (e) => {
@@ -309,11 +322,16 @@ export default function Navbar() {
               </button>
             </>
           )}
-          <button className="relative rounded-lg p-2 text-gray-700 transition hover:bg-gray-100">
+          <button
+            onClick={handleCartClick}
+            className="relative rounded-lg p-2 text-gray-700 transition hover:bg-gray-100"
+          >
             <ShoppingCart size={22} />
-            <span className="absolute -right-0.5 -top-0.5 flex h-5 w-5 items-center justify-center rounded-full bg-[#4c2ed8] text-[10px] font-bold text-white">
-              3
-            </span>
+            {cartCount > 0 && (
+              <span className="absolute -right-0.5 -top-0.5 flex h-5 w-5 items-center justify-center rounded-full bg-[#4c2ed8] text-[10px] font-bold text-white">
+                {cartCount > 99 ? "99+" : cartCount}
+              </span>
+            )}
           </button>
           <button
             className="rounded-lg p-2 text-gray-700 transition hover:bg-gray-100 md:hidden"

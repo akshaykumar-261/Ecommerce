@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import { GetProductById } from "../../api/productApi";
 import { useWishlist, useAddToWishlist, useRemoveFromWishlist } from "../../api/useWishlist";
+import { useAddToCart } from "../../api/useCart";
 import Navbar from "../../components/common/Navbar";
 import toast from "react-hot-toast";
 
@@ -236,6 +237,7 @@ export default function ProductDetail() {
   const { data: wishlistData } = useWishlist();
   const { mutate: addToWishlist } = useAddToWishlist();
   const { mutate: removeFromWishlist } = useRemoveFromWishlist();
+  const { mutate: addToCart, isPending: addingToCart } = useAddToCart();
 
   const wishlist = wishlistData?.data?.wishlists || [];
   const isWishlisted = wishlist.some((item) => item.product_id === Number(id));
@@ -272,6 +274,34 @@ export default function ProductDetail() {
         onError: () => toast.error("Failed to add to wishlist"),
       });
     }
+  };
+
+  const handleAddToCart = (buyNow = false) => {
+    if (!localStorage.getItem("accessToken")) {
+      toast.error("Please login to add to cart");
+      return;
+    }
+    if (product.quantity < quantity) {
+      toast.error("This product is currently out of stock.");
+      return;
+    }
+    addToCart(
+      { product_id: Number(id), quantity },
+      {
+        onSuccess: (res) => {
+          toast.success(
+            res?.message ||
+              (buyNow ? "Proceeding to cart..." : "Added to cart successfully"),
+          );
+          if (buyNow) navigate("/cart");
+        },
+        onError: (err) => {
+          toast.error(
+            err?.response?.data?.message || "Failed to add to cart",
+          );
+        },
+      },
+    );
   };
 
   if (loading) {
@@ -387,11 +417,23 @@ export default function ProductDetail() {
 
             {/* Action Buttons */}
             <div className="mb-6 flex gap-3">
-              <button className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-[#4c2ed8] px-6 py-3.5 text-sm font-semibold text-white shadow-lg shadow-[#4c2ed8]/25 transition hover:bg-[#3a24b0] hover:shadow-xl hover:shadow-[#4c2ed8]/30 active:scale-[0.98]">
-                <ShoppingCart size={18} />
+              <button
+                onClick={() => handleAddToCart(false)}
+                disabled={addingToCart}
+                className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-[#4c2ed8] px-6 py-3.5 text-sm font-semibold text-white shadow-lg shadow-[#4c2ed8]/25 transition hover:bg-[#3a24b0] hover:shadow-xl hover:shadow-[#4c2ed8]/30 active:scale-[0.98] disabled:opacity-60"
+              >
+                {addingToCart ? (
+                  <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent"></div>
+                ) : (
+                  <ShoppingCart size={18} />
+                )}
                 Add to Cart
               </button>
-              <button className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-orange-500 px-6 py-3.5 text-sm font-semibold text-white shadow-lg shadow-orange-500/25 transition hover:bg-orange-600 hover:shadow-xl hover:shadow-orange-500/30 active:scale-[0.98]">
+              <button
+                onClick={() => handleAddToCart(true)}
+                disabled={addingToCart}
+                className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-orange-500 px-6 py-3.5 text-sm font-semibold text-white shadow-lg shadow-orange-500/25 transition hover:bg-orange-600 hover:shadow-xl hover:shadow-orange-500/30 active:scale-[0.98] disabled:opacity-60"
+              >
                 Buy Now
               </button>
             </div>
