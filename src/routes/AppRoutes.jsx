@@ -31,6 +31,7 @@ import Profile from "../pages/Vendor/Profile";
 import UserProfile from "../pages/Unauth/UserProfile";
 import Wishlist from "../pages/Unauth/Wishlist";
 import Cart from "../pages/Unauth/Cart";
+import CheckoutAddress from "../pages/Unauth/CheckoutAddress";
 import AdminLogin from "../pages/Admin/AdminLogin";
 import AdminDashboard from "../pages/Admin/AdminDashboard";
 import AdminVendors from "../pages/Admin/AdminVendors";
@@ -136,6 +137,14 @@ function AppRoutes() {
         element={
           <ProtectedRoute requireAuth>
             <Cart />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/checkout"
+        element={
+          <ProtectedRoute requireAuth>
+            <CheckoutAddress />
           </ProtectedRoute>
         }
       />

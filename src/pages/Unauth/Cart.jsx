@@ -403,7 +403,7 @@ function Cart() {
                     )}
 
                     <button
-                      onClick={() => toast("Checkout is coming soon!")}
+                      onClick={() => navigate("/checkout")}
                       className="mt-6 flex w-full items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-[#4c2ed8] to-[#368de8] px-6 py-4 text-sm font-bold text-white shadow-lg shadow-[#4c2ed8]/25 transition hover:shadow-xl hover:shadow-[#4c2ed8]/35 active:scale-[0.98]"
                     >
                       Place Order
