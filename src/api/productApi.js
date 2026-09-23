@@ -14,6 +14,15 @@ export const GetProductById = async (productId) => {
   return response.data;
 };
 
+export const GetAllProducts = async ({ page = 1, limit = 10, search = "" } = {}) => {
+  const params = new URLSearchParams({ page, limit });
+  if (search) params.append("search", search);
+  const response = await axiosInstance.get(
+    `/products/AllProduct?${params.toString()}`
+  );
+  return response.data;
+};
+
 export const SearchProducts = async (query, { page = 1, limit = 12 } = {}) => {
   const params = new URLSearchParams({ q: query, page, limit });
   const response = await axiosInstance.get(

@@ -1,7 +1,8 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import pro4 from "../../assets/pro4.png";
 import { GetTopRatedProducts } from "../../api/productApi";
+import { useAllProducts } from "../../api/useProduct";
 import { useAddToCart, useCart } from "../../api/useCart";
 import { useGetCategory } from "../../api/useVendorApi";
 import WishlistButton from "../../components/common/WishlistButton";
@@ -455,6 +456,109 @@ function FeaturedProducts() {
 }
 
 /* ────────────────────────────────────────
+   ALL PRODUCTS (INFINITE SCROLL)
+   ──────────────────────────────────────── */
+function AllProductsSection() {
+  const {
+    data,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+    isLoading,
+    isError,
+    refetch,
+  } = useAllProducts(12);
+
+  const sentinelRef = useRef(null);
+
+  const products = useMemo(() => {
+    const seen = new Set();
+    const rows = [];
+    (data?.pages || []).forEach((page) => {
+      (page?.data?.products?.data || []).forEach((p) => {
+        if (!seen.has(p.id)) {
+          seen.add(p.id);
+          rows.push(p);
+        }
+      });
+    });
+    return rows;
+  }, [data]);
+
+  useEffect(() => {
+    const el = sentinelRef.current;
+    if (!el) return;
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting && hasNextPage && !isFetchingNextPage) {
+          fetchNextPage();
+        }
+      },
+      { rootMargin: "300px" },
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [fetchNextPage, hasNextPage, isFetchingNextPage]);
+
+  return (
+    <section className="bg-white">
+      <div className="mx-auto max-w-7xl px-4 py-4 lg:px-8">
+        <div className="mb-4 flex items-end justify-between">
+          <div>
+            <h2 className="text-2xl font-bold text-gray-900">All Products</h2>
+            <p className="mt-1 text-sm text-gray-500">
+              Explore everything we have in store
+            </p>
+          </div>
+        </div>
+
+        {isLoading ? (
+          <div className="flex items-center justify-center py-16">
+            <div className="h-10 w-10 animate-spin rounded-full border-4 border-[#4c2ed8] border-t-transparent" />
+          </div>
+        ) : products.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-16">
+            <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-gray-100">
+              <ShoppingCart size={32} className="text-gray-300" />
+            </div>
+            <p className="text-sm text-gray-500">
+              No products available yet.
+            </p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4">
+            {products.map((p) => (
+              <div key={p.id}>
+                <ProductCard product={p} />
+              </div>
+            ))}
+          </div>
+        )}
+
+        <div ref={sentinelRef} className="flex items-center justify-center gap-3 py-8">
+          {isFetchingNextPage && (
+            <div className="h-8 w-8 animate-spin rounded-full border-4 border-[#4c2ed8] border-t-transparent" />
+          )}
+          {isError && products.length > 0 && (
+            <button
+              onClick={() => refetch()}
+              className="rounded-lg border border-gray-200 px-4 py-2 text-sm font-medium text-[#4c2ed8] transition hover:bg-gray-50"
+            >
+              Retry loading products
+            </button>
+          )}
+          {/* {!hasNextPage && !isFetchingNextPage && products.length > 0 && (
+            <p className="text-sm text-gray-400">
+              You have reached the end
+            </p>
+          )} */}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/* ────────────────────────────────────────
    PROMO BANNER
    ──────────────────────────────────────── */
 function PromoBanner() {
@@ -516,6 +620,7 @@ export default function Home() {
         <TrustBadges />
         <CategoriesSection />
         <FeaturedProducts />
+        <AllProductsSection />
         <PromoBanner />
         {/* <Newsletter /> */}
       </div>
