@@ -507,38 +507,6 @@ function PromoBanner() {
     </section>
   );
 }
-
-/* ────────────────────────────────────────
-   NEWSLETTER
-   ──────────────────────────────────────── */
-// function Newsletter() {
-//   return (
-//     <section className="py-14">
-//       <div className="mx-auto max-w-7xl px-4 lg:px-8">
-//         <div className="overflow-hidden rounded-2xl bg-gradient-to-r from-gray-900 to-gray-800 px-6 py-12 text-center text-white md:px-16">
-//           <h2 className="mb-2 text-2xl font-bold">Stay in the Loop</h2>
-//           <p className="mb-6 text-sm text-gray-400">
-//             Subscribe for exclusive deals, new arrivals, and more.
-//           </p>
-//           <div className="mx-auto flex max-w-md flex-col gap-3 sm:flex-row">
-//             <input
-//               type="email"
-//               placeholder="Enter your email"
-//               className="flex-1 rounded-xl border border-white/10 bg-white/10 px-4 py-3 text-sm text-white placeholder:text-gray-500 focus:border-[#4c2ed8] focus:outline-none"
-//             />
-//             <button className="rounded-xl bg-[#4c2ed8] px-6 py-3 text-sm font-semibold text-white transition hover:bg-[#3a24b0]">
-//               Subscribe
-//             </button>
-//           </div>
-//         </div>
-//       </div>
-//     </section>
-//   );
-// }
-
-/* ────────────────────────────────────────
-   HOME PAGE (default export)
-   ──────────────────────────────────────── */
 export default function Home() {
   return (
     <div className="min-h-screen bg-white">
