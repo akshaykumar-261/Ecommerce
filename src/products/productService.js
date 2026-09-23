@@ -44,6 +44,43 @@ export default class ProductServices {
     });
   };
 
+  getAllProducts = async (page, limit, search = "") => {
+    const { offset } = commanFunction.pagignation(page, limit);
+    const where = {
+      deletedAt: null,
+      status: true,
+    };
+    if (search) {
+      where[Op.or] = [
+        { pro_name: { [Op.like]: `%${search}%` } },
+        { description: { [Op.like]: `%${search}%` } },
+      ];
+    }
+    return await this.Model.Products.findAndCountAll({
+      where,
+      include: [
+        {
+          model: this.Model.Category,
+          attributes: ["id", "cat_name",],
+          required: false,
+        },
+        {
+          model: this.Model.ProductMedia,
+          attributes: ["id", "media_type", "media_url", "is_primary"],
+          required: false,
+        },
+        {
+          model: this.Model.Store,
+          attributes: ["id", "store_name", "store_logo"],
+          required: false,
+        },
+      ],
+      limit: Number(limit),
+      offset,
+      order: [["id", "DESC"]],
+    });
+  };
+
   getProductById = async (id) => {
     return await this.Model.Products.findOne({
       where: { id, deletedAt: null, status: true },

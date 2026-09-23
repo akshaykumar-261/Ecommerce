@@ -46,6 +46,18 @@ export default class productController {
     );
   }
 
+  async getAllProducts(req, res) {
+    const { page = 1, limit = 10, search = "" } = req.query;
+    const products = await this.service.getAllProducts(page, limit, search);
+    const paginationData = commanFunction.pagignation(page, limit, products);
+    return sendResponse(
+      res,
+      STATUS_CODE.SUCCESS,
+      "Products fetched successfully.",
+      { products: paginationData }
+    );
+  }
+
   async getProductById(req, res) {
     const { id } = req.params;
     const product = await this.service.getProductById(id);

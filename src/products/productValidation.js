@@ -32,6 +32,12 @@ export const productsByCategoryQueryValidation = Joi.object({
   search: Joi.string().trim().allow("").max(100).default(""),
 });
 
+export const allProductsQueryValidation = Joi.object({
+  page: Joi.number().integer().min(1).max(10000).default(1),
+  limit: Joi.number().integer().min(1).max(100).default(10),
+  search: Joi.string().trim().allow("").max(100).default(""),
+});
+
 export const validateParams = (schema) => {
   return (req, res, next) => {
     const { error } = schema.validate(req.params);
