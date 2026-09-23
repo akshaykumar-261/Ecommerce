@@ -13,6 +13,7 @@ import {
 import { SearchSuggestions } from "../../api/productApi";
 import { useGetUser, useLogout } from "../../api/useAuth";
 import { useCartCount } from "../../api/useCart";
+import Popup from "./Popup";
 
 export default function Navbar() {
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -495,35 +496,29 @@ export default function Navbar() {
       )}
 
       {/* Logout Confirmation Dialog */}
-      {showLogoutDialog && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/40 backdrop-blur-sm">
-          <div className="mx-4 w-full max-w-sm rounded-2xl bg-white p-6 shadow-2xl">
-            <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-red-100">
-              <LogOut size={24} className="text-red-500" />
-            </div>
-            <h3 className="mb-1 text-lg font-semibold text-gray-900">
-              Confirm Logout
-            </h3>
-            <p className="mb-6 text-sm text-gray-500">
-              Are you sure you want to logout from your account?
-            </p>
-            <div className="flex gap-3">
-              <button
-                onClick={() => setShowLogoutDialog(false)}
-                className="flex-1 rounded-xl border border-gray-200 px-4 py-2.5 text-sm font-medium text-gray-700 transition hover:bg-gray-50"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={confirmLogout}
-                className="flex-1 rounded-xl bg-red-500 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-red-600"
-              >
-                Logout
-              </button>
-            </div>
-          </div>
+      <Popup
+        open={showLogoutDialog}
+        onClose={() => setShowLogoutDialog(false)}
+        icon={<LogOut size={24} className="text-red-500" />}
+        iconClassName="bg-red-100"
+        title="Confirm Logout"
+        message="Are you sure you want to logout from your account?"
+      >
+        <div className="flex gap-3">
+          <button
+            onClick={() => setShowLogoutDialog(false)}
+            className="flex-1 rounded-xl border border-gray-200 px-4 py-2.5 text-sm font-medium text-gray-700 transition hover:bg-gray-50"
+          >
+            Cancel
+          </button>
+          <button
+            onClick={confirmLogout}
+            className="flex-1 rounded-xl bg-red-500 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-red-600"
+          >
+            Logout
+          </button>
         </div>
-      )}
+      </Popup>
     </header>
   );
 }
