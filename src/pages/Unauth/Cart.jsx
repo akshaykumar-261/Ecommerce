@@ -134,14 +134,6 @@ function Cart() {
   const handleRemove = (item) => {
     setRemovingId(item.id);
     removeFromCart(item.product_id, {
-      onSuccess: (res) => {
-        toast.success(res?.message || "Removed from cart");
-        setRemovingId(null);
-      },
-      onError: () => {
-        toast.error("Failed to remove from cart");
-        setRemovingId(null);
-      },
     });
   };
 

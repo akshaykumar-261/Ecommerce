@@ -639,10 +639,6 @@ function UserProfile() {
                         <button
                           onClick={() => {
                             removeFromWishlist(product.id, {
-                              onSuccess: () =>
-                                toast.success("Removed from wishlist"),
-                              onError: () =>
-                                toast.error("Failed to remove from wishlist"),
                             });
                           }}
                           className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-gray-400 transition hover:bg-red-50 hover:text-red-500"
