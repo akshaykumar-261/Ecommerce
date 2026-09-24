@@ -181,12 +181,19 @@ export default class OrderController {
   }
 
   async confirmPayment(req, res) {
-    const { paymentIntentId } = req.body;
+    const { paymentIntentId, payment_method_id } = req.body;
     if (!paymentIntentId) {
       return sendResponse(
         res,
         STATUS_CODE.BAD_REQUEST,
         paymentMessage.PAYMENTINTENT_REQUIRE,
+      );
+    }
+    if (!payment_method_id) {
+      return sendResponse(
+        res,
+        STATUS_CODE.BAD_REQUEST,
+        "Payment method ID is required",
       );
     }
     const user = await this.services.getUserById(req.user.id);
@@ -222,7 +229,7 @@ export default class OrderController {
     }
     let paymentIntent;
     paymentIntent = await stripe.paymentIntents.confirm(paymentIntentId, {
-      payment_method: "pm_card_visa",
+      payment_method: payment_method_id,
     });
     // Payment Success
     if (paymentIntent.status === "succeeded") {

@@ -15,6 +15,10 @@ export const confirmPaymentSchema = Joi.object({
     "string.empty": "Payment Intent ID cannot be empty",
     "any.required": "Payment Intent ID is required",
   }),
+  payment_method_id: Joi.string().trim().required().messages({
+    "string.empty": "Payment Method ID cannot be empty",
+    "any.required": "Payment Method ID is required",
+  }),
 });
 
 // Order ID Params
