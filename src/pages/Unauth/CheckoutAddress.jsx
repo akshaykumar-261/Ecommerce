@@ -32,6 +32,8 @@ import {
   useUpdateAddress,
   useDeleteAddress,
 } from "../../api/useAddress";
+import { usePlaceOrder, useConfirmPayment } from "../../api/useOrder";
+import { PaymentForm } from "../../components/payment/PaymentForm";
 
 const emptyForm = {
   name: "",
@@ -81,6 +83,8 @@ function CheckoutAddress() {
   const addAddress = useAddAddress();
   const updateAddress = useUpdateAddress();
   const deleteAddress = useDeleteAddress();
+  const placeOrder = usePlaceOrder();
+  const confirmPayment = useConfirmPayment();
 
   const addresses = useMemo(
     () => addressData?.data?.addresses || [],
@@ -91,6 +95,8 @@ function CheckoutAddress() {
   const [mode, setMode] = useState("list");
   const [editingId, setEditingId] = useState(null);
   const [form, setForm] = useState(emptyForm);
+  const [paymentIntentId, setPaymentIntentId] = useState(null);
+  const [showPaymentForm, setShowPaymentForm] = useState(false);
 
   const effectiveSelectedId = selectedId || addresses[0]?.id || null;
   const selectedAddress = addresses.find((a) => a.id === effectiveSelectedId);
@@ -215,12 +221,58 @@ function CheckoutAddress() {
     });
   };
 
-  const handlePlaceOrder = () => {
+  const getVendorId = (item) => {
+    return item.product?.store?.user_id;
+  };
+
+  const handlePlaceOrder = async () => {
     if (!effectiveSelectedId) {
       toast.error("Please select a delivery address.");
       return;
     }
-    toast("Order placement coming soon!");
+
+    const vendorIds = items.map(getVendorId);
+    const uniqueVendors = [...new Set(vendorIds.filter((v) => v))];
+
+    if (uniqueVendors.length > 1) {
+      toast.error(
+        "Multiple vendors detected. Please place separate orders for each vendor or combine items from the same vendor.",
+      );
+      return;
+    }
+
+    placeOrder.mutate(effectiveSelectedId, {
+      onSuccess: (res) => {
+        const piId = res?.data?.payment_intent_id;
+        if (piId) {
+          setPaymentIntentId(piId);
+          setShowPaymentForm(true);
+          toast.success("Order created. Please complete payment.");
+        } else {
+          toast.error("Payment intent not created");
+        }
+      },
+      onError: (error) => {
+        toast.error(error.response?.data?.message || "Failed to place order");
+      },
+    });
+  };
+
+const handlePaymentSuccess = async (paymentMethodId) => {
+    confirmPayment.mutate({ paymentIntentId, paymentMethodId }, {
+      onSuccess: () => {
+        toast.success("Order placed successfully!");
+        navigate("/orders");
+      },
+      onError: (error) => {
+        toast.error(error.response?.data?.message || "Payment failed");
+      },
+    });
+  };
+
+  const handlePaymentCancel = () => {
+    setShowPaymentForm(false);
+    setPaymentIntentId(null);
   };
 
   if (
@@ -670,11 +722,20 @@ function CheckoutAddress() {
 
                     <button
                       onClick={handlePlaceOrder}
-                      disabled={addresses.length === 0 || !effectiveSelectedId}
+                      disabled={addresses.length === 0 || !effectiveSelectedId || placeOrder.isPending}
                       className="mt-5 flex w-full items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-[#4c2ed8] to-[#368de8] px-6 py-4 text-sm font-bold text-white shadow-lg shadow-[#4c2ed8]/25 transition hover:shadow-xl hover:shadow-[#4c2ed8]/35 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50 disabled:shadow-none"
                     >
-                      Place Order
-                      <ArrowRight size={16} />
+                      {placeOrder.isPending ? (
+                        <>
+                          <span className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                          Placing Order...
+                        </>
+                      ) : (
+                        <>
+                          Place Order
+                          <ArrowRight size={16} />
+                        </>
+                      )}
                     </button>
                   </>
                 )}
@@ -694,6 +755,32 @@ function CheckoutAddress() {
           </div>
         </div>
       </main>
+
+      {showPaymentForm && paymentIntentId && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+          <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-lg font-bold text-gray-900">Enter Card Details</h2>
+              <button
+                onClick={handlePaymentCancel}
+                className="text-gray-400 hover:text-gray-600"
+              >
+                <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+            <p className="mb-4 text-sm text-gray-600">
+              Total: {formatINR(finalTotal)}
+            </p>
+            <PaymentForm
+              paymentIntentId={paymentIntentId}
+              onSuccess={handlePaymentSuccess}
+              onError={handlePaymentCancel}
+            />
+          </div>
+        </div>
+      )}
     </div>
   );
 }
