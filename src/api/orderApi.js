@@ -29,3 +29,8 @@ export const CancelOrder = async (orderId) => {
   const response = await axiosInstance.post(`/order/cancelOrder/${orderId}`);
   return response.data;
 };
+
+export const TrackOrder = async (orderId) => {
+  const response = await axiosInstance.get(`/order/track-order/${orderId}`);
+  return response.data;
+};

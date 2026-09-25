@@ -32,6 +32,8 @@ import UserProfile from "../pages/Unauth/UserProfile";
 import Wishlist from "../pages/Unauth/Wishlist";
 import Cart from "../pages/Unauth/Cart";
 import CheckoutAddress from "../pages/Unauth/CheckoutAddress";
+import MyOrders from "../pages/Unauth/MyOrders";
+import OrderDetail from "../pages/Unauth/OrderDetail";
 import AdminLogin from "../pages/Admin/AdminLogin";
 import AdminDashboard from "../pages/Admin/AdminDashboard";
 import AdminVendors from "../pages/Admin/AdminVendors";
@@ -145,6 +147,22 @@ function AppRoutes() {
         element={
           <ProtectedRoute requireAuth>
             <CheckoutAddress />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/orders"
+        element={
+          <ProtectedRoute requireAuth>
+            <MyOrders />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/orders/:orderId"
+        element={
+          <ProtectedRoute requireAuth>
+            <OrderDetail />
           </ProtectedRoute>
         }
       />

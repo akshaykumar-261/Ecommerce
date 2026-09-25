@@ -22,6 +22,7 @@ import {
   RotateCcw,
   Sparkles,
   Lock,
+  CheckCircle2,
 } from "lucide-react";
 import toast from "react-hot-toast";
 import Navbar from "../../components/common/Navbar";
@@ -97,6 +98,8 @@ function CheckoutAddress() {
   const [form, setForm] = useState(emptyForm);
   const [paymentIntentId, setPaymentIntentId] = useState(null);
   const [showPaymentForm, setShowPaymentForm] = useState(false);
+  const [paymentSuccess, setPaymentSuccess] = useState(false);
+  const [placedOrderId, setPlacedOrderId] = useState(null);
 
   const effectiveSelectedId = selectedId || addresses[0]?.id || null;
   const selectedAddress = addresses.find((a) => a.id === effectiveSelectedId);
@@ -260,9 +263,12 @@ function CheckoutAddress() {
 
 const handlePaymentSuccess = async (paymentMethodId) => {
     confirmPayment.mutate({ paymentIntentId, paymentMethodId }, {
-      onSuccess: () => {
-        toast.success("Order placed successfully!");
-        navigate("/orders");
+      onSuccess: (res) => {
+        const orderId = res?.data?.metadata?.order_id;
+        setPlacedOrderId(orderId || null);
+        setPaymentSuccess(true);
+        setShowPaymentForm(true);
+        toast.success(res?.message || "Payment successful!");
       },
       onError: (error) => {
         toast.error(error.response?.data?.message || "Payment failed");
@@ -273,6 +279,16 @@ const handlePaymentSuccess = async (paymentMethodId) => {
   const handlePaymentCancel = () => {
     setShowPaymentForm(false);
     setPaymentIntentId(null);
+    setPaymentSuccess(false);
+    setPlacedOrderId(null);
+  };
+
+  const handleViewOrder = () => {
+    if (placedOrderId) {
+      navigate(`/orders/${placedOrderId}`);
+    } else {
+      navigate("/orders");
+    }
   };
 
   if (
@@ -759,25 +775,51 @@ const handlePaymentSuccess = async (paymentMethodId) => {
       {showPaymentForm && paymentIntentId && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
           <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl">
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-lg font-bold text-gray-900">Enter Card Details</h2>
-              <button
-                onClick={handlePaymentCancel}
-                className="text-gray-400 hover:text-gray-600"
-              >
-                <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </button>
-            </div>
-            <p className="mb-4 text-sm text-gray-600">
-              Total: {formatINR(finalTotal)}
-            </p>
-            <PaymentForm
-              paymentIntentId={paymentIntentId}
-              onSuccess={handlePaymentSuccess}
-              onError={handlePaymentCancel}
-            />
+            {paymentSuccess ? (
+              <div className="py-6 text-center">
+                <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-green-100">
+                  <CheckCircle2 size={32} className="text-green-600" />
+                </div>
+                <h2 className="text-lg font-bold text-gray-900">
+                  Payment Successful!
+                </h2>
+                <p className="mt-2 text-sm leading-relaxed text-gray-600">
+                  Your payment has been processed successfully and your order
+                  has been placed.
+                </p>
+                <button
+                  onClick={handleViewOrder}
+                  className="mt-6 flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-[#4c2ed8] to-[#368de8] px-6 py-3.5 text-sm font-bold text-white shadow-lg shadow-[#4c2ed8]/25 transition hover:shadow-xl"
+                >
+                  View Your Order
+                  <ArrowRight size={16} />
+                </button>
+              </div>
+            ) : (
+              <>
+                <div className="mb-6 flex items-center justify-between">
+                  <h2 className="text-lg font-bold text-gray-900">
+                    Enter Card Details
+                  </h2>
+                  <button
+                    onClick={handlePaymentCancel}
+                    className="text-gray-400 hover:text-gray-600"
+                  >
+                    <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                </div>
+                <p className="mb-4 text-sm text-gray-600">
+                  Total: {formatINR(finalTotal)}
+                </p>
+                <PaymentForm
+                  paymentIntentId={paymentIntentId}
+                  onSuccess={handlePaymentSuccess}
+                  onError={handlePaymentCancel}
+                />
+              </>
+            )}
           </div>
         </div>
       )}

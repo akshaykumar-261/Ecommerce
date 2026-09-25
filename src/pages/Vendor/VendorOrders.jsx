@@ -22,6 +22,8 @@ const ORDER_STATUSES = [
   "Cancelled",
 ];
 
+const CHANGEABLE_STATUSES = ORDER_STATUSES.filter((s) => s !== "All");
+
 const STATUS_STYLES = {
   Pending: "bg-amber-50 text-amber-600 border border-amber-200",
   Confirmed: "bg-blue-50 text-blue-600 border border-blue-200",
@@ -58,9 +60,21 @@ function VendorOrders() {
   const { mutate: updateOrderStatus, isPending: isUpdating } =
     useUpdateOrderStatus();
 
-  const rows = query.data?.data?.data || [];
+  const orderItems = query.data?.data?.data || [];
   const pagination = query.data?.data;
   const totalPages = pagination?.totalPages || 1;
+
+  const rows = orderItems.reduce((acc, item) => {
+    const order = item.order;
+    if (!order || !order.id) return acc;
+    const existing = acc.find((o) => o.id === order.id);
+    if (existing) {
+      existing.order_items.push(item);
+    } else {
+      acc.push({ ...order, order_items: [item] });
+    }
+    return acc;
+  }, []);
 
   const handleStatusChange = (orderId, newStatus) => {
     if (!orderId || !newStatus) return;
@@ -260,17 +274,14 @@ function VendorOrders() {
 }
 
 function OrderRow({ order, expanded, onToggle, onStatusChange, isUpdating }) {
-  const nextStatusMap = {
-    Pending: "Confirmed",
-    Confirmed: "Packed",
-    Packed: "Shipped",
-    Shipped: "Delivered",
-  };
-
   const currentStatus = order.order_status;
-  const nextStatus = nextStatusMap[currentStatus];
-  const canAdvance = nextStatus && currentStatus !== "Delivered" && currentStatus !== "Cancelled";
-  const canCancel = currentStatus !== "Delivered" && currentStatus !== "Cancelled";
+  const [selectedStatus, setSelectedStatus] = useState(
+    currentStatus === "Delivered" || currentStatus === "Cancelled"
+      ? currentStatus
+      : currentStatus || "Pending",
+  );
+  const canManage =
+    currentStatus !== "Delivered" && currentStatus !== "Cancelled";
 
   return (
     <>
@@ -305,10 +316,10 @@ function OrderRow({ order, expanded, onToggle, onStatusChange, isUpdating }) {
           </span>
         </td>
         <td className="px-5 py-3.5 text-sm font-semibold text-slate-700">
-          ${Number(order.grand_total || 0).toLocaleString()}
+           ₹{Number(order.grand_total || 0).toLocaleString()}
         </td>
         <td className="px-5 py-3.5 text-xs text-slate-500">
-          {order.orderItems?.length || 0}
+          {order.order_items?.length || 0}
         </td>
         <td className="px-5 py-3.5 text-xs text-slate-500">
           {order.createdAt
@@ -363,36 +374,41 @@ function OrderRow({ order, expanded, onToggle, onStatusChange, isUpdating }) {
 
               {/* Actions */}
               <div className="flex items-center gap-2 border-t border-slate-200 pt-3">
-                <p className="mr-2 text-xs font-semibold text-slate-500">
-                  Update Status:
-                </p>
-                {canAdvance && (
-                  <button
-                    type="button"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      onStatusChange(order.id, nextStatus);
-                    }}
-                    disabled={isUpdating}
-                    className="rounded-lg bg-gradient-to-r from-indigo-600 to-blue-500 px-3 py-1.5 text-xs font-medium text-white shadow-sm transition hover:shadow-md disabled:cursor-not-allowed disabled:opacity-60"
-                  >
-                    Mark as {nextStatus}
-                  </button>
-                )}
-                {canCancel && (
-                  <button
-                    type="button"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      onStatusChange(order.id, "Cancelled");
-                    }}
-                    disabled={isUpdating}
-                    className="rounded-lg border border-red-200 px-3 py-1.5 text-xs font-medium text-red-500 transition hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-60"
-                  >
-                    Cancel Order
-                  </button>
-                )}
-                {!canAdvance && !canCancel && (
+                {canManage ? (
+                  <>
+                    <p className="mr-1 text-xs font-semibold text-slate-500">
+                      Set Status:
+                    </p>
+                    <select
+                      value={selectedStatus}
+                      onChange={(e) => setSelectedStatus(e.target.value)}
+                      disabled={isUpdating}
+                      className="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-600 outline-none transition focus:border-indigo-500 disabled:cursor-not-allowed disabled:opacity-60"
+                    >
+                      {CHANGEABLE_STATUSES.map((s) => (
+                        <option key={s} value={s}>
+                          {s}
+                        </option>
+                      ))}
+                    </select>
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onStatusChange(order.id, selectedStatus);
+                      }}
+                      disabled={isUpdating || selectedStatus === currentStatus}
+                      className="rounded-lg bg-gradient-to-r from-indigo-600 to-blue-500 px-3.5 py-1.5 text-xs font-medium text-white shadow-sm transition hover:shadow-md disabled:cursor-not-allowed disabled:opacity-60"
+                    >
+                      {isUpdating ? "Updating..." : "Update"}
+                    </button>
+                    {selectedStatus === "Cancelled" && (
+                      <span className="text-[11px] text-red-400">
+                        Order will be marked as cancelled
+                      </span>
+                    )}
+                  </>
+                ) : (
                   <span className="text-xs text-slate-400">
                     No further actions available
                   </span>

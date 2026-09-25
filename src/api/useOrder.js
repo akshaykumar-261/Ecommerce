@@ -5,6 +5,7 @@ import {
   GetMyOrders,
   GetOrderById,
   CancelOrder,
+  TrackOrder,
 } from "./orderApi";
 
 export const usePlaceOrder = () => {
@@ -37,5 +38,13 @@ export const useOrderById = (orderId) => {
 export const useCancelOrder = () => {
   return useMutation({
     mutationFn: CancelOrder,
+  });
+};
+
+export const useTrackOrder = (orderId) => {
+  return useQuery({
+    queryKey: ["trackOrder", orderId],
+    queryFn: () => TrackOrder(orderId),
+    enabled: !!orderId,
   });
 };
