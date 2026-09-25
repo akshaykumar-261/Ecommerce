@@ -66,6 +66,10 @@ export default class CartServices {
                     is_primary: true,
                   },
                 },
+                {
+                  model: this.Model.Store,
+                  attributes: ["id", "store_name", "user_id"],
+                },
               ],
             },
           ],

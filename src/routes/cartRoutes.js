@@ -7,6 +7,7 @@ import Cart from "../../dataBase/models/cartModel.js";
 import CartItem from "../../dataBase/models/cartItemModel.js";
 import authorize from "../middleweare/authmiddleweare.js";
 import ProductMediaModel from "../../dataBase/models/productMedia.js";
+import Store from "../../dataBase/models/storeModel.js";
 import checkRole from "../middleweare/roleBasemiddleweare.js";
 import {
   validateRequest,
@@ -17,7 +18,7 @@ const router = express.Router();
 const cartController = new CartController();
 const role = checkRole("Customer");
 await cartController.init(sequelize);
-cartController.init({ models: { Cart, Product, CartItem, ProductMediaModel } });
+cartController.init({ models: { Cart, Product, CartItem, ProductMediaModel, Store } });
 router.post(
   "/add-to-cart",
   authorize,
