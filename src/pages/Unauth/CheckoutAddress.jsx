@@ -1,5 +1,7 @@
 import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useQueryClient } from "@tanstack/react-query";
+import { CardElement } from "@stripe/react-stripe-js";
 import {
   MapPin,
   Plus,
@@ -23,10 +25,12 @@ import {
   Sparkles,
   Lock,
   CheckCircle2,
+  Store,
+  AlertCircle,
 } from "lucide-react";
 import toast from "react-hot-toast";
 import Navbar from "../../components/common/Navbar";
-import { useCart } from "../../api/useCart";
+import { useCart, useAddToCart, useRemoveFromCart } from "../../api/useCart";
 import {
   useAddresses,
   useAddAddress,
@@ -78,12 +82,15 @@ function LoadingState() {
 
 function CheckoutAddress() {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
 
   const { data: cartData, isLoading: cartLoading } = useCart();
   const { data: addressData, isLoading: addressesLoading } = useAddresses();
   const addAddress = useAddAddress();
   const updateAddress = useUpdateAddress();
   const deleteAddress = useDeleteAddress();
+  const addToCart = useAddToCart();
+  const removeFromCart = useRemoveFromCart();
   const placeOrder = usePlaceOrder();
   const confirmPayment = useConfirmPayment();
 
@@ -100,6 +107,16 @@ function CheckoutAddress() {
   const [showPaymentForm, setShowPaymentForm] = useState(false);
   const [paymentSuccess, setPaymentSuccess] = useState(false);
   const [placedOrderId, setPlacedOrderId] = useState(null);
+
+  const [vendorOrders, setVendorOrders] = useState([]);
+  const [placingOrders, setPlacingOrders] = useState(false);
+  const [placingProgress, setPlacingProgress] = useState(null);
+  const [payProgress, setPayProgress] = useState({
+    current: 0,
+    processing: false,
+    error: null,
+  });
+  const [paidIntentIds, setPaidIntentIds] = useState([]);
 
   const effectiveSelectedId = selectedId || addresses[0]?.id || null;
   const selectedAddress = addresses.find((a) => a.id === effectiveSelectedId);
@@ -132,6 +149,34 @@ function CheckoutAddress() {
   const discountTotal = enrichedItems.reduce((sum, i) => sum + i.lineDiscount, 0);
   const finalTotal = enrichedItems.reduce((sum, i) => sum + i.lineFinal, 0);
   const formatINR = (value) => `₹${value.toFixed(2)}`;
+
+  const vendorGroups = (() => {
+    const map = new Map();
+    for (const it of enrichedItems) {
+      const vendorId = it.product?.store?.user_id;
+      if (!vendorId) continue;
+      const key = String(vendorId);
+      if (!map.has(key)) {
+        map.set(key, {
+          vendorId,
+          vendorName:
+            it.product?.store?.store_name || `Seller #${vendorId}`,
+          items: [],
+          subtotal: 0,
+          mrp: 0,
+          discount: 0,
+        });
+      }
+      const group = map.get(key);
+      group.items.push(it);
+      group.subtotal += it.lineFinal;
+      group.mrp += it.lineMrp;
+      group.discount += it.lineDiscount;
+    }
+    return [...map.values()];
+  })();
+
+  const isMultiVendor = vendorGroups.length > 1;
 
   const handleChange = (name, value) => {
     setForm((prev) => ({ ...prev, [name]: value }));
@@ -224,56 +269,180 @@ function CheckoutAddress() {
     });
   };
 
-  const getVendorId = (item) => {
-    return item.product?.store?.user_id;
-  };
-
   const handlePlaceOrder = async () => {
     if (!effectiveSelectedId) {
       toast.error("Please select a delivery address.");
       return;
     }
 
-    const vendorIds = items.map(getVendorId);
-    const uniqueVendors = [...new Set(vendorIds.filter((v) => v))];
-
-    if (uniqueVendors.length > 1) {
-      toast.error(
-        "Multiple vendors detected. Please place separate orders for each vendor or combine items from the same vendor.",
-      );
+    if (vendorGroups.length === 0) {
+      toast.error("Unable to determine sellers for your cart items.");
       return;
     }
 
-    placeOrder.mutate(effectiveSelectedId, {
-      onSuccess: (res) => {
-        const piId = res?.data?.payment_intent_id;
-        if (piId) {
-          setPaymentIntentId(piId);
-          setShowPaymentForm(true);
-          toast.success("Order created. Please complete payment.");
-        } else {
-          toast.error("Payment intent not created");
+    setPlacingOrders(true);
+    setPlacingProgress({ current: 1, total: vendorGroups.length, label: "" });
+    try {
+      const orders = [];
+      let productsInCart = new Set(
+        enrichedItems.map((it) => it.product_id).filter(Boolean),
+      );
+
+      for (let i = 0; i < vendorGroups.length; i++) {
+        const group = vendorGroups[i];
+        setPlacingProgress({
+          current: i + 1,
+          total: vendorGroups.length,
+          label: group.vendorName,
+        });
+
+        // Rebuild the backend cart so it only contains THIS seller's items,
+        // because the backend places one order (and one Stripe payment) from
+        // the whole cart at a time.
+        const targetIds = new Set(group.items.map((it) => it.product_id));
+        for (const pid of [...productsInCart]) {
+          if (!targetIds.has(pid)) {
+            try {
+              await removeFromCart.mutateAsync(pid);
+            } catch {
+              // item already gone - safe to skip
+            }
+            productsInCart.delete(pid);
+          }
         }
-      },
-      onError: (error) => {
-        toast.error(error.response?.data?.message || "Failed to place order");
-      },
-    });
+        for (const it of group.items) {
+          if (!productsInCart.has(it.product_id)) {
+            await addToCart.mutateAsync({
+              product_id: it.product_id,
+              quantity: it.quantity,
+            });
+            productsInCart.add(it.product_id);
+          }
+        }
+
+        const res = await placeOrder.mutateAsync(effectiveSelectedId);
+        const piId = res?.data?.payment_intent_id;
+        if (!piId) {
+          throw new Error(`Payment intent not created for ${group.vendorName}`);
+        }
+        orders.push({
+          orderId: res?.data?.order?.id,
+          paymentIntentId: piId,
+          amount: Number(res?.data?.order?.grand_total || group.subtotal),
+          vendorName: group.vendorName,
+        });
+      }
+
+      // Restore the full original cart so nothing looks lost before payment.
+      for (const pid of [...productsInCart]) {
+        try {
+          await removeFromCart.mutateAsync(pid);
+        } catch {
+          // item already gone - safe to skip
+        }
+      }
+      for (const it of enrichedItems) {
+        try {
+          await addToCart.mutateAsync({
+            product_id: it.product_id,
+            quantity: it.quantity,
+          });
+        } catch {
+          // best-effort restore
+        }
+      }
+
+      setVendorOrders(orders);
+      setPaidIntentIds([]);
+      setPayProgress({ current: 0, processing: false, error: null });
+      setPaymentIntentId(orders[0]?.paymentIntentId || null);
+      setShowPaymentForm(true);
+      toast.success(
+        orders.length > 1
+          ? `${orders.length} orders created. Please complete payment for each seller.`
+          : "Order created. Please complete payment.",
+      );
+    } catch (error) {
+      toast.error(
+        error.response?.data?.message || error.message || "Failed to place order",
+      );
+      try {
+        for (const it of enrichedItems) {
+          await addToCart.mutateAsync({
+            product_id: it.product_id,
+            quantity: it.quantity,
+          });
+        }
+      } catch {
+        // best-effort restore
+      }
+    } finally {
+      setPlacingOrders(false);
+      setPlacingProgress(null);
+    }
   };
 
-const handlePaymentSuccess = async (paymentMethodId) => {
-    confirmPayment.mutate({ paymentIntentId, paymentMethodId }, {
-      onSuccess: (res) => {
-        const orderId = res?.data?.metadata?.order_id;
-        setPlacedOrderId(orderId || null);
-        setPaymentSuccess(true);
-        setShowPaymentForm(true);
-        toast.success(res?.message || "Payment successful!");
-      },
-      onError: (error) => {
-        toast.error(error.response?.data?.message || "Payment failed");
-      },
-    });
+const handlePaymentSuccess = async (paymentMethodId, paymentParams = {}) => {
+    if (!vendorOrders.length) return;
+
+    const { stripe, elements } = paymentParams;
+    const unpaid = vendorOrders
+      .map((o, i) => ({ o, i }))
+      .filter(({ o }) => !paidIntentIds.includes(o.paymentIntentId));
+
+    if (unpaid.length === 0) {
+      setPaymentSuccess(true);
+      setShowPaymentForm(true);
+      return;
+    }
+
+    const newlyPaid = [...paidIntentIds];
+    setPayProgress({ current: unpaid[0].i, processing: true, error: null });
+    try {
+      for (const { o, i } of unpaid) {
+        setPayProgress({ current: i, processing: true, error: null });
+
+        // Stripe allows a PaymentMethod to be used with only ONE
+        // PaymentIntent (unless attached to the Customer first), so we
+        // mint a fresh payment method from the card for every seller order.
+        let pmId = paymentMethodId;
+        if (unpaid.length > 1 && stripe && elements) {
+          const { error, paymentMethod } = await stripe.createPaymentMethod({
+            type: "card",
+            card: elements.getElement(CardElement),
+          });
+          if (error) throw error;
+          pmId = paymentMethod.id;
+        }
+
+        await confirmPayment.mutateAsync({
+          paymentIntentId: o.paymentIntentId,
+          paymentMethodId: pmId,
+        });
+        newlyPaid.push(o.paymentIntentId);
+        setPaidIntentIds(newlyPaid);
+      }
+      setPayProgress({
+        current: vendorOrders.length,
+        processing: false,
+        error: null,
+      });
+      setPlacedOrderId(vendorOrders[0].orderId || null);
+      setPaymentSuccess(true);
+      setShowPaymentForm(true);
+      queryClient.invalidateQueries({ queryKey: ["cart"] });
+      queryClient.invalidateQueries({ queryKey: ["cart-count"] });
+      toast.success(
+        vendorOrders.length > 1
+          ? "All orders paid successfully!"
+          : "Payment successful!",
+      );
+    } catch (error) {
+      toast.error(
+        error.response?.data?.message || error.message || "Payment failed",
+      );
+      setPayProgress((p) => ({ ...p, processing: false, error: true }));
+    }
   };
 
   const handlePaymentCancel = () => {
@@ -281,9 +450,16 @@ const handlePaymentSuccess = async (paymentMethodId) => {
     setPaymentIntentId(null);
     setPaymentSuccess(false);
     setPlacedOrderId(null);
+    setVendorOrders([]);
+    setPaidIntentIds([]);
+    setPayProgress({ current: 0, processing: false, error: null });
   };
 
   const handleViewOrder = () => {
+    if (vendorOrders.length > 1) {
+      navigate("/orders");
+      return;
+    }
     if (placedOrderId) {
       navigate(`/orders/${placedOrderId}`);
     } else {
@@ -736,19 +912,38 @@ const handlePaymentSuccess = async (paymentMethodId) => {
                       </div>
                     )}
 
+                    {isMultiVendor && (
+                      <div className="mt-4 rounded-2xl border border-[#4c2ed8]/10 bg-[#4c2ed8]/5 px-4 py-3">
+                        <div className="flex items-center gap-2">
+                          <Store size={15} className="shrink-0 text-[#4c2ed8]" />
+                          <p className="text-xs font-bold text-gray-800">
+                            Your cart has items from {vendorGroups.length}{" "}
+                            sellers
+                          </p>
+                        </div>
+                        <p className="mt-1 text-[11px] leading-relaxed text-gray-500">
+                          Your order will be split into {vendorGroups.length}{" "}
+                          separate orders so every seller gets paid. Enter your
+                          card once and we settle each seller.
+                        </p>
+                      </div>
+                    )}
+
                     <button
                       onClick={handlePlaceOrder}
-                      disabled={addresses.length === 0 || !effectiveSelectedId || placeOrder.isPending}
+                      disabled={addresses.length === 0 || !effectiveSelectedId || placeOrder.isPending || placingOrders}
                       className="mt-5 flex w-full items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-[#4c2ed8] to-[#368de8] px-6 py-4 text-sm font-bold text-white shadow-lg shadow-[#4c2ed8]/25 transition hover:shadow-xl hover:shadow-[#4c2ed8]/35 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50 disabled:shadow-none"
                     >
-                      {placeOrder.isPending ? (
+                      {placeOrder.isPending || placingOrders ? (
                         <>
                           <span className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
                           Placing Order...
                         </>
                       ) : (
                         <>
-                          Place Order
+                          {isMultiVendor
+                            ? `Place ${vendorGroups.length} Orders`
+                            : "Place Order"}
                           <ArrowRight size={16} />
                         </>
                       )}
@@ -784,22 +979,25 @@ const handlePaymentSuccess = async (paymentMethodId) => {
                   Payment Successful!
                 </h2>
                 <p className="mt-2 text-sm leading-relaxed text-gray-600">
-                  Your payment has been processed successfully and your order
-                  has been placed.
+                  {vendorOrders.length > 1
+                    ? `All ${vendorOrders.length} seller orders were paid successfully and your orders have been placed.`
+                    : "Your payment has been processed successfully and your order has been placed."}
                 </p>
                 <button
                   onClick={handleViewOrder}
                   className="mt-6 flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-[#4c2ed8] to-[#368de8] px-6 py-3.5 text-sm font-bold text-white shadow-lg shadow-[#4c2ed8]/25 transition hover:shadow-xl"
                 >
-                  View Your Order
+                  {vendorOrders.length > 1 ? "View My Orders" : "View Your Order"}
                   <ArrowRight size={16} />
                 </button>
               </div>
             ) : (
               <>
-                <div className="mb-6 flex items-center justify-between">
+                <div className="mb-5 flex items-center justify-between">
                   <h2 className="text-lg font-bold text-gray-900">
-                    Enter Card Details
+                    {vendorOrders.length > 1
+                      ? `Pay ${vendorOrders.length} Seller Orders`
+                      : "Enter Card Details"}
                   </h2>
                   <button
                     onClick={handlePaymentCancel}
@@ -810,15 +1008,101 @@ const handlePaymentSuccess = async (paymentMethodId) => {
                     </svg>
                   </button>
                 </div>
-                <p className="mb-4 text-sm text-gray-600">
-                  Total: {formatINR(finalTotal)}
-                </p>
+
+                {vendorOrders.length > 1 ? (
+                  <>
+                    <div className="mb-4 space-y-2 rounded-xl border border-gray-100 bg-gray-50 p-3">
+                      {(() => {
+                        const unpaidIndex = vendorOrders.findIndex(
+                          (oo) => !paidIntentIds.includes(oo.paymentIntentId),
+                        );
+                        return vendorOrders.map((o, i) => {
+                          const isPaid = paidIntentIds.includes(
+                            o.paymentIntentId,
+                          );
+                          const isCurrent =
+                            i === unpaidIndex && payProgress.processing;
+                          const isError =
+                            i === unpaidIndex &&
+                            payProgress.error &&
+                            !payProgress.processing;
+                          return (
+                          <div
+                            key={o.paymentIntentId}
+                            className="flex items-center justify-between text-xs"
+                          >
+                            <span className="flex min-w-0 items-center gap-2 font-medium text-gray-700">
+                              {isPaid ? (
+                                <CheckCircle2 size={15} className="shrink-0 text-green-500" />
+                              ) : isCurrent ? (
+                                <span className="h-3.5 w-3.5 shrink-0 animate-spin rounded-full border-2 border-[#4c2ed8] border-t-transparent" />
+                              ) : isError ? (
+                                <AlertCircle size={15} className="shrink-0 text-red-500" />
+                              ) : (
+                                <span className="h-3.5 w-3.5 shrink-0 rounded-full border-2 border-gray-300" />
+                              )}
+                              <span className="truncate">
+                                {o.vendorName || `Seller ${i + 1}`}
+                              </span>
+                            </span>
+                            <span className="shrink-0 font-bold text-gray-800">
+                              {formatINR(o.amount)}
+                            </span>
+                          </div>
+                        );
+                        });
+                      })()}
+                    </div>
+                    {isMultiVendor && (
+                      <p className="mb-4 text-xs text-gray-500">
+                        Enter your card once — we will charge each seller
+                        separately.
+                      </p>
+                    )}
+                  </>
+                ) : (
+                  <p className="mb-4 text-sm text-gray-600">
+                    Total: {formatINR(finalTotal)}
+                  </p>
+                )}
                 <PaymentForm
                   paymentIntentId={paymentIntentId}
                   onSuccess={handlePaymentSuccess}
                   onError={handlePaymentCancel}
                 />
               </>
+            )}
+          </div>
+        </div>
+      )}
+
+      {placingOrders && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+          <div className="w-full max-w-sm rounded-2xl bg-white p-6 text-center shadow-xl">
+            {placingProgress ? (
+              <>
+                <div className="mx-auto mb-4 h-11 w-11 animate-spin rounded-full border-[3px] border-[#4c2ed8] border-t-transparent" />
+                <h2 className="text-base font-bold text-gray-900">
+                  Creating your orders
+                </h2>
+                <p className="mt-1.5 text-sm text-gray-500">
+                  Order {placingProgress.current} of {placingProgress.total} —{" "}
+                  {placingProgress.label}
+                </p>
+                <div className="mt-4 h-2 w-full overflow-hidden rounded-full bg-gray-100">
+                  <div
+                    className="h-full rounded-full bg-gradient-to-r from-[#4c2ed8] to-[#368de8] transition-all duration-500"
+                    style={{
+                      width: `${(placingProgress.current / placingProgress.total) * 100}%`,
+                    }}
+                  />
+                </div>
+              </>
+            ) : (
+              <div className="flex items-center justify-center gap-3 text-sm text-gray-500">
+                <span className="h-8 w-8 animate-spin rounded-full border-2 border-[#4c2ed8] border-t-transparent" />
+                Please wait...
+              </div>
             )}
           </div>
         </div>

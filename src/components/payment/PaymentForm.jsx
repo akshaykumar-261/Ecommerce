@@ -39,7 +39,7 @@ export function PaymentForm({ paymentIntentId, onSuccess, onError }) {
     }
 
     try {
-      await onSuccess(paymentMethod.id);
+      await onSuccess(paymentMethod.id, { stripe, elements });
     } catch (err) {
       toast.error(err.response?.data?.message || "Payment failed");
       onError?.(err);
