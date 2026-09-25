@@ -10,4 +10,13 @@ export default defineConfig({
     tailwindcss(),
     babel({ presets: [reactCompilerPreset()] })
   ],
+
+  server: {
+    host: true,
+    port: 5173,
+
+    allowedHosts: [
+      "jairo-unstained-ungraciously.ngrok-free.dev"
+    ]
+  }
 })

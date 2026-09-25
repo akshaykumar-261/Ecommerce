@@ -591,56 +591,56 @@ function AllProductsSection() {
 /* ────────────────────────────────────────
    PROMO BANNER
    ──────────────────────────────────────── */
-function PromoBanner() {
-  const navigate = useNavigate();
+// function PromoBanner() {
+//   const navigate = useNavigate();
 
-  return (
-    <section className="bg-gray-50/60">
-      <div className="mx-auto max-w-7xl px-4 py-4 lg:px-8">
-        <div className="grid gap-4 md:grid-cols-2">
-          {/* Banner 1 - Fashion Sale */}
-          <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-rose-500 to-pink-600 p-8 text-white">
-            <div className="pointer-events-none absolute -right-8 -top-8 h-40 w-40 rounded-full bg-white/10" />
-            <div className="pointer-events-none absolute -bottom-6 -left-6 h-32 w-32 rounded-full bg-white/10" />
-            <p className="mb-1 text-sm font-medium text-white/80">
-              Limited Time Offer
-            </p>
-            <h3 className="mb-3 text-2xl font-bold">Fashion Sale</h3>
-            <p className="mb-5 max-w-xs text-sm text-white/80">
-              Up to 60% off on top brands. Don't miss out on the latest trends.
-            </p>
-            <button
-              onClick={() => navigate("/products/fashion")}
-              className="flex items-center gap-2 rounded-xl bg-white px-6 py-2.5 text-sm font-semibold text-rose-600 transition hover:bg-white/90"
-            >
-              Shop Fashion <ArrowRight size={14} />
-            </button>
-          </div>
+//   return (
+//     <section className="bg-gray-50/60">
+//       <div className="mx-auto max-w-7xl px-4 py-4 lg:px-8">
+//         <div className="grid gap-4 md:grid-cols-2">
+//           {/* Banner 1 - Fashion Sale */}
+//           <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-rose-500 to-pink-600 p-8 text-white">
+//             <div className="pointer-events-none absolute -right-8 -top-8 h-40 w-40 rounded-full bg-white/10" />
+//             <div className="pointer-events-none absolute -bottom-6 -left-6 h-32 w-32 rounded-full bg-white/10" />
+//             <p className="mb-1 text-sm font-medium text-white/80">
+//               Limited Time Offer
+//             </p>
+//             <h3 className="mb-3 text-2xl font-bold">Fashion Sale</h3>
+//             <p className="mb-5 max-w-xs text-sm text-white/80">
+//               Up to 60% off on top brands. Don't miss out on the latest trends.
+//             </p>
+//             <button
+//               onClick={() => navigate("/products/fashion")}
+//               className="flex items-center gap-2 rounded-xl bg-white px-6 py-2.5 text-sm font-semibold text-rose-600 transition hover:bg-white/90"
+//             >
+//               Shop Fashion <ArrowRight size={14} />
+//             </button>
+//           </div>
 
-          {/* Banner 2 - Gadget Deals */}
-          <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-[#4c2ed8] to-[#368de8] p-8 text-white">
-            <div className="pointer-events-none absolute -right-8 -top-8 h-40 w-40 rounded-full bg-white/10" />
-            <div className="pointer-events-none absolute -bottom-6 -left-6 h-32 w-32 rounded-full bg-white/10" />
-            <p className="mb-1 text-sm font-medium text-white/80">
-              Electronics Week
-            </p>
-            <h3 className="mb-3 text-2xl font-bold">Gadget Deals</h3>
-            <p className="mb-5 max-w-xs text-sm text-white/80">
-              Save big on phones, laptops, and accessories. Free shipping on all
-              orders.
-            </p>
-            <button
-              onClick={() => navigate("/products/electronics")}
-              className="flex items-center gap-2 rounded-xl bg-white px-6 py-2.5 text-sm font-semibold text-[#4c2ed8] transition hover:bg-white/90"
-            >
-              Shop Electronics <ArrowRight size={14} />
-            </button>
-          </div>
-        </div>
-      </div>
-    </section>
-  );
-}
+//           {/* Banner 2 - Gadget Deals */}
+//           <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-[#4c2ed8] to-[#368de8] p-8 text-white">
+//             <div className="pointer-events-none absolute -right-8 -top-8 h-40 w-40 rounded-full bg-white/10" />
+//             <div className="pointer-events-none absolute -bottom-6 -left-6 h-32 w-32 rounded-full bg-white/10" />
+//             <p className="mb-1 text-sm font-medium text-white/80">
+//               Electronics Week
+//             </p>
+//             <h3 className="mb-3 text-2xl font-bold">Gadget Deals</h3>
+//             <p className="mb-5 max-w-xs text-sm text-white/80">
+//               Save big on phones, laptops, and accessories. Free shipping on all
+//               orders.
+//             </p>
+//             <button
+//               onClick={() => navigate("/products/electronics")}
+//               className="flex items-center gap-2 rounded-xl bg-white px-6 py-2.5 text-sm font-semibold text-[#4c2ed8] transition hover:bg-white/90"
+//             >
+//               Shop Electronics <ArrowRight size={14} />
+//             </button>
+//           </div>
+//         </div>
+//       </div>
+//     </section>
+//   );
+// }
 export default function Home() {
   return (
     <div className="min-h-screen bg-white">
@@ -651,7 +651,7 @@ export default function Home() {
         <CategoriesSection />
         <FeaturedProducts />
         <AllProductsSection />
-        <PromoBanner />
+        {/* <PromoBanner /> */}
         {/* <Newsletter /> */}
       </div>
       <Footer />
