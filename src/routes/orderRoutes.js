@@ -10,6 +10,7 @@ import OrderItem from "../../dataBase/models/orderItem.js";
 import Product from "../../dataBase/models/productModel.js";
 import authorize from "../middleweare/authmiddleweare.js";
 import Payment from "../../dataBase/models/paymetModel.js";
+import ProductMediaModel from "../../dataBase/models/productMedia.js"
 import Store from "../../dataBase/models/storeModel.js";
 import Users from "../../dataBase/models/userModel.js";
 import VendorPayout from "../../dataBase/models/vendor_payouts.js";
@@ -40,6 +41,7 @@ orderController.init({
     Users,
     VendorPayout,
     AdminCongiguration,
+    ProductMediaModel
   },
 });
 router.post(

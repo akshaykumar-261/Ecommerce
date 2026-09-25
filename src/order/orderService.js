@@ -95,7 +95,16 @@ export default class OrderService {
       include: [
         {
           model: this.Model.OrderItem,
-          include: [this.Model.Product],
+          include: [
+            {
+              model: this.Model.Product,
+              include: [
+                {
+                  model: this.Model.ProductMediaModel,
+                },
+              ],
+            },
+          ],
         },
         {
           model: this.Model.Address,
@@ -153,6 +162,16 @@ export default class OrderService {
       include: [
         {
           model: this.Model.OrderItem,
+          include: [
+            {
+              model: this.Model.Product,
+              include: [
+                {
+                  model: this.Model.ProductMediaModel,
+                },
+              ],
+            },
+          ],
         },
       ],
     });
