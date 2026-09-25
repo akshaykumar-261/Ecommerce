@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
 import { CardElement } from "@stripe/react-stripe-js";
@@ -39,6 +39,7 @@ import {
 } from "../../api/useAddress";
 import { usePlaceOrder, useConfirmPayment } from "../../api/useOrder";
 import { PaymentForm } from "../../components/payment/PaymentForm";
+import Popup from "../../components/common/Popup";
 
 const emptyForm = {
   name: "",
@@ -467,14 +468,62 @@ const handlePaymentSuccess = async (paymentMethodId, paymentParams = {}) => {
     }
   };
 
+  useEffect(() => {
+    if (!paymentSuccess) return undefined;
+    const timer = setTimeout(() => {
+      if (vendorOrders.length > 1) {
+        navigate("/orders");
+      } else if (placedOrderId) {
+        navigate(`/orders/${placedOrderId}`);
+      } else {
+        navigate("/orders");
+      }
+    }, 4000);
+    return () => clearTimeout(timer);
+  }, [paymentSuccess, vendorOrders.length, placedOrderId, navigate]);
+
+  const paymentSuccessPopup = (
+    <Popup
+      open={paymentSuccess}
+      onClose={handleViewOrder}
+      icon={<CheckCircle2 size={26} className="text-green-600" />}
+      iconClassName="bg-green-100"
+      title="Payment Successful!"
+      message={
+        vendorOrders.length > 1
+          ? `All ${vendorOrders.length} seller orders were paid successfully and your orders have been placed.`
+          : "Your payment has been processed successfully and your order has been placed."
+      }
+    >
+      <button
+        onClick={handleViewOrder}
+        className="flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-[#4c2ed8] to-[#368de8] px-6 py-3.5 text-sm font-bold text-white shadow-lg shadow-[#4c2ed8]/25 transition hover:shadow-xl"
+      >
+        {vendorOrders.length > 1 ? "View My Orders" : "View Your Order"}
+        <ArrowRight size={16} />
+      </button>
+      <p className="mt-3 text-[11px] text-gray-400">
+        Redirecting you to your order...
+      </p>
+    </Popup>
+  );
+
   if (
     cartLoading ||
     (addressesLoading && addresses.length === 0)
   ) {
+    if (paymentSuccess) {
+      return (
+        <div className="min-h-screen bg-gradient-to-b from-[#eef0ff] via-[#f8f9fc] to-white">
+          <Navbar />
+          {paymentSuccessPopup}
+        </div>
+      );
+    }
     return <LoadingState />;
   }
 
-  if (enrichedItems.length === 0) {
+  if (enrichedItems.length === 0 && !paymentSuccess) {
     return (
       <div className="min-h-screen bg-gradient-to-b from-[#eef0ff] via-[#f8f9fc] to-white">
         <Navbar />
@@ -967,114 +1016,78 @@ const handlePaymentSuccess = async (paymentMethodId, paymentParams = {}) => {
         </div>
       </main>
 
-      {showPaymentForm && paymentIntentId && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-          <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl">
-            {paymentSuccess ? (
-              <div className="py-6 text-center">
-                <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-green-100">
-                  <CheckCircle2 size={32} className="text-green-600" />
-                </div>
-                <h2 className="text-lg font-bold text-gray-900">
-                  Payment Successful!
-                </h2>
-                <p className="mt-2 text-sm leading-relaxed text-gray-600">
-                  {vendorOrders.length > 1
-                    ? `All ${vendorOrders.length} seller orders were paid successfully and your orders have been placed.`
-                    : "Your payment has been processed successfully and your order has been placed."}
-                </p>
-                <button
-                  onClick={handleViewOrder}
-                  className="mt-6 flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-[#4c2ed8] to-[#368de8] px-6 py-3.5 text-sm font-bold text-white shadow-lg shadow-[#4c2ed8]/25 transition hover:shadow-xl"
-                >
-                  {vendorOrders.length > 1 ? "View My Orders" : "View Your Order"}
-                  <ArrowRight size={16} />
-                </button>
-              </div>
-            ) : (
-              <>
-                <div className="mb-5 flex items-center justify-between">
-                  <h2 className="text-lg font-bold text-gray-900">
-                    {vendorOrders.length > 1
-                      ? `Pay ${vendorOrders.length} Seller Orders`
-                      : "Enter Card Details"}
-                  </h2>
-                  <button
-                    onClick={handlePaymentCancel}
-                    className="text-gray-400 hover:text-gray-600"
-                  >
-                    <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                    </svg>
-                  </button>
-                </div>
-
-                {vendorOrders.length > 1 ? (
-                  <>
-                    <div className="mb-4 space-y-2 rounded-xl border border-gray-100 bg-gray-50 p-3">
-                      {(() => {
-                        const unpaidIndex = vendorOrders.findIndex(
-                          (oo) => !paidIntentIds.includes(oo.paymentIntentId),
-                        );
-                        return vendorOrders.map((o, i) => {
-                          const isPaid = paidIntentIds.includes(
-                            o.paymentIntentId,
-                          );
-                          const isCurrent =
-                            i === unpaidIndex && payProgress.processing;
-                          const isError =
-                            i === unpaidIndex &&
-                            payProgress.error &&
-                            !payProgress.processing;
-                          return (
-                          <div
-                            key={o.paymentIntentId}
-                            className="flex items-center justify-between text-xs"
-                          >
-                            <span className="flex min-w-0 items-center gap-2 font-medium text-gray-700">
-                              {isPaid ? (
-                                <CheckCircle2 size={15} className="shrink-0 text-green-500" />
-                              ) : isCurrent ? (
-                                <span className="h-3.5 w-3.5 shrink-0 animate-spin rounded-full border-2 border-[#4c2ed8] border-t-transparent" />
-                              ) : isError ? (
-                                <AlertCircle size={15} className="shrink-0 text-red-500" />
-                              ) : (
-                                <span className="h-3.5 w-3.5 shrink-0 rounded-full border-2 border-gray-300" />
-                              )}
-                              <span className="truncate">
-                                {o.vendorName || `Seller ${i + 1}`}
-                              </span>
-                            </span>
-                            <span className="shrink-0 font-bold text-gray-800">
-                              {formatINR(o.amount)}
-                            </span>
-                          </div>
-                        );
-                        });
-                      })()}
+      <Popup
+        open={!!paymentIntentId && showPaymentForm && !paymentSuccess}
+        onClose={handlePaymentCancel}
+        icon={<Lock size={22} className="text-[#4c2ed8]" />}
+        iconClassName="bg-[#f0edff]"
+        title={
+          vendorOrders.length > 1
+            ? `Pay ${vendorOrders.length} Seller Orders`
+            : "Enter Card Details"
+        }
+      >
+        {vendorOrders.length > 1 ? (
+          <>
+            <div className="mb-4 space-y-2 rounded-xl border border-gray-100 bg-gray-50 p-3">
+              {(() => {
+                const unpaidIndex = vendorOrders.findIndex(
+                  (oo) => !paidIntentIds.includes(oo.paymentIntentId),
+                );
+                return vendorOrders.map((o, i) => {
+                  const isPaid = paidIntentIds.includes(o.paymentIntentId);
+                  const isCurrent =
+                    i === unpaidIndex && payProgress.processing;
+                  const isError =
+                    i === unpaidIndex &&
+                    payProgress.error &&
+                    !payProgress.processing;
+                  return (
+                    <div
+                      key={o.paymentIntentId}
+                      className="flex items-center justify-between text-xs"
+                    >
+                      <span className="flex min-w-0 items-center gap-2 font-medium text-gray-700">
+                        {isPaid ? (
+                          <CheckCircle2 size={15} className="shrink-0 text-green-500" />
+                        ) : isCurrent ? (
+                          <span className="h-3.5 w-3.5 shrink-0 animate-spin rounded-full border-2 border-[#4c2ed8] border-t-transparent" />
+                        ) : isError ? (
+                          <AlertCircle size={15} className="shrink-0 text-red-500" />
+                        ) : (
+                          <span className="h-3.5 w-3.5 shrink-0 rounded-full border-2 border-gray-300" />
+                        )}
+                        <span className="truncate">
+                          {o.vendorName || `Seller ${i + 1}`}
+                        </span>
+                      </span>
+                      <span className="shrink-0 font-bold text-gray-800">
+                        {formatINR(o.amount)}
+                      </span>
                     </div>
-                    {isMultiVendor && (
-                      <p className="mb-4 text-xs text-gray-500">
-                        Enter your card once — we will charge each seller
-                        separately.
-                      </p>
-                    )}
-                  </>
-                ) : (
-                  <p className="mb-4 text-sm text-gray-600">
-                    Total: {formatINR(finalTotal)}
-                  </p>
-                )}
-                <PaymentForm
-                  paymentIntentId={paymentIntentId}
-                  onSuccess={handlePaymentSuccess}
-                  onError={handlePaymentCancel}
-                />
-              </>
+                  );
+                });
+              })()}
+            </div>
+            {isMultiVendor && (
+              <p className="mb-4 text-xs text-gray-500">
+                Enter your card once — we will charge each seller separately.
+              </p>
             )}
-          </div>
-        </div>
-      )}
+          </>
+        ) : (
+          <p className="mb-4 text-sm text-gray-600">
+            Total: {formatINR(finalTotal)}
+          </p>
+        )}
+        <PaymentForm
+          paymentIntentId={paymentIntentId}
+          onSuccess={handlePaymentSuccess}
+          onError={handlePaymentCancel}
+        />
+      </Popup>
+
+      {paymentSuccessPopup}
 
       {placingOrders && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
