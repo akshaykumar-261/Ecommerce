@@ -17,7 +17,8 @@ import { GetProductById } from "../../api/productApi";
 import { useAddToCart, useCart } from "../../api/useCart";
 import WishlistButton from "../../components/common/WishlistButton";
 import Navbar from "../../components/common/Navbar";
-import toast from "react-hot-toast";
+import Popup from "../../components/common/Popup";
+import { LogIn } from "lucide-react";
 
 function ImageGallery({ images, productId }) {
   const [selectedIndex, setSelectedIndex] = useState(0);
@@ -225,6 +226,7 @@ export default function ProductDetail() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [quantity, setQuantity] = useState(1);
+  const [showLoginPopup, setShowLoginPopup] = useState(false);
   const { mutate: addToCart, isPending: addingToCart } = useAddToCart();
   const { data: cartData } = useCart();
   const [justAdded, setJustAdded] = useState(false);
@@ -252,7 +254,7 @@ export default function ProductDetail() {
 
   const handleAddToCart = (buyNow = false) => {
     if (!localStorage.getItem("accessToken")) {
-      toast.error("Please login to add to cart");
+      setShowLoginPopup(true);
       return;
     }
     if (isInCart) {
@@ -319,7 +321,8 @@ export default function ProductDetail() {
   const images = product.product_media || [];
 
   return (
-    <div className="min-h-screen bg-white">
+    <>
+      <div className="min-h-screen bg-white">
       <Navbar />
 
       <div className="mx-auto max-w-7xl px-4 py-6 lg:px-8">
@@ -471,5 +474,32 @@ export default function ProductDetail() {
         </div>
       </div>
     </div>
+    <Popup
+      open={showLoginPopup}
+      onClose={() => setShowLoginPopup(false)}
+      title="Login Required"
+      message="Please login to add items to your cart"
+    >
+      <div className="flex gap-3 mt-4">
+        <button
+          onClick={() => {
+            setShowLoginPopup(false);
+            navigate("/login");
+          }}
+          className="flex-1 flex items-center justify-center gap-2 rounded-xl bg-[#4c2ed8] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[#3a24b0]"
+        >
+          <LogIn size={16} />
+          Login
+        </button>
+        <button
+          onClick={() => setShowLoginPopup(false)}
+          className="flex-1 flex items-center justify-center gap-2 rounded-xl border border-gray-200 px-4 py-2.5 text-sm font-semibold text-gray-600 transition hover:bg-gray-50"
+        >
+          <X size={16} />
+          Cancel
+        </button>
+      </div>
+    </Popup>
+  </>
   );
 }

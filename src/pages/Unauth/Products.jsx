@@ -12,6 +12,8 @@ import { useAddToCart, useCart } from "../../api/useCart";
 import { useGetCategory } from "../../api/useVendorApi";
 import WishlistButton from "../../components/common/WishlistButton";
 import Navbar from "../../components/common/Navbar";
+import Popup from "../../components/common/Popup";
+import { LogIn, X } from "lucide-react";
 
 function ProductCard({ product }) {
   const navigate = useNavigate();
@@ -30,11 +32,12 @@ function ProductCard({ product }) {
 
   const primaryMedia = product.product_media?.find((m) => m.is_primary);
   const imageUrl = primaryMedia?.media_url || product.product_media?.[0]?.media_url || null;
+  const [showLoginPopup, setShowLoginPopup] = useState(false);
 
   const handleAddToCartClick = (e) => {
     e.stopPropagation();
     if (!localStorage.getItem("accessToken")) {
-      toast.error("Please login to add to cart");
+      setShowLoginPopup(true);
       return;
     }
     if (isInCart) {
@@ -57,10 +60,11 @@ function ProductCard({ product }) {
   };
 
   return (
-    <div
-      onClick={() => navigate(`/product/${product.id}`)}
-      className="group relative flex cursor-pointer flex-col overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm transition-all duration-300 hover:shadow-lg hover:shadow-gray-200/60 hover:-translate-y-1"
-    >
+    <>
+      <div
+        onClick={() => navigate(`/product/${product.id}`)}
+        className="group relative flex cursor-pointer flex-col overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm transition-all duration-300 hover:shadow-lg hover:shadow-gray-200/60 hover:-translate-y-1"
+      >
       <div className="relative flex h-52 items-center justify-center overflow-hidden bg-gradient-to-br from-gray-50 to-gray-100">
         {imageUrl ? (
           <img
@@ -120,6 +124,33 @@ function ProductCard({ product }) {
         </div>
       </div>
     </div>
+    <Popup
+      open={showLoginPopup}
+      onClose={() => setShowLoginPopup(false)}
+      title="Login Required"
+      message="Please login to add items to your cart"
+    >
+      <div className="flex gap-3 mt-4">
+        <button
+          onClick={() => {
+            setShowLoginPopup(false);
+            navigate("/login");
+          }}
+          className="flex-1 flex items-center justify-center gap-2 rounded-xl bg-[#4c2ed8] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[#3a24b0]"
+        >
+          <LogIn size={16} />
+          Login
+        </button>
+        <button
+          onClick={() => setShowLoginPopup(false)}
+          className="flex-1 flex items-center justify-center gap-2 rounded-xl border border-gray-200 px-4 py-2.5 text-sm font-semibold text-gray-600 transition hover:bg-gray-50"
+        >
+          <X size={16} />
+          Cancel
+        </button>
+      </div>
+    </Popup>
+  </>
   );
 }
 
