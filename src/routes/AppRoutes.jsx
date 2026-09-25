@@ -27,6 +27,7 @@ import StoreSettings from "../pages/Vendor/StoreSettings";
 import VendorOrders from "../pages/Vendor/VendorOrders";
 import VendorPayouts from "../pages/Vendor/VendorPayouts";
 import ProtectedRoute from "../components/common/ProtectedRoute";
+import GuestRoute from "../components/common/GuestRoute";
 import Profile from "../pages/Vendor/Profile";
 import UserProfile from "../pages/Unauth/UserProfile";
 import Wishlist from "../pages/Unauth/Wishlist";
@@ -59,9 +60,9 @@ function eb(Comp) {
 function AppRoutes() {
   return (
     <Routes>
-      <Route path="/login" element={<Login />} />
-      <Route path="/register" element={<Register />} />
-      <Route path="/forgot-password" element={<ForgotPassword />} />
+      <Route path="/login" element={<GuestRoute><Login /></GuestRoute>} />
+      <Route path="/register" element={<GuestRoute><Register /></GuestRoute>} />
+      <Route path="/forgot-password" element={<GuestRoute><ForgotPassword /></GuestRoute>} />
       <Route path="/home" element={<Home />} />
       <Route path="/products/category/:id" element={<Products />} />
       <Route path="/products/:group" element={<CategoryGroup />} />
@@ -95,8 +96,8 @@ function AppRoutes() {
           </ProtectedRoute>
         }
       />
-      <Route path="/vendorRegister" element={<VendorRegister />} />
-      <Route path="/vendorLogin" element={<VenderLogin />} />
+      <Route path="/vendorRegister" element={<GuestRoute><VendorRegister /></GuestRoute>} />
+      <Route path="/vendorLogin" element={<GuestRoute><VenderLogin /></GuestRoute>} />
       <Route path="/sideBar" element={<Sidebar />} />
       <Route path="/topBar" element={<Topbar />} />
       <Route path="/vendor/dashboard" element={<Dashboard />} />
