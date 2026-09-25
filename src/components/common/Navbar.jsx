@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   Search,
@@ -45,6 +45,18 @@ export default function Navbar() {
     navigate("/cart");
   };
 
+  const handleSearchInputChange = (event) => {
+    const value = event.target.value;
+    setSearchValue(value);
+    if (value.trim().length >= 2) {
+      setSuggestionsLoading(true);
+      setShowSuggestions(true);
+    } else {
+      setSuggestions([]);
+      setShowSuggestions(false);
+    }
+  };
+
   useEffect(() => {
     const handleClickOutside = (e) => {
       if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
@@ -60,12 +72,7 @@ export default function Navbar() {
 
   useEffect(() => {
     if (searchTimerRef.current) clearTimeout(searchTimerRef.current);
-    if (searchValue.trim().length < 2) {
-      setSuggestions([]);
-      setShowSuggestions(false);
-      return;
-    }
-    setSuggestionsLoading(true);
+    if (searchValue.trim().length < 2) return;
     searchTimerRef.current = setTimeout(async () => {
       try {
         const res = await SearchSuggestions(searchValue.trim(), { limit: 8 });
@@ -126,41 +133,47 @@ export default function Navbar() {
           </span>
         </button>
 
+        <div className="ml-auto flex min-w-0 items-center gap-2 md:gap-3">
         {/* Search Bar – desktop */}
-        <div className="hidden flex-1 px-8 md:block" ref={searchRef}>
-          <div className="relative">
-            <form
-              onSubmit={handleSearch}
-              className={`flex items-center rounded-xl border-2 bg-gray-50 transition-all duration-200 ${
-                searchFocused || showSuggestions
-                  ? "border-[#4c2ed8] bg-white shadow-lg shadow-[#4c2ed8]/5"
-                  : "border-transparent"
-              }`}
-            >
-              <Search size={18} className="ml-3 text-gray-400" />
-              <input
-                type="text"
-                value={searchValue}
-                onChange={(e) => {
-                  setSearchValue(e.target.value);
-                  if (e.target.value.trim().length >= 2)
-                    setShowSuggestions(true);
-                }}
-                placeholder="Search for products, brands and more..."
-                className="w-full bg-transparent px-3 py-2.5 text-sm text-gray-800 outline-none placeholder:text-gray-400"
-                onFocus={() => {
-                  setSearchFocused(true);
-                  if (suggestions.length > 0) setShowSuggestions(true);
-                }}
-                onBlur={() => setSearchFocused(false)}
-              />
-              <button
-                type="submit"
-                className="mr-1 rounded-lg bg-[#4c2ed8] px-5 py-2 text-sm font-medium text-white transition hover:bg-[#3a24b0]"
+          <div
+            className="hidden w-[380px] shrink-0 md:block xl:w-[420px] 2xl:w-[440px]"
+            ref={searchRef}
+          >
+            <div className="relative">
+              <form
+                onSubmit={handleSearch}
+                aria-label="Product search"
+                className={`flex h-11 items-center rounded-[18px] border bg-white transition-all duration-200 ${
+                  searchFocused || showSuggestions
+                    ? "border-[#c9c4f5] shadow-[0_5px_16px_rgba(79,70,229,0.09)]"
+                    : "border-gray-200 shadow-[0_2px_8px_rgba(15,23,42,0.035)]"
+                }`}
               >
-                Search
-              </button>
-            </form>
+                <Search
+                  size={17}
+                  className="ml-4 shrink-0 text-[#4c2ed8]"
+                  aria-hidden="true"
+                />
+                <input
+                  type="text"
+                  value={searchValue}
+                  onChange={handleSearchInputChange}
+                  placeholder="Search products, brands and more..."
+                  className="h-full min-w-0 flex-1 bg-transparent pl-3 pr-2 text-sm text-gray-800 outline-none placeholder:text-gray-400"
+                  onFocus={() => {
+                    setSearchFocused(true);
+                    if (suggestions.length > 0) setShowSuggestions(true);
+                  }}
+                  onBlur={() => setSearchFocused(false)}
+                />
+                <button
+                  type="submit"
+                  aria-label="Search"
+                  className="mr-2 flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-[#f1efff] text-[#4c2ed8] transition hover:bg-[#4c2ed8] hover:text-white focus:outline-none focus:ring-2 focus:ring-[#4c2ed8]/30"
+                >
+                  <Search size={16} />
+                </button>
+              </form>
 
             {/* Suggestions Dropdown */}
             {showSuggestions && searchValue.trim().length >= 2 && (
@@ -309,14 +322,14 @@ export default function Navbar() {
             <>
               <button
                 onClick={() => navigate("/vendorRegister")}
-                className="hidden items-center gap-2 rounded-lg border border-[#4c2ed8] bg-[#4c2ed8]/5 px-4 py-2 text-sm font-medium text-[#4c2ed8] transition hover:bg-[#4c2ed8] hover:text-white sm:flex"
+                className="hidden items-center gap-2 rounded-lg border border-[#4c2ed8] bg-[#4c2ed8]/5 px-4 py-2 text-sm font-medium text-[#4c2ed8] transition hover:bg-[#4c2ed8] hover:text-white lg:flex"
               >
                 <Store size={16} />
                 Become Seller
               </button>
               <button
                 onClick={() => navigate("/login")}
-                className="hidden items-center gap-2 rounded-lg bg-[#4c2ed8] px-4 py-2 text-sm font-medium text-white transition hover:bg-[#3a24b0] sm:flex"
+                className="hidden items-center gap-2 rounded-lg bg-[#4c2ed8] px-4 py-2 text-sm font-medium text-white transition hover:bg-[#3a24b0] lg:flex"
               >
                 <User size={16} />
                 Login
@@ -335,39 +348,42 @@ export default function Navbar() {
             )}
           </button>
           <button
-            className="rounded-lg p-2 text-gray-700 transition hover:bg-gray-100 md:hidden"
+            className="rounded-lg p-2 text-gray-700 transition hover:bg-gray-100 lg:hidden"
             onClick={() => setMobileOpen(!mobileOpen)}
           >
             {mobileOpen ? <X size={22} /> : <Menu size={22} />}
           </button>
         </div>
+        </div>
       </div>
 
       {/* Mobile menu */}
       {mobileOpen && (
-        <div className="border-t border-gray-100 bg-white px-4 pb-4 pt-3 md:hidden">
+        <div className="border-t border-gray-100 bg-white px-4 pb-4 pt-3 lg:hidden">
           <div className="relative mb-3">
             <form
               onSubmit={handleSearch}
-              className="flex items-center rounded-xl border bg-gray-50"
+              aria-label="Product search"
+              className="flex h-11 items-center rounded-[18px] border border-gray-200 bg-white shadow-[0_2px_8px_rgba(15,23,42,0.035)]"
             >
-              <Search size={18} className="ml-3 text-gray-400" />
+              <Search
+                size={17}
+                className="ml-4 shrink-0 text-[#4c2ed8]"
+                aria-hidden="true"
+              />
               <input
                 type="text"
                 value={searchValue}
-                onChange={(e) => {
-                  setSearchValue(e.target.value);
-                  if (e.target.value.trim().length >= 2)
-                    setShowSuggestions(true);
-                }}
-                placeholder="Search products..."
-                className="w-full bg-transparent px-3 py-2.5 text-sm outline-none"
+                onChange={handleSearchInputChange}
+                placeholder="Search products, brands and more..."
+                className="h-full min-w-0 flex-1 bg-transparent pl-3 pr-2 text-sm text-gray-800 outline-none placeholder:text-gray-400"
               />
               <button
                 type="submit"
-                className="mr-2 rounded-lg bg-[#4c2ed8] px-4 py-1.5 text-xs font-medium text-white"
+                aria-label="Search"
+                className="mr-2 flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-[#f1efff] text-[#4c2ed8] transition hover:bg-[#4c2ed8] hover:text-white focus:outline-none focus:ring-2 focus:ring-[#4c2ed8]/30"
               >
-                Search
+                <Search size={16} />
               </button>
             </form>
             {showSuggestions && searchValue.trim().length >= 2 && (
