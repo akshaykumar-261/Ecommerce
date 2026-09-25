@@ -16,9 +16,7 @@ import {
   useTrackOrder,
   useCancelOrder,
 } from "../../api/useOrder";
-
 const ORDER_STEPS = ["Pending", "Confirmed", "Packed", "Shipped", "Delivered"];
-
 const STATUS_STYLES = {
   Pending: "bg-amber-50 text-amber-600 ring-amber-200",
   Confirmed: "bg-blue-50 text-blue-600 ring-blue-200",

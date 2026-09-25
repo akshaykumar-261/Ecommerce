@@ -5,6 +5,7 @@ import {
   ShoppingCart,
   Truck,
   MapPin,
+  ArrowLeft,
 } from "lucide-react";
 import toast from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
@@ -104,6 +105,13 @@ function MyOrders() {
                 : "Track and manage your orders"}
             </p>
           </div>
+          <button
+            onClick={() => navigate("/home")}
+            className="ml-auto flex items-center gap-1.5 rounded-xl border border-gray-200 bg-white px-4 py-2 text-xs font-semibold text-gray-700 shadow-sm transition hover:border-[#4c2ed8] hover:text-[#4c2ed8]"
+          >
+            <ArrowLeft size={14} />
+            Back to Home
+          </button>
         </div>
 
         {/* Empty State */}
