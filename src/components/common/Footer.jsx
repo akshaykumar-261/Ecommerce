@@ -1,7 +1,5 @@
 import {
-  ArrowRight,
   ArrowUp,
-  Check,
   Headphones,
   LockKeyhole,
   Mail,
@@ -37,12 +35,6 @@ const SERVICE_HIGHLIGHTS = [
   { label: "Fast & Reliable Shipping", Icon: Truck },
   { label: "Secure Payments", Icon: ShieldCheck },
   { label: "24/7 Support", Icon: Headphones },
-];
-
-const NEWSLETTER_BENEFITS = [
-  "Exclusive Offers",
-  "New Arrivals",
-  "Shopping Tips",
 ];
 
 const PAYMENT_METHODS = ["VISA", "Mastercard", "RuPay", "UPI", "PayPal"];
@@ -130,8 +122,8 @@ function Footer() {
       <div className="pointer-events-none absolute -bottom-28 -left-24 -z-10 h-72 w-72 rounded-full bg-[#f1eaff]/60 blur-3xl" />
 
       <div className="mx-auto max-w-7xl px-5 pt-12 sm:px-6 lg:px-8 lg:pt-14">
-        <div className="grid gap-x-8 gap-y-10 md:grid-cols-2 xl:grid-cols-12 xl:gap-x-7">
-          <section className="md:col-span-1 xl:col-span-4" aria-labelledby="footer-brand-title">
+        <div className="grid gap-x-8 gap-y-10 md:grid-cols-[minmax(0,1.5fr)_minmax(0,0.75fr)_minmax(0,0.85fr)]">
+          <section aria-labelledby="footer-brand-title">
             <Link
               to="/home"
               className="group inline-flex items-center gap-3"
@@ -181,77 +173,14 @@ function Footer() {
             </ul>
           </section>
 
-          <nav
-            className="md:col-span-1 xl:col-span-2"
-            aria-label="Quick links"
-          >
+          <nav aria-label="Quick links">
             <FooterLinkGroup title="Quick Links" links={QUICK_LINKS} />
           </nav>
 
-          <nav
-            className="md:col-span-1 xl:col-span-2"
-            aria-label="Customer support"
-          >
+          <nav aria-label="Customer support">
             <FooterLinkGroup title="Customer Support" links={SUPPORT_LINKS} />
           </nav>
 
-          <section className="md:col-span-1 xl:col-span-4" aria-labelledby="newsletter-title">
-            <form
-              className="h-full rounded-[1.4rem] border border-[#e8e3ff] bg-gradient-to-br from-[#faf9ff] to-[#f1efff] p-5 shadow-[0_10px_30px_rgba(88,72,190,0.07)]"
-              onSubmit={(event) => event.preventDefault()}
-            >
-              <div className="flex items-center gap-3">
-                <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-[#e1dcfa] bg-white text-[#5b52d8] shadow-sm">
-                  <Mail size={17} />
-                </span>
-                <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-[#6d63e8]">
-                  Stay Updated
-                </p>
-              </div>
-              <h2
-                id="newsletter-title"
-                className="mt-3 text-lg font-extrabold tracking-tight text-[#171c3b]"
-              >
-                Join Our Newsletter
-              </h2>
-              <p className="mt-1.5 text-xs leading-5 text-[#69718c]">
-                Get the latest updates, deals and offers directly to your inbox.
-              </p>
-
-              <label htmlFor="footer-email" className="sr-only">
-                Email address
-              </label>
-              <div className="mt-4 flex flex-col gap-2 sm:flex-row">
-                <input
-                  id="footer-email"
-                  name="email"
-                  type="email"
-                  required
-                  placeholder="Enter your email address"
-                  className="min-h-11 min-w-0 flex-1 rounded-xl border border-[#e2ddf7] bg-white px-3.5 text-xs text-[#171c3b] outline-none transition placeholder:text-[#9aa1b7] focus:border-[#8b83e6] focus:ring-2 focus:ring-[#8b83e6]/15"
-                />
-                <button
-                  type="submit"
-                  className="inline-flex min-h-11 shrink-0 items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-[#4f46e5] to-[#7c3aed] px-4 text-xs font-semibold text-white shadow-[0_7px_16px_rgba(79,70,229,0.2)] transition duration-300 hover:-translate-y-0.5 hover:shadow-[0_9px_20px_rgba(79,70,229,0.28)] focus:outline-none focus:ring-2 focus:ring-[#4f46e5]/40"
-                >
-                  Subscribe
-                  <ArrowRight size={14} />
-                </button>
-              </div>
-
-              <ul className="mt-4 flex flex-wrap gap-x-4 gap-y-2 border-t border-[#e4dff8] pt-3.5">
-                {NEWSLETTER_BENEFITS.map((benefit) => (
-                  <li
-                    key={benefit}
-                    className="inline-flex items-center gap-1.5 text-[10px] font-semibold text-[#69718c]"
-                  >
-                    <Check size={12} strokeWidth={2.5} className="text-[#6d63e8]" />
-                    {benefit}
-                  </li>
-                ))}
-              </ul>
-            </form>
-          </section>
         </div>
 
         <section
