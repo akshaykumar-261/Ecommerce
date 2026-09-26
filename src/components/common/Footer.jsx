@@ -1,5 +1,7 @@
 import {
   ArrowRight,
+  ArrowUp,
+  Check,
   Headphones,
   LockKeyhole,
   Mail,
@@ -11,31 +13,36 @@ import {
 } from "lucide-react";
 import { Link } from "react-router-dom";
 
-const LINK_COLUMNS = [
-  {
-    title: "Quick Links",
-    links: [
-      { label: "About Us", to: "/about" },
-      { label: "Contact", to: "/contact" },
-      { label: "FAQs", to: "/faq" },
-      { label: "Blog", to: "/blog" },
-    ],
-  },
-  {
-    title: "Support",
-    links: [
-      { label: "Help Center", to: "/faq" },
-      { label: "Shipping Info", to: "/contact" },
-      { label: "Returns", to: "/faq" },
-      { label: "Privacy Policy", to: "/about" },
-    ],
-  },
+const QUICK_LINKS = [
+  { label: "About Us", to: "/about" },
+  { label: "Contact", to: "/contact" },
+  { label: "FAQs", to: "/faq" },
+  { label: "Blog", to: "/blog" },
+];
+
+const SUPPORT_LINKS = [
+  { label: "Help Center", to: "/faq" },
+  { label: "Shipping Info", to: "/contact" },
+  { label: "Returns", to: "/faq" },
+  { label: "Privacy Policy", to: "/about" },
+];
+
+const UTILITY_LINKS = [
+  { label: "Terms", to: "/faq" },
+  { label: "Privacy", to: "/about" },
+  { label: "Sitemap", to: "/home" },
 ];
 
 const SERVICE_HIGHLIGHTS = [
   { label: "Fast & Reliable Shipping", Icon: Truck },
   { label: "Secure Payments", Icon: ShieldCheck },
   { label: "24/7 Support", Icon: Headphones },
+];
+
+const NEWSLETTER_BENEFITS = [
+  "Exclusive Offers",
+  "New Arrivals",
+  "Shopping Tips",
 ];
 
 const PAYMENT_METHODS = ["VISA", "Mastercard", "RuPay", "UPI", "PayPal"];
@@ -90,15 +97,41 @@ function SocialIcon({ label }) {
   );
 }
 
-function Footer() {
+function FooterLinkGroup({ title, links }) {
   return (
-    <footer className="relative isolate overflow-hidden border-t border-[#eeeafd] bg-[linear-gradient(180deg,#ffffff_0%,#fdfcff_58%,#faf9ff_100%)] font-sans text-[#10152f]">
-      <div className="pointer-events-none absolute -right-24 -top-28 -z-10 h-80 w-80 rounded-full bg-[#e9e4ff]/45 blur-3xl" />
-      <div className="pointer-events-none absolute -bottom-28 -left-24 -z-10 h-72 w-72 rounded-full bg-[#f1eaff]/70 blur-3xl" />
+    <div>
+      <h2 className="text-sm font-bold text-[#171c3b]">{title}</h2>
+      <span className="mt-2.5 block h-1 w-7 rounded-full bg-[#6d63e8]" />
+      <ul className="mt-4 space-y-1">
+        {links.map((link) => (
+          <li key={link.label}>
+            <Link
+              to={link.to}
+              className="group inline-flex min-h-9 items-center text-sm text-[#66708f] transition-colors duration-200 hover:text-[#4f46e5] focus:outline-none focus:text-[#4f46e5]"
+            >
+              <span className="mr-2 h-1 w-1 rounded-full bg-[#c8c1ff] transition-colors group-hover:bg-[#4f46e5]" />
+              {link.label}
+            </Link>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
 
-      <div className="mx-auto max-w-7xl px-5 py-14 sm:px-6 lg:px-8 lg:py-16">
-        <div className="grid items-start gap-y-12 lg:grid-cols-[minmax(230px,0.9fr)_minmax(480px,1.8fr)_minmax(240px,0.9fr)]">
-          <div>
+function Footer() {
+  const scrollToTop = () => {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  return (
+    <footer id="site-footer" className="relative isolate overflow-hidden border-t border-[#eeeafd] bg-[linear-gradient(180deg,#ffffff_0%,#fdfcff_58%,#faf9ff_100%)] font-sans text-[#10152f]">
+      <div className="pointer-events-none absolute -right-24 -top-28 -z-10 h-80 w-80 rounded-full bg-[#e9e4ff]/40 blur-3xl" />
+      <div className="pointer-events-none absolute -bottom-28 -left-24 -z-10 h-72 w-72 rounded-full bg-[#f1eaff]/60 blur-3xl" />
+
+      <div className="mx-auto max-w-7xl px-5 pt-12 sm:px-6 lg:px-8 lg:pt-14">
+        <div className="grid gap-x-8 gap-y-10 md:grid-cols-2 xl:grid-cols-12 xl:gap-x-7">
+          <section className="md:col-span-1 xl:col-span-4" aria-labelledby="footer-brand-title">
             <Link
               to="/home"
               className="group inline-flex items-center gap-3"
@@ -107,110 +140,131 @@ function Footer() {
               <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-gradient-to-br from-[#4f46e5] to-[#7c3aed] shadow-[0_8px_20px_rgba(79,70,229,0.22)] transition-transform duration-300 group-hover:-rotate-3 group-hover:scale-105">
                 <Zap size={21} className="fill-white text-white" />
               </span>
-              <span className="text-[1.35rem] font-extrabold tracking-tight text-[#111735]">
+              <span id="footer-brand-title" className="text-[1.35rem] font-extrabold tracking-tight text-[#111735]">
                 Shop<span className="text-[#4f46e5]">Ease</span>
               </span>
             </Link>
 
-            <p className="mt-5 max-w-sm text-sm leading-7 text-[#66708f]">
-              <span className="block whitespace-nowrap">
-                Your one-stop destination for
-              </span>
-              <span className="block whitespace-nowrap">
-                the best products at unbeatable
-              </span>
-              <span className="block whitespace-nowrap">
-                prices. Shop with confidence.
-              </span>
+            <p className="mt-4 max-w-sm text-sm leading-6 text-[#66708f]">
+              Your one-stop destination for the best products at unbeatable
+              prices. Shop with confidence.
             </p>
 
-            <ul className="mt-5 space-y-2.5">
+            <ul className="mt-5 flex items-center gap-2" aria-label="Social media">
+              {SOCIAL_LINKS.map(({ label, href }) => (
+                <li key={label}>
+                  <a
+                    href={href}
+                    target="_blank"
+                    rel="noreferrer noopener"
+                    aria-label={label}
+                    className="flex h-9 w-9 items-center justify-center rounded-full border border-[#e3defb] bg-[#f7f5ff] text-[#5d55cf] transition duration-200 hover:-translate-y-0.5 hover:border-[#4f46e5] hover:bg-[#4f46e5] hover:text-white hover:shadow-[0_7px_15px_rgba(79,70,229,0.18)] focus:outline-none focus:ring-2 focus:ring-[#4f46e5]/30"
+                  >
+                    <SocialIcon label={label} />
+                  </a>
+                </li>
+              ))}
+            </ul>
+
+            <ul className="mt-5 space-y-2.5" aria-label="Shopping benefits">
               {SERVICE_HIGHLIGHTS.map(({ label, Icon }) => (
                 <li
                   key={label}
-                  className="flex items-center gap-3 text-[13px] font-medium text-[#46506f]"
+                  className="flex items-center gap-2.5 text-xs font-medium text-[#46506f]"
                 >
-                  <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-[#f1efff] text-[#5b52d8]">
-                    <Icon size={15} strokeWidth={2.2} />
+                  <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-[#ddd7ff] bg-[#f7f5ff] text-[#5b52d8]">
+                    <Icon size={14} strokeWidth={2.2} />
                   </span>
                   {label}
                 </li>
               ))}
             </ul>
+          </section>
 
+          <nav
+            className="md:col-span-1 xl:col-span-2"
+            aria-label="Quick links"
+          >
+            <FooterLinkGroup title="Quick Links" links={QUICK_LINKS} />
+          </nav>
+
+          <nav
+            className="md:col-span-1 xl:col-span-2"
+            aria-label="Customer support"
+          >
+            <FooterLinkGroup title="Customer Support" links={SUPPORT_LINKS} />
+          </nav>
+
+          <section className="md:col-span-1 xl:col-span-4" aria-labelledby="newsletter-title">
             <form
-              className="mt-6 rounded-[1.4rem] border border-[#e8e3ff] bg-gradient-to-br from-[#f8f6ff] to-[#f1efff] p-4 shadow-[0_10px_30px_rgba(88,72,190,0.06)]"
+              className="h-full rounded-[1.4rem] border border-[#e8e3ff] bg-gradient-to-br from-[#faf9ff] to-[#f1efff] p-5 shadow-[0_10px_30px_rgba(88,72,190,0.07)]"
               onSubmit={(event) => event.preventDefault()}
             >
-              <div className="flex items-start gap-3">
-                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white text-[#5b52d8] shadow-sm">
-                  <Mail size={18} />
+              <div className="flex items-center gap-3">
+                <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-[#e1dcfa] bg-white text-[#5b52d8] shadow-sm">
+                  <Mail size={17} />
                 </span>
-                <div>
-                  <h3 className="text-sm font-bold text-[#171c3b]">
-                    Join Our Newsletter
-                  </h3>
-                  <p className="mt-1 text-xs leading-5 text-[#69718c]">
-                    Get the latest updates, deals and offers directly to your
-                    inbox.
-                  </p>
-                </div>
+                <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-[#6d63e8]">
+                  Stay Updated
+                </p>
               </div>
+              <h2
+                id="newsletter-title"
+                className="mt-3 text-lg font-extrabold tracking-tight text-[#171c3b]"
+              >
+                Join Our Newsletter
+              </h2>
+              <p className="mt-1.5 text-xs leading-5 text-[#69718c]">
+                Get the latest updates, deals and offers directly to your inbox.
+              </p>
+
               <label htmlFor="footer-email" className="sr-only">
                 Email address
               </label>
               <div className="mt-4 flex flex-col gap-2 sm:flex-row">
                 <input
                   id="footer-email"
+                  name="email"
                   type="email"
                   required
                   placeholder="Enter your email address"
-                  className="min-w-0 flex-1 rounded-xl border border-[#e2ddf7] bg-white px-3.5 py-2.5 text-xs text-[#171c3b] outline-none transition placeholder:text-[#9aa1b7] focus:border-[#8b83e6] focus:ring-2 focus:ring-[#8b83e6]/15"
+                  className="min-h-11 min-w-0 flex-1 rounded-xl border border-[#e2ddf7] bg-white px-3.5 text-xs text-[#171c3b] outline-none transition placeholder:text-[#9aa1b7] focus:border-[#8b83e6] focus:ring-2 focus:ring-[#8b83e6]/15"
                 />
                 <button
                   type="submit"
-                  className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#4f46e5] px-4 py-2.5 text-xs font-semibold text-white shadow-[0_7px_16px_rgba(79,70,229,0.2)] transition duration-300 hover:-translate-y-0.5 hover:bg-[#4338ca] hover:shadow-[0_9px_20px_rgba(79,70,229,0.28)] focus:outline-none focus:ring-2 focus:ring-[#4f46e5]/40"
+                  className="inline-flex min-h-11 shrink-0 items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-[#4f46e5] to-[#7c3aed] px-4 text-xs font-semibold text-white shadow-[0_7px_16px_rgba(79,70,229,0.2)] transition duration-300 hover:-translate-y-0.5 hover:shadow-[0_9px_20px_rgba(79,70,229,0.28)] focus:outline-none focus:ring-2 focus:ring-[#4f46e5]/40"
                 >
                   Subscribe
                   <ArrowRight size={14} />
                 </button>
               </div>
+
+              <ul className="mt-4 flex flex-wrap gap-x-4 gap-y-2 border-t border-[#e4dff8] pt-3.5">
+                {NEWSLETTER_BENEFITS.map((benefit) => (
+                  <li
+                    key={benefit}
+                    className="inline-flex items-center gap-1.5 text-[10px] font-semibold text-[#69718c]"
+                  >
+                    <Check size={12} strokeWidth={2.5} className="text-[#6d63e8]" />
+                    {benefit}
+                  </li>
+                ))}
+              </ul>
             </form>
-          </div>
+          </section>
+        </div>
 
-          <nav
-            aria-label="Footer navigation"
-            className="grid border-t border-[#ece9f8] pt-10 md:col-span-2 md:grid-cols-2 md:border-t-0 md:pt-0 lg:col-span-1"
-          >
-            {LINK_COLUMNS.map((column) => (
-              <div key={column.title} className="py-7 text-center md:px-4 lg:py-1">
-                <h2 className="text-sm font-bold text-[#171c3b]">
-                  {column.title}
-                </h2>
-                <span className="mx-auto mt-2.5 block h-1 w-7 rounded-full bg-[#6d63e8]" />
-                <ul className="mt-5 space-y-1.5">
-                  {column.links.map((link) => (
-                    <li key={link.label} className="flex justify-center">
-                      <Link
-                        to={link.to}
-                        className="relative inline-block px-1 py-1.5 text-sm text-[#66708f] transition-colors duration-200 after:absolute after:bottom-0 after:left-1/2 after:h-px after:w-0 after:-translate-x-1/2 after:bg-[#4f46e5] after:transition-all after:duration-200 hover:text-[#4f46e5] hover:after:w-full focus:outline-none focus:text-[#4f46e5]"
-                      >
-                        {link.label}
-                      </Link>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            ))}
-          </nav>
-
-          <aside className="rounded-[1.4rem] border border-[#e8e3ff] bg-gradient-to-br from-[#f8f6ff] to-[#f1efff] p-4 shadow-[0_10px_30px_rgba(88,72,190,0.06)] sm:p-5 lg:p-4 xl:p-5">
-            <div className="flex items-start gap-3">
-              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white text-[#5b52d8] shadow-sm">
-                <Headphones size={18} />
+        <section
+          className="mt-10 rounded-[1.5rem] border border-[#e8e3ff] bg-[#f8f6ff]/90 p-5 sm:p-6"
+          aria-label="Contact support"
+        >
+          <div className="grid items-center gap-y-5 md:grid-cols-2 lg:grid-cols-[minmax(0,1.35fr)_minmax(0,0.85fr)_minmax(0,1fr)_auto] lg:gap-5">
+            <div className="flex items-center gap-3.5">
+              <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-[#ddd7ff] bg-white text-[#5b52d8] shadow-sm">
+                <Headphones size={20} />
               </span>
               <div>
-                <h2 className="text-sm font-bold text-[#171c3b]">
+                <h2 className="text-xs font-extrabold uppercase tracking-[0.14em] text-[#4f46e5]">
                   Need Help?
                 </h2>
                 <p className="mt-1 text-xs leading-5 text-[#69718c]">
@@ -218,61 +272,59 @@ function Footer() {
                 </p>
               </div>
             </div>
+
+            <div className="flex items-center gap-3">
+              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-[#e0dbf8] bg-white text-[#6259dc]">
+                <Phone size={17} />
+              </span>
+              <div className="min-w-0">
+                <a
+                  href="tel:+919876543210"
+                  className="block text-sm font-bold text-[#303754] transition hover:text-[#4f46e5] focus:outline-none focus:text-[#4f46e5]"
+                >
+                  +91 98765 43210
+                </a>
+                <p className="mt-0.5 text-[11px] text-[#8a91a7]">
+                  Mon - Sun, 9AM - 11PM
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-3">
+              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-[#e0dbf8] bg-white text-[#6259dc]">
+                <Mail size={17} />
+              </span>
+              <div className="min-w-0">
+                <a
+                  href="mailto:support@shopease.com"
+                  className="block truncate text-sm font-bold text-[#303754] transition hover:text-[#4f46e5] focus:outline-none focus:text-[#4f46e5]"
+                >
+                  support@shopease.com
+                </a>
+                <p className="mt-0.5 text-[11px] text-[#8a91a7]">
+                  We reply within 24 hours
+                </p>
+              </div>
+            </div>
+
             <Link
               to="/contact"
-              className="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-[#4f46e5] to-[#7c3aed] px-4 py-3 text-sm font-semibold text-white shadow-[0_9px_20px_rgba(79,70,229,0.22)] transition duration-300 hover:-translate-y-0.5 hover:shadow-[0_12px_25px_rgba(79,70,229,0.3)] focus:outline-none focus:ring-2 focus:ring-[#4f46e5]/40"
+              className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-[#4f46e5] to-[#7c3aed] px-5 text-sm font-semibold text-white shadow-[0_8px_18px_rgba(79,70,229,0.2)] transition duration-300 hover:-translate-y-0.5 hover:shadow-[0_10px_22px_rgba(79,70,229,0.28)] focus:outline-none focus:ring-2 focus:ring-[#4f46e5]/40 md:col-span-2 lg:col-span-1 lg:w-auto"
             >
               <MessageCircle size={17} />
               Contact Us
             </Link>
+          </div>
+        </section>
 
-            <div className="my-5 h-px bg-[#e6e1f6]" />
-
-            <div className="space-y-4">
-              <div className="flex items-start gap-3">
-                <span className="mt-0.5 text-[#6259dc]">
-                  <Phone size={17} />
-                </span>
-                <div>
-                  <a
-                    href="tel:+919876543210"
-                    className="text-sm font-semibold text-[#303754] transition hover:text-[#4f46e5]"
-                  >
-                    +91 98765 43210
-                  </a>
-                  <p className="mt-0.5 text-[11px] text-[#8a91a7]">
-                    Mon - Sun, 9AM - 11PM
-                  </p>
-                </div>
-              </div>
-              <div className="flex items-start gap-3">
-                <span className="mt-0.5 text-[#6259dc]">
-                  <Mail size={17} />
-                </span>
-                <div className="min-w-0">
-                  <a
-                    href="mailto:support@shopease.com"
-                    className="block break-all text-sm font-semibold text-[#303754] transition hover:text-[#4f46e5]"
-                  >
-                    support@shopease.com
-                  </a>
-                  <p className="mt-0.5 text-[11px] text-[#8a91a7]">
-                    We reply within 24 hours
-                  </p>
-                </div>
-              </div>
-            </div>
-          </aside>
-        </div>
-
-        <div className="mt-12 border-t border-[#eae7f6] pt-7">
-          <div className="grid items-center gap-6 xl:grid-cols-[1fr_auto_1fr]">
-            <p className="order-1 text-xs text-[#7b839d]">
+        <div className="mt-8 border-t border-[#eae7f6] py-6">
+          <div className="flex flex-col items-start gap-5 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
+            <p className="text-xs text-[#7b839d]">
               &copy; 2026 ShopEase. All rights reserved.
             </p>
 
-            <div className="order-3 flex flex-wrap items-center justify-center gap-2.5 xl:order-2">
-              <div className="flex flex-wrap items-center justify-center gap-2">
+            <div className="flex flex-wrap items-center justify-start gap-2.5">
+              <div className="flex flex-wrap items-center gap-2">
                 {PAYMENT_METHODS.map((method) => (
                   <span
                     key={method}
@@ -288,19 +340,27 @@ function Footer() {
               </span>
             </div>
 
-            <div className="order-2 flex items-center gap-2 sm:justify-center xl:order-3 xl:justify-self-end">
-              {SOCIAL_LINKS.map(({ label, href }) => (
-                <a
-                  key={label}
-                  href={href}
-                  target="_blank"
-                  rel="noreferrer"
-                  aria-label={label}
-                  className="flex h-8 w-8 items-center justify-center rounded-full bg-[#f1efff] text-xs font-extrabold text-[#5d55cf] transition duration-200 hover:-translate-y-0.5 hover:bg-[#4f46e5] hover:text-white hover:shadow-[0_7px_15px_rgba(79,70,229,0.2)] focus:outline-none focus:ring-2 focus:ring-[#4f46e5]/30"
-                >
-                  <SocialIcon label={label} />
-                </a>
-              ))}
+            <div className="flex flex-wrap items-center justify-between gap-3 sm:justify-end">
+              <nav className="flex flex-wrap items-center gap-x-4 gap-y-2" aria-label="Legal links">
+                {UTILITY_LINKS.map((link) => (
+                  <Link
+                    key={link.label}
+                    to={link.to}
+                    className="text-xs text-[#7b839d] transition hover:text-[#4f46e5] focus:outline-none focus:text-[#4f46e5]"
+                  >
+                    {link.label}
+                  </Link>
+                ))}
+              </nav>
+              <button
+                type="button"
+                onClick={scrollToTop}
+                aria-label="Back to top"
+                title="Back to top"
+                className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-[#ddd7ff] bg-white text-[#5d55cf] shadow-sm transition duration-200 hover:-translate-y-0.5 hover:border-[#4f46e5] hover:bg-[#4f46e5] hover:text-white focus:outline-none focus:ring-2 focus:ring-[#4f46e5]/30"
+              >
+                <ArrowUp size={15} />
+              </button>
             </div>
           </div>
         </div>
