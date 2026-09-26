@@ -19,6 +19,7 @@ import WishlistButton from "../../components/common/WishlistButton";
 import Navbar from "../../components/common/Navbar";
 import Popup from "../../components/common/Popup";
 import { LogIn } from "lucide-react";
+import toast from "react-hot-toast";
 
 function ImageGallery({ images, productId }) {
   const [selectedIndex, setSelectedIndex] = useState(0);
@@ -225,7 +226,7 @@ export default function ProductDetail() {
   const [product, setProduct] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [quantity, setQuantity] = useState(1);
+  const [quantity] = useState(1);
   const [showLoginPopup, setShowLoginPopup] = useState(false);
   const { mutate: addToCart, isPending: addingToCart } = useAddToCart();
   const { data: cartData } = useCart();
@@ -243,7 +244,7 @@ export default function ProductDetail() {
       try {
         const res = await GetProductById(id);
         setProduct(res?.data?.product || res?.data || res);
-      } catch (err) {
+      } catch {
         setError("Product not found or something went wrong.");
       } finally {
         setLoading(false);
@@ -252,7 +253,7 @@ export default function ProductDetail() {
     fetchProduct();
   }, [id]);
 
-  const handleAddToCart = (buyNow = false) => {
+  const handleAddToCart = () => {
     if (!localStorage.getItem("accessToken")) {
       setShowLoginPopup(true);
       return;
@@ -271,11 +272,45 @@ export default function ProductDetail() {
         onSuccess: (res) => {
           setJustAdded(true);
           toast.success(res?.message || "Added to cart successfully");
-          if (buyNow) navigate("/cart");
         },
         onError: (err) => {
           toast.error(
             err?.response?.data?.message || "Failed to add to cart",
+          );
+        },
+      },
+    );
+  };
+
+  const handleBuyNow = () => {
+    if (!localStorage.getItem("accessToken")) {
+      setShowLoginPopup(true);
+      return;
+    }
+    if (product.quantity < quantity) {
+      toast.error("This product is currently out of stock.");
+      return;
+    }
+
+    const openCart = () => {
+      navigate("/cart");
+    };
+
+    if (isInCart) {
+      openCart();
+      return;
+    }
+
+    addToCart(
+      { product_id: Number(id), quantity },
+      {
+        onSuccess: () => {
+          setJustAdded(true);
+          openCart();
+        },
+        onError: (err) => {
+          toast.error(
+            err?.response?.data?.message || "Failed to open cart",
           );
         },
       },
@@ -397,7 +432,7 @@ export default function ProductDetail() {
             {/* Action Buttons */}
             <div className="mb-6 flex gap-3">
               <button
-                onClick={() => handleAddToCart(false)}
+                onClick={handleAddToCart}
                 disabled={addingToCart}
                 className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-[#4c2ed8] px-6 py-3.5 text-sm font-semibold text-white shadow-lg shadow-[#4c2ed8]/25 transition hover:bg-[#3a24b0] hover:shadow-xl hover:shadow-[#4c2ed8]/30 active:scale-[0.98] disabled:opacity-60"
               >
@@ -411,7 +446,7 @@ export default function ProductDetail() {
                 {isInCart ? "Go to Cart" : "Add to Cart"}
               </button>
               <button
-                onClick={() => handleAddToCart(true)}
+                onClick={handleBuyNow}
                 disabled={addingToCart}
                 className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-orange-500 px-6 py-3.5 text-sm font-semibold text-white shadow-lg shadow-orange-500/25 transition hover:bg-orange-600 hover:shadow-xl hover:shadow-orange-500/30 active:scale-[0.98] disabled:opacity-60"
               >
