@@ -10,7 +10,7 @@ import OrderItem from "../../dataBase/models/orderItem.js";
 import Product from "../../dataBase/models/productModel.js";
 import authorize from "../middleweare/authmiddleweare.js";
 import Payment from "../../dataBase/models/paymetModel.js";
-import ProductMediaModel from "../../dataBase/models/productMedia.js"
+import ProductMediaModel from "../../dataBase/models/productMedia.js";
 import Store from "../../dataBase/models/storeModel.js";
 import Users from "../../dataBase/models/userModel.js";
 import VendorPayout from "../../dataBase/models/vendor_payouts.js";
@@ -26,7 +26,7 @@ import {
 } from "../order/orderValidation.js";
 const router = express.Router();
 const orderController = new OrderController();
-const role = checkRole("Customer");
+const role = checkRole("Customer","Vendor","Super Admin");
 await orderController.init(sequelize);
 orderController.init({
   models: {
@@ -41,7 +41,7 @@ orderController.init({
     Users,
     VendorPayout,
     AdminCongiguration,
-    ProductMediaModel
+    ProductMediaModel,
   },
 });
 router.post(

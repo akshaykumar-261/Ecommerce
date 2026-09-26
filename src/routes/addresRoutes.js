@@ -11,7 +11,7 @@ import {
 } from "../address/addressValidation.js";
 const router = express.Router();
 const addressController = new AddressController();
-const role = checkRole("Customer");
+const role = checkRole("Customer","Vendor","Super Admin");
 await addressController.init(sequelize);
 addressController.init({ models: { Address } });
 router.post(

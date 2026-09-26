@@ -17,7 +17,7 @@ import {
 } from "../userReview&Wishlist/userReviewValidation.js";
 const router = express.Router();
 const reviewController = new ReviewController();
-const role = checkRole("Customer");
+const role = checkRole("Customer", "Vendor", "Super Admin");
 await reviewController.init({
   models: {
     Users,

@@ -16,9 +16,11 @@ import {
 } from "../cart/cartValidation.js";
 const router = express.Router();
 const cartController = new CartController();
-const role = checkRole("Customer");
+const role = checkRole("Customer", "Vendor", "Super Admin");
 await cartController.init(sequelize);
-cartController.init({ models: { Cart, Product, CartItem, ProductMediaModel, Store } });
+cartController.init({
+  models: { Cart, Product, CartItem, ProductMediaModel, Store },
+});
 router.post(
   "/add-to-cart",
   authorize,
