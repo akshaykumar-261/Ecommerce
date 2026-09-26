@@ -155,16 +155,20 @@ function Footer() {
               ))}
             </ul>
 
-            <ul className="mt-5 grid grid-cols-3 gap-2 sm:gap-3" aria-label="Shopping benefits">
-              {SERVICE_HIGHLIGHTS.map(({ label, Icon }) => (
+            <ul className="mt-5 grid w-full max-w-[350px] grid-cols-3 gap-6" aria-label="Shopping benefits">
+              {SERVICE_HIGHLIGHTS.map(({ label, Icon }, index) => (
                 <li
                   key={label}
-                  className="flex h-16 flex-col items-center justify-center gap-2 text-center text-[11px] font-medium leading-4 text-[#46506f]"
+                  className="flex min-h-16 flex-col items-center justify-center gap-2 text-center text-[10px] font-medium leading-4 text-[#46506f]"
                 >
-                  <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-[#ddd7ff] bg-[#f7f5ff] text-[#5b52d8]">
+                  <span
+                    className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-[#ddd7ff] bg-[#f7f5ff] text-[#5b52d8] ${
+                      index === 0 ? "-translate-x-8" : ""
+                    }`}
+                  >
                     <Icon size={14} strokeWidth={2.2} />
                   </span>
-                  {label}
+                  <span className="whitespace-nowrap">{label}</span>
                 </li>
               ))}
             </ul>
