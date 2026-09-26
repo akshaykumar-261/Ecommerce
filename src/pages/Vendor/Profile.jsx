@@ -122,7 +122,7 @@ function Profile() {
             {/* Back Button */}
             <button
               type="button"
-              onClick={() => navigate(-1)}
+              onClick={() => navigate("/vendor/dashboard")}
               className="mb-6 group flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-medium text-gray-600 transition-all hover:bg-white hover:text-gray-900 hover:shadow-md"
             >
               <ArrowLeft

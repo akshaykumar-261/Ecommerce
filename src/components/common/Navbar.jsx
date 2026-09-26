@@ -8,6 +8,7 @@ import {
   X,
   LogOut,
   Store,
+  Heart,
   Zap,
 } from "lucide-react";
 import { SearchSuggestions } from "../../api/productApi";
@@ -299,10 +300,20 @@ export default function Navbar() {
                       }}
                       className="flex w-full items-center gap-2 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50"
                     >
-                      <ShoppingCart size={16} />
-                      My Orders
-                    </button>
-                  </div>
+                     <ShoppingCart size={16} />
+                     My Orders
+                   </button>
+                   <button
+                     onClick={() => {
+                       setUserDropdownOpen(false);
+                       navigate("/wishlist");
+                     }}
+                     className="flex w-full items-center gap-2 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50"
+                   >
+                     <Heart size={16} />
+                     Wishlist
+                   </button>
+                   </div>
                   <div className="border-t border-gray-100 pt-1">
                     <button
                       onClick={() => {
@@ -473,9 +484,18 @@ export default function Navbar() {
                   }}
                   className="flex w-full items-center gap-2 rounded-lg px-3 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50"
                 >
-                  <ShoppingCart size={18} /> My Orders
-                </button>
-              </div>
+                   <ShoppingCart size={18} /> My Orders
+                 </button>
+                 <button
+                   onClick={() => {
+                     navigate("/wishlist");
+                     setMobileOpen(false);
+                   }}
+                   className="flex w-full items-center gap-2 rounded-lg px-3 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50"
+                 >
+                   <Heart size={18} /> Wishlist
+                 </button>
+               </div>
               <button
                 onClick={() => {
                   setMobileOpen(false);

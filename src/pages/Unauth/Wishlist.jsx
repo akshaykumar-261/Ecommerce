@@ -1,5 +1,6 @@
 import { useState } from "react";
 import {
+  ArrowLeft,
   Heart,
   ShoppingCart,
   Trash2,
@@ -12,8 +13,7 @@ import Navbar from "../../components/common/Navbar";
 function Wishlist() {
   const navigate = useNavigate();
   const { data, isLoading, isError } = useWishlist();
-  const { mutate: removeFromWishlist, isPending: removing } =
-    useRemoveFromWishlist();
+  const { mutate: removeFromWishlist } = useRemoveFromWishlist();
   const [removingId, setRemovingId] = useState(null);
 
   const wishlist = data?.data?.wishlists || data?.data?.wishlist || [];
@@ -65,11 +65,21 @@ function Wishlist() {
 
       <main className="mx-auto max-w-5xl px-4 py-6">
         {/* Wishlist Count */}
-        <div className="mb-6 flex items-center gap-2">
-          <Heart size={20} className="fill-red-500 text-red-500" />
-          <span className="text-sm text-gray-600">
-            {wishlist.length} {wishlist.length === 1 ? "item" : "items"} saved
-          </span>
+        <div className="mb-6 flex items-center justify-between gap-3">
+          <div className="flex items-center gap-2">
+            <Heart size={20} className="fill-red-500 text-red-500" />
+            <span className="text-sm text-gray-600">
+              {wishlist.length} {wishlist.length === 1 ? "item" : "items"} saved
+            </span>
+          </div>
+          <button
+            type="button"
+            onClick={() => navigate("/home")}
+            className="flex items-center gap-1.5 rounded-xl border border-gray-200 bg-white px-4 py-2 text-xs font-semibold text-gray-700 shadow-sm transition hover:border-[#4c2ed8] hover:text-[#4c2ed8]"
+          >
+            <ArrowLeft size={14} />
+            Back to Home
+          </button>
         </div>
 
         {wishlist.length === 0 ? (

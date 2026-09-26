@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { Menu, ChevronDown, User, Mail, Phone } from "lucide-react";
 import { useGetUser } from "../../api/useAuth";
 import { useNavigate } from "react-router-dom";
@@ -209,7 +209,7 @@ function Topbar({ setMobileOpen, role = "vendor", userName = "Vikash Store" }) {
               type="button"
               onClick={() => {
                 setProfileOpen(false);
-                navigate("/profile");
+                navigate(role === "admin" ? "/profile" : "/vendor/profile");
               }}
               className="
                mt-4

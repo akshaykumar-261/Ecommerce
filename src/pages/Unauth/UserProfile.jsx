@@ -11,14 +11,10 @@ import {
   CheckCircle2,
   Pencil,
   Package,
-  Heart,
   LogOut,
   Settings,
-  Trash2,
-  ShoppingCart,
 } from "lucide-react";
 import { useGetUser, useUpdateUser, useLogout } from "../../api/useAuth";
-import { useWishlist, useRemoveFromWishlist } from "../../api/useWishlist";
 import toast from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
 import Navbar from "../../components/common/Navbar";
@@ -28,8 +24,6 @@ function UserProfile() {
   const navigate = useNavigate();
   const { mutate: updateUser, isPending } = useUpdateUser();
   const logoutMutation = useLogout();
-  const { data: wishlistData, isLoading: wishlistLoading } = useWishlist();
-  const { mutate: removeFromWishlist } = useRemoveFromWishlist();
   const user = data?.data;
   const fileInputRef = useRef(null);
   const [name, setName] = useState("");
@@ -133,6 +127,17 @@ function UserProfile() {
       <Navbar />
 
       <main className="mx-auto max-w-5xl px-4 py-6">
+        <div className="mb-4 flex justify-end">
+          <button
+            type="button"
+            onClick={() => navigate("/home")}
+            className="flex items-center gap-1.5 rounded-xl border border-gray-200 bg-white px-4 py-2 text-xs font-semibold text-gray-700 shadow-sm transition hover:border-[#4c2ed8] hover:text-[#4c2ed8]"
+          >
+            <ArrowLeft size={14} />
+            Back to Home
+          </button>
+        </div>
+
         {/* Profile Header Card */}
         <div className="mb-6 overflow-hidden rounded-2xl bg-white shadow-sm">
           {/* Cover Banner */}
@@ -524,132 +529,6 @@ function UserProfile() {
                   </button>
                 </div>
               </div>
-            </div>
-
-            {/* Wishlist Section */}
-            <div className="rounded-2xl bg-white p-6 shadow-sm">
-              <div className="mb-5 flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-rose-50">
-                    <Heart size={18} className="text-rose-500" />
-                  </div>
-                  <div>
-                    <h3 className="text-sm font-bold text-gray-900">
-                      My Wishlist
-                    </h3>
-                    <p className="text-xs text-gray-500">
-                      {wishlistData?.data?.wishlists?.length || 0} items saved
-                    </p>
-                  </div>
-                </div>
-                {(wishlistData?.data?.wishlists?.length || 0) > 0 && (
-                  <button
-                    onClick={() => navigate("/wishlist")}
-                    className="text-xs font-semibold text-[#4c2ed8] transition hover:text-[#3a24b0]"
-                  >
-                    View All
-                  </button>
-                )}
-              </div>
-
-              {wishlistLoading ? (
-                <div className="flex items-center justify-center py-10">
-                  <div className="h-8 w-8 animate-spin rounded-full border-3 border-[#4c2ed8] border-t-transparent"></div>
-                </div>
-              ) : (wishlistData?.data?.wishlists?.length || 0) === 0 ? (
-                <div className="flex flex-col items-center justify-center rounded-xl bg-gray-50 py-10">
-                  <div className="mb-3 flex h-14 w-14 items-center justify-center rounded-full bg-rose-50">
-                    <Heart size={24} className="text-rose-300" />
-                  </div>
-                  <p className="mb-1 text-sm font-semibold text-gray-700">
-                    No wishlisted items
-                  </p>
-                  <p className="mb-4 text-xs text-gray-500">
-                    Save your favorite products here
-                  </p>
-                  <button
-                    onClick={() => navigate("/home")}
-                    className="rounded-lg bg-[#4c2ed8] px-5 py-2 text-xs font-semibold text-white transition hover:bg-[#3a24b0]"
-                  >
-                    Browse Products
-                  </button>
-                </div>
-              ) : (
-                <div className="space-y-3">
-                  {wishlistData.data.wishlists.slice(0, 5).map((item) => {
-                    const product = item.product;
-                    if (!product) return null;
-
-                    const primaryMedia = product.product_media?.find(
-                      (m) => m.is_primary
-                    );
-                    const imageUrl =
-                      primaryMedia?.media_url ||
-                      product.product_media?.[0]?.media_url ||
-                      null;
-                    const price = parseFloat(product.price) || 0;
-                    const discountPrice =
-                      parseFloat(product.discount_price) || 0;
-
-                    return (
-                      <div
-                        key={item.id}
-                        className="group flex items-center gap-4 rounded-xl border border-gray-100 p-3 transition hover:border-gray-200 hover:shadow-sm"
-                      >
-                        {/* Product Image */}
-                        <div
-                          onClick={() => navigate(`/product/${product.id}`)}
-                          className="relative flex h-16 w-16 shrink-0 cursor-pointer items-center justify-center overflow-hidden rounded-lg bg-gradient-to-br from-gray-50 to-gray-100"
-                        >
-                          {imageUrl ? (
-                            <img
-                              src={imageUrl}
-                              alt={product.pro_name}
-                              className="h-full w-full object-cover"
-                            />
-                          ) : (
-                            <ShoppingCart size={20} className="text-gray-300" />
-                          )}
-                        </div>
-
-                        {/* Product Info */}
-                        <div className="min-w-0 flex-1">
-                          <h4
-                            onClick={() => navigate(`/product/${product.id}`)}
-                            className="cursor-pointer truncate text-sm font-semibold text-gray-800 hover:text-[#4c2ed8]"
-                          >
-                            {product.pro_name}
-                          </h4>
-                          <div className="mt-1 flex items-baseline gap-2">
-                            <span className="text-sm font-bold text-gray-900">
-                              ₹
-                              {discountPrice > 0
-                                ? discountPrice.toFixed(2)
-                                : price.toFixed(2)}
-                            </span>
-                            {discountPrice > 0 && price > 0 && (
-                              <span className="text-xs text-gray-400 line-through">
-                                ₹{price.toFixed(2)}
-                              </span>
-                            )}
-                          </div>
-                        </div>
-
-                        {/* Remove Button */}
-                        <button
-                          onClick={() => {
-                            removeFromWishlist(product.id, {
-                            });
-                          }}
-                          className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-gray-400 transition hover:bg-red-50 hover:text-red-500"
-                        >
-                          <Trash2 size={14} />
-                        </button>
-                      </div>
-                    );
-                  })}
-                </div>
-              )}
             </div>
           </div>
         )}

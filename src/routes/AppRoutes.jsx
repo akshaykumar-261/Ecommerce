@@ -138,6 +138,14 @@ function AppRoutes() {
       <Route path="/topBar" element={<Topbar />} />
       <Route path="/vendor/dashboard" element={<Dashboard />} />
       <Route
+        path="/vendor/profile"
+        element={
+          <ProtectedRoute requireAuth>
+            <Profile />
+          </ProtectedRoute>
+        }
+      />
+      <Route
         path="/bussinessAccountVendor"
         element={
           <ProtectedRoute requireOtpVerified>
