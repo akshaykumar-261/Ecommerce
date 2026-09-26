@@ -1,7 +1,6 @@
 import {
   ArrowUp,
   Headphones,
-  LockKeyhole,
   Mail,
   MessageCircle,
   Phone,
@@ -36,8 +35,6 @@ const SERVICE_HIGHLIGHTS = [
   { label: "Secure Payments", Icon: ShieldCheck },
   { label: "24/7 Support", Icon: Headphones },
 ];
-
-const PAYMENT_METHODS = ["VISA", "Mastercard", "RuPay", "UPI", "PayPal"];
 
 const SOCIAL_LINKS = [
   { label: "Facebook", href: "https://www.facebook.com/" },
@@ -158,11 +155,11 @@ function Footer() {
               ))}
             </ul>
 
-            <ul className="mt-5 space-y-2.5" aria-label="Shopping benefits">
+            <ul className="mt-5 grid grid-cols-3 gap-2 sm:gap-3" aria-label="Shopping benefits">
               {SERVICE_HIGHLIGHTS.map(({ label, Icon }) => (
                 <li
                   key={label}
-                  className="flex items-center gap-2.5 text-xs font-medium text-[#46506f]"
+                  className="flex h-16 flex-col items-center justify-center gap-2 text-center text-[11px] font-medium leading-4 text-[#46506f]"
                 >
                   <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-[#ddd7ff] bg-[#f7f5ff] text-[#5b52d8]">
                     <Icon size={14} strokeWidth={2.2} />
@@ -247,29 +244,12 @@ function Footer() {
         </section>
 
         <div className="mt-8 border-t border-[#eae7f6] py-6">
-          <div className="flex flex-col items-start gap-5 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
-            <p className="text-xs text-[#7b839d]">
+          <div className="flex flex-col items-center gap-5 sm:grid sm:grid-cols-[1fr_auto_1fr] sm:items-center">
+            <p className="text-center text-xs text-[#7b839d] sm:col-start-2">
               &copy; 2026 ShopEase. All rights reserved.
             </p>
 
-            <div className="flex flex-wrap items-center justify-start gap-2.5">
-              <div className="flex flex-wrap items-center gap-2">
-                {PAYMENT_METHODS.map((method) => (
-                  <span
-                    key={method}
-                    className="inline-flex min-w-12 items-center justify-center rounded-lg border border-[#e8e5f2] bg-white px-2.5 py-1.5 text-[10px] font-extrabold tracking-tight text-[#59617b] shadow-sm"
-                  >
-                    {method}
-                  </span>
-                ))}
-              </div>
-              <span className="inline-flex items-center gap-1.5 rounded-full bg-[#f1efff] px-3 py-2 text-[10px] font-semibold text-[#5d55cf]">
-                <LockKeyhole size={12} />
-                Secure Checkout
-              </span>
-            </div>
-
-            <div className="flex flex-wrap items-center justify-between gap-3 sm:justify-end">
+            <div className="flex w-full flex-wrap items-center justify-center gap-3 sm:col-start-3 sm:w-auto sm:justify-end">
               <nav className="flex flex-wrap items-center gap-x-4 gap-y-2" aria-label="Legal links">
                 {UTILITY_LINKS.map((link) => (
                   <Link
