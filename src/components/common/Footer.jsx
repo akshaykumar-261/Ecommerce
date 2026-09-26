@@ -22,15 +22,6 @@ const LINK_COLUMNS = [
     ],
   },
   {
-    title: "Categories",
-    links: [
-      { label: "Electronics", to: "/products/electronics" },
-      { label: "Fashion", to: "/products/fashion" },
-      { label: "Home & Kitchen", to: "/home" },
-      { label: "Sports", to: "/home" },
-    ],
-  },
-  {
     title: "Support",
     links: [
       { label: "Help Center", to: "/faq" },
@@ -189,7 +180,7 @@ function Footer() {
 
           <nav
             aria-label="Footer navigation"
-            className="grid border-t border-[#ece9f8] pt-10 md:col-span-2 md:grid-cols-3 md:border-t-0 md:pt-0 lg:col-span-1"
+            className="grid border-t border-[#ece9f8] pt-10 md:col-span-2 md:grid-cols-2 md:border-t-0 md:pt-0 lg:col-span-1"
           >
             {LINK_COLUMNS.map((column) => (
               <div key={column.title} className="py-7 text-center md:px-4 lg:py-1">

@@ -60,10 +60,32 @@ function eb(Comp) {
 function AppRoutes() {
   return (
     <Routes>
-      <Route path="/login" element={<GuestRoute><Login /></GuestRoute>} />
-      <Route path="/register" element={<GuestRoute><Register /></GuestRoute>} />
-      <Route path="/forgot-password" element={<GuestRoute><ForgotPassword /></GuestRoute>} />
+      <Route
+        path="/login"
+        element={
+          <GuestRoute>
+            <Login />
+          </GuestRoute>
+        }
+      />
+      <Route
+        path="/register"
+        element={
+          <GuestRoute>
+            <Register />
+          </GuestRoute>
+        }
+      />
+      <Route
+        path="/forgot-password"
+        element={
+          <GuestRoute>
+            <ForgotPassword />
+          </GuestRoute>
+        }
+      />
       <Route path="/home" element={<Home />} />
+      <Route path="/" element={<Home />} />
       <Route path="/products/category/:id" element={<Products />} />
       <Route path="/products/:group" element={<CategoryGroup />} />
       <Route path="/product/:id" element={<ProductDetail />} />
@@ -96,8 +118,22 @@ function AppRoutes() {
           </ProtectedRoute>
         }
       />
-      <Route path="/vendorRegister" element={<GuestRoute><VendorRegister /></GuestRoute>} />
-      <Route path="/vendorLogin" element={<GuestRoute><VenderLogin /></GuestRoute>} />
+      <Route
+        path="/vendorRegister"
+        element={
+          <GuestRoute>
+            <VendorRegister />
+          </GuestRoute>
+        }
+      />
+      <Route
+        path="/vendorLogin"
+        element={
+          <GuestRoute>
+            <VenderLogin />
+          </GuestRoute>
+        }
+      />
       <Route path="/sideBar" element={<Sidebar />} />
       <Route path="/topBar" element={<Topbar />} />
       <Route path="/vendor/dashboard" element={<Dashboard />} />

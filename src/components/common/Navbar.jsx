@@ -143,10 +143,10 @@ export default function Navbar() {
               <form
                 onSubmit={handleSearch}
                 aria-label="Product search"
-                className={`flex h-11 items-center rounded-[18px] border bg-white transition-all duration-200 ${
+                className={`flex h-11 items-center rounded-[18px] border bg-transparent transition-all duration-200 ${
                   searchFocused || showSuggestions
-                    ? "border-[#c9c4f5] shadow-[0_5px_16px_rgba(79,70,229,0.09)]"
-                    : "border-gray-200 shadow-[0_2px_8px_rgba(15,23,42,0.035)]"
+                    ? "border-[#c9c4f5] bg-white/10 shadow-[0_5px_16px_rgba(79,70,229,0.09)]"
+                    : "border-transparent hover:border-[#c9c4f5] hover:bg-white/10 shadow-[0_2px_8px_rgba(15,23,42,0.035)]"
                 }`}
               >
                 <Search
@@ -364,7 +364,7 @@ export default function Navbar() {
             <form
               onSubmit={handleSearch}
               aria-label="Product search"
-              className="flex h-11 items-center rounded-[18px] border border-gray-200 bg-white shadow-[0_2px_8px_rgba(15,23,42,0.035)]"
+              className="flex h-11 items-center rounded-[18px] border border-transparent bg-transparent shadow-[0_2px_8px_rgba(15,23,42,0.035)] transition-all duration-200 hover:border-[#c9c4f5] hover:bg-white/10 focus-within:border-[#c9c4f5] focus-within:bg-white/10"
             >
               <Search
                 size={17}
