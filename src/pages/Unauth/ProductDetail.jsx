@@ -15,9 +15,11 @@ import {
 } from "lucide-react";
 import { GetProductById } from "../../api/productApi";
 import { useAddToCart, useCart } from "../../api/useCart";
+import { useProductReviews } from "../../api/useReviews";
 import WishlistButton from "../../components/common/WishlistButton";
 import Navbar from "../../components/common/Navbar";
 import Popup from "../../components/common/Popup";
+import ProductReviews from "../../components/product/ProductReviews";
 import { LogIn } from "lucide-react";
 import toast from "react-hot-toast";
 
@@ -230,6 +232,7 @@ export default function ProductDetail() {
   const [showLoginPopup, setShowLoginPopup] = useState(false);
   const { mutate: addToCart, isPending: addingToCart } = useAddToCart();
   const { data: cartData } = useCart();
+  const { data: reviewData } = useProductReviews(Number(id));
   const [justAdded, setJustAdded] = useState(false);
 
   const cartItems = cartData?.data?.cart?.cartItems || [];
@@ -354,6 +357,15 @@ export default function ProductDetail() {
       : 0;
 
   const images = product.product_media || [];
+  const productReviews = reviewData?.data?.reviews || [];
+  const averageRating = productReviews.length
+    ? productReviews.reduce(
+        (sum, review) => sum + Number(review.rating || 0),
+        0,
+      ) / productReviews.length
+    : Number(product.rating) || 4;
+  const reviewCount =
+    productReviews.length || Number(product.reviewCount) || 0;
 
   return (
     <>
@@ -389,13 +401,19 @@ export default function ProductDetail() {
               {product.pro_name}
             </h1>
 
-            {/* Rating Placeholder */}
-            <div className="mb-4 flex items-center gap-2">
-              <div className="flex items-center gap-1 rounded-lg bg-green-600 px-2 py-0.5">
+            <div className="mb-4 flex flex-wrap items-center gap-2">
+              <div className="flex items-center gap-1 rounded-lg bg-green-600 px-2 py-1">
                 <Star size={12} className="fill-white text-white" />
-                <span className="text-xs font-semibold text-white">4.0</span>
+                <span className="text-xs font-semibold text-white">
+                  {averageRating.toFixed(1)}
+                </span>
               </div>
-              <span className="text-sm text-gray-400">|</span>
+              <span className="text-sm text-gray-500">
+                {reviewCount > 0
+                  ? `${reviewCount} ${reviewCount === 1 ? "review" : "reviews"}`
+                  : "No reviews yet"}
+              </span>
+              <span className="text-sm text-gray-300">|</span>
               <span className="text-sm text-gray-500">In Stock</span>
             </div>
 
@@ -507,6 +525,10 @@ export default function ProductDetail() {
             </div>
           </div>
         </div>
+        <ProductReviews
+          productId={Number(id)}
+          onLoginRequired={() => setShowLoginPopup(true)}
+        />
       </div>
     </div>
     <Popup
