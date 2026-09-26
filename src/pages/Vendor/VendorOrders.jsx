@@ -46,14 +46,14 @@ function getStatusStyle(status) {
 function VendorOrders() {
   const queryClient = useQueryClient();
   const [page, setPage] = useState(1);
-  const [status, setStatus] = useState("all");
+  const [status, setStatus] = useState("All");
   const [search, setSearch] = useState("");
   const [expanded, setExpanded] = useState(null);
 
   const query = useGetOrders(
     page,
     10,
-    status === "all" ? undefined : status,
+    status === "All" ? undefined : status,
     search,
   );
 

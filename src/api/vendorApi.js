@@ -79,7 +79,9 @@ export const UpdateVendorProfile = async (data) => {
 
 export const GetOrders = async ({ page = 1, limit = 10, status, search }) => {
   const params = new URLSearchParams({ page, limit });
-  if (status) params.append("status", status);
+  if (status && status !== "All" && status !== "all") {
+    params.append("status", status);
+  }
   if (search) params.append("search", search);
   const response = await axiosInstance.get(`/venders/orders?${params.toString()}`);
   return response.data;
