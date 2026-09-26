@@ -16,11 +16,11 @@ function AuthLayout({ children, image }) {
         "
       >
         {/* LEFT SIDE - IMAGE */}
-        <div className="relative min-h-0 overflow-hidden bg-violet-100 hidden md:block">
+        <div className="relative min-h-0 overflow-hidden bg-gray-100 hidden md:block">
           <img
             src={image}
             alt="ShopEase"
-            className="absolute inset-0 block h-full w-full object-cover"
+            className="absolute inset-0 block h-full w-full object-center object-center"
           />
         </div>
 
