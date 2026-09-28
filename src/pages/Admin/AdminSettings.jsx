@@ -1,6 +1,6 @@
 import { useForm } from "react-hook-form";
 import { useState } from "react";
-import { Percent, UserCog, Save, Camera } from "lucide-react";
+import { Percent, UserCog, Save, Camera, ImageIcon, Flame } from "lucide-react";
 import AdminLayout from "../../components/admin/AdminLayout";
 import Button from "../../components/admin/Button";
 import {
@@ -8,6 +8,8 @@ import {
   useUpdateCommission,
   useAdminProfile,
   useUpdateAdminProfile,
+  useAdminHeroBanner,
+  useUpdateHeroBanner,
 } from "../../api/useAdminApi";
 import toast from "react-hot-toast";
 
@@ -27,6 +29,8 @@ function AdminSettings() {
   const updateCommission = useUpdateCommission();
   const profile = useAdminProfile();
   const updateProfile = useUpdateAdminProfile();
+  const heroBanner = useAdminHeroBanner();
+  const updateHeroBanner = useUpdateHeroBanner();
 
   const saveCommission = (data) => {
     updateCommission.mutate(
@@ -56,6 +60,26 @@ function AdminSettings() {
     });
   };
 
+  const saveHeroBanner = (data) => {
+    const formData = new FormData();
+    formData.append("badge_text", data.badge_text || "");
+    formData.append("heading_line_one", data.heading_line_one || "");
+    formData.append("heading_line_two", data.heading_line_two || "");
+    formData.append("description", data.description || "");
+    if (data.image && data.image[0]) {
+      formData.append("image", data.image[0]);
+    }
+    updateHeroBanner.mutate(formData, {
+      onSuccess: (res) => toast.success(res.message || "Hero banner updated"),
+      onError: (error) =>
+        toast.error(
+          error.response?.data?.message ||
+            error.response?.data?.error ||
+            "Update failed"
+        ),
+    });
+  };
+
   return (
     <AdminLayout>
       <div className="mb-6">
@@ -66,6 +90,32 @@ function AdminSettings() {
       </div>
 
       <div className="grid grid-cols-1 gap-6 xl:grid-cols-2">
+        {/* Hero Banner */}
+        <section
+          className="animate-fade-up rounded-2xl border border-slate-100 bg-white p-6 shadow-sm xl:col-span-2"
+        >
+          <div className="mb-5 flex items-center gap-3">
+            <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-amber-50">
+              <ImageIcon size={20} className="text-amber-600" />
+            </div>
+            <div>
+              <h2 className="text-base font-semibold text-slate-900">
+                Home Hero Banner
+              </h2>
+              <p className="text-xs text-slate-400">
+                Content and image shown at the top of the home page
+              </p>
+            </div>
+          </div>
+
+          <HeroBannerForm
+            key={`hero-${heroBanner.data?.data?.id ?? "loading"}`}
+            defaults={heroBanner.data?.data || {}}
+            saving={updateHeroBanner.isPending}
+            onSubmit={saveHeroBanner}
+          />
+        </section>
+
         {/* Commission */}
         <section className="animate-fade-up rounded-2xl border border-slate-100 bg-white p-6 shadow-sm">
           <div className="mb-5 flex items-center gap-3">
@@ -118,6 +168,122 @@ function AdminSettings() {
         </section>
       </div>
     </AdminLayout>
+  );
+}
+
+function HeroBannerForm({ defaults, saving, onSubmit }) {
+  const [preview, setPreview] = useState(defaults.image_url || "");
+  const { register, handleSubmit } = useForm({
+    defaultValues: {
+      badge_text: defaults.badge_text || "",
+      heading_line_one: defaults.heading_line_one || "",
+      heading_line_two: defaults.heading_line_two || "",
+      description: defaults.description || "",
+    },
+  });
+
+  const handleImageChange = (e) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setPreview(URL.createObjectURL(file));
+    }
+  };
+
+  return (
+    <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+      <div className="grid grid-cols-1 gap-5 lg:grid-cols-[260px_minmax(0,1fr)]">
+        {/* Image */}
+        <div>
+          <label className={labelCls}>Banner Image</label>
+          <div className="relative h-40 w-full overflow-hidden rounded-xl border-2 border-slate-200 bg-slate-100">
+            {preview ? (
+              <img
+                src={preview}
+                alt="Hero banner preview"
+                className="h-full w-full object-cover"
+              />
+            ) : (
+              <div className="flex h-full w-full items-center justify-center text-slate-400">
+                <ImageIcon size={32} />
+              </div>
+            )}
+          </div>
+          <input
+            type="file"
+            accept="image/*"
+            {...register("image")}
+            onChange={(e) => {
+              register("image").onChange(e);
+              handleImageChange(e);
+            }}
+            className={`${fieldCls} mt-3 cursor-pointer file:mr-3 file:rounded-lg file:border-0 file:bg-indigo-50 file:px-3 file:py-1.5 file:text-xs file:font-semibold file:text-indigo-600 hover:file:bg-indigo-100`}
+          />
+          <p className="mt-1.5 text-[11px] text-slate-400">
+            Replaces the current image. Leave empty to keep it.
+          </p>
+        </div>
+
+        {/* Text fields */}
+        <div className="space-y-4">
+          <div>
+            <label className={labelCls}>Badge Text</label>
+            <div className="relative">
+              <Flame
+                size={15}
+                className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-amber-500"
+              />
+              <input
+                type="text"
+                placeholder="Mega Sale — Up to 70% Off"
+                {...register("badge_text")}
+                className={`${fieldCls} pl-10`}
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <div>
+              <label className={labelCls}>Heading Line 1</label>
+              <input
+                type="text"
+                placeholder="Discover the"
+                {...register("heading_line_one")}
+                className={fieldCls}
+              />
+            </div>
+            <div>
+              <label className={labelCls}>Heading Line 2 (Gradient)</label>
+              <input
+                type="text"
+                placeholder="Best Deals Online"
+                {...register("heading_line_two")}
+                className={fieldCls}
+              />
+            </div>
+          </div>
+
+          <div>
+            <label className={labelCls}>Description</label>
+            <textarea
+              rows={3}
+              placeholder="Shop from thousands of products across 20+ categories."
+              {...register("description")}
+              className={`${fieldCls} resize-none`}
+            />
+            <p className="mt-1.5 text-[11px] text-slate-400">
+              Leave any field blank to hide that element on the home page.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div className="flex justify-end">
+        <Button type="submit" loading={saving}>
+          <Save size={15} />
+          Save Banner
+        </Button>
+      </div>
+    </form>
   );
 }
 

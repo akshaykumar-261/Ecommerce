@@ -47,6 +47,11 @@ export const GetTopRatedProducts = async ({ minRating = 3, limit = 20 } = {}) =>
   return response.data;
 };
 
+export const GetHeroBanner = async () => {
+  const response = await axiosInstance.get("/products/hero-banner");
+  return response.data;
+};
+
 export const GetProductsByCategoryGroup = async (categoryIds, { page = 1, limit = 12 } = {}) => {
   const params = new URLSearchParams({ page, limit });
   categoryIds.forEach((id) => params.append("categoryIds", id));

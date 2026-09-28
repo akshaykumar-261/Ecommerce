@@ -22,6 +22,8 @@ import {
   UpdateAdminCommission,
   GetProductsByCategoryId,
   GetProductsByCategoryAndRating,
+  GetHeroBannerAdmin,
+  UpdateHeroBanner,
 } from "./adminApi";
 
 /*
@@ -262,5 +264,29 @@ export const useProductsByCategoryAndRating = (categoryId, page, limit, rating, 
     queryKey: ["admin-category-rating-products", categoryId, page, limit, rating, search],
     queryFn: () => GetProductsByCategoryAndRating(categoryId, { page, limit, rating, search }),
     enabled: Boolean(categoryId),
+  });
+};
+// ---- Hero Banner ----------------------------------------------------------------
+
+export const useAdminHeroBanner = () => {
+  return useQuery({
+    queryKey: ["admin-hero-banner"],
+    queryFn: GetHeroBannerAdmin,
+    retry: false,
+  });
+};
+
+export const useUpdateHeroBanner = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: UpdateHeroBanner,
+    onSuccess: () => {
+      // The public home page reads the same data; keep both caches in sync
+      queryClient.invalidateQueries({ queryKey: ["admin-hero-banner"] });
+      queryClient.invalidateQueries({ queryKey: ["hero-banner"] });
+    },
+    onError: (error) => {
+      console.error("Hero banner update failed:", error.response?.data);
+    },
   });
 };

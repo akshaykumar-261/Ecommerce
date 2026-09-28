@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import pro4 from "../../assets/pro4.png";
 import { GetTopRatedProducts } from "../../api/productApi";
-import { useAllProducts } from "../../api/useProduct";
+import { useAllProducts, useHeroBanner } from "../../api/useProduct";
 import { useAddToCart, useCart } from "../../api/useCart";
 import { useGetCategory } from "../../api/useVendorApi";
 import WishlistButton from "../../components/common/WishlistButton";
@@ -69,12 +69,33 @@ const CATEGORY_ICONS = {
 /* ────────────────────────────────────────
    HERO BANNER
    ──────────────────────────────────────── */
+const DEFAULT_HERO_BADGE = "Mega Sale — Up to 70% Off";
+const DEFAULT_HERO_HEADING_ONE = "Discover the";
+const DEFAULT_HERO_HEADING_TWO = "Best Deals Online";
+const DEFAULT_HERO_DESCRIPTION =
+  "Shop from thousands of products across 20+ categories. Unbeatable prices, fast delivery, and secure payments.";
+
 function HeroBanner() {
+  const { data } = useHeroBanner();
+  const banner = data?.data;
+
+  // Fall back to the shipped defaults so the home page never renders empty
+  // if the banner row is missing or the request fails.
+  const badgeText = banner?.badge_text || DEFAULT_HERO_BADGE;
+  const headingOne = banner?.heading_line_one || DEFAULT_HERO_HEADING_ONE;
+  const headingTwo = banner?.heading_line_two || DEFAULT_HERO_HEADING_TWO;
+  const description = banner?.description || DEFAULT_HERO_DESCRIPTION;
+  const imageUrl = banner?.image_url || pro4;
+
   return (
     <section className="relative overflow-hidden h-[420px]">
       {/* Background Image */}
       <div className="absolute inset-0">
-        <img src={pro4} alt="Hero Banner" className="w-full h-full object-cover" />
+        <img
+          src={imageUrl}
+          alt="Hero Banner"
+          className="w-full h-full object-cover"
+        />
       </div>
 
       {/* Dark Overlay */}
@@ -83,22 +104,27 @@ function HeroBanner() {
       {/* Content */}
       <div className="relative z-10 mx-auto flex h-full max-w-7xl items-center px-4 lg:px-8">
         <div className="max-w-2xl animate-home-slide-up">
-          <div className="mb-4 inline-flex items-center gap-2 rounded-full bg-white/15 px-4 py-1.5 text-sm font-medium text-white/90 backdrop-blur-sm">
-            <Flame size={14} />
-            Mega Sale — Up to 70% Off
-          </div>
+          {badgeText && (
+            <div className="mb-4 inline-flex items-center gap-2 rounded-full bg-white/15 px-4 py-1.5 text-sm font-medium text-white/90 backdrop-blur-sm">
+              <Flame size={14} />
+              {badgeText}
+            </div>
+          )}
 
           <h1 className="mb-4 text-4xl font-extrabold leading-tight tracking-tight text-white md:text-5xl lg:text-6xl">
-            Discover the
-            <span className="block bg-gradient-to-r from-yellow-300 to-orange-400 bg-clip-text text-transparent">
-              Best Deals Online
-            </span>
+            {headingOne}
+            {headingTwo && (
+              <span className="block bg-gradient-to-r from-yellow-300 to-orange-400 bg-clip-text text-transparent">
+                {headingTwo}
+              </span>
+            )}
           </h1>
 
-          <p className="mb-8 max-w-md text-base text-white/75 md:text-lg">
-            Shop from thousands of products across 20+ categories. Unbeatable
-            prices, fast delivery, and secure payments.
-          </p>
+          {description && (
+            <p className="mb-8 max-w-md text-base text-white/75 md:text-lg">
+              {description}
+            </p>
+          )}
 
           <div className="flex flex-wrap gap-3">
             {/* <button className="flex items-center gap-2 rounded-xl bg-white px-7 py-3.5 text-sm font-semibold text-[#4c2ed8] shadow-lg transition hover:shadow-xl hover:shadow-white/20">

@@ -167,3 +167,17 @@ export const UpdateAdminCommission = async (data) => {
   const response = await axiosInstance.put("/admin/change-commision", data);
   return response.data;
 };
+
+// ---- Hero Banner ----------------------------------------------------------------
+
+export const GetHeroBannerAdmin = async () => {
+  const response = await axiosInstance.get("/admin/hero-banner");
+  return response.data;
+};
+
+export const UpdateHeroBanner = async (formData) => {
+  const response = await axiosInstance.put("/admin/hero-banner", formData, {
+    headers: { "Content-Type": "multipart/form-data" },
+  });
+  return response.data;
+};
