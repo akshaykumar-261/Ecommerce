@@ -14,6 +14,7 @@ import AdminConfiguration from "../../dataBase/models/adminConfigration.js";
 import Category from "../../dataBase/models/categoryModel.js";
 import ProductMedia from "../../dataBase/models/productMedia.js";
 import Review from "../../dataBase/models/reviewModel.js"
+import HeroBanner from "../../dataBase/models/heroBannerModel.js";
 import authorize from "../middleweare/authmiddleweare.js";
 import limiter from "../../utility/rateLimit.js";
 import {
@@ -47,7 +48,8 @@ await adminController.init({
     AdminConfiguration,
     Category,
     ProductMedia,
-    Review
+    Review,
+    HeroBanner
   },
 });
 router.put(
@@ -157,6 +159,20 @@ router.get(
   authorize,
   role,
   asyncHandler(adminController.getAdminConfiguration.bind(adminController)),
+);
+router.get(
+  "/hero-banner",
+  authorize,
+  role,
+  asyncHandler(adminController.getHeroBanner.bind(adminController)),
+);
+router.put(
+  "/hero-banner",
+  authorize,
+  role,
+  // auth must run before multer so unauthenticated uploads never reach the handler
+  upload.single("image"),
+  asyncHandler(adminController.updateHeroBanner.bind(adminController)),
 );
 router.post(
   "/get-category",

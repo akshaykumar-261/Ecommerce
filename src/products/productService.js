@@ -12,6 +12,13 @@ export default class ProductServices {
     });
   };
 
+  getHeroBanner = async () => {
+    return await this.Model.HeroBanner.findOne({
+      where: { is_active: true },
+      order: [["id", "DESC"]],
+    });
+  };
+
   getProductsByCategoryId = async (categoryId, page, limit, search = "") => {
     const { offset } = commanFunction.pagignation(page, limit);
     const where = {

@@ -76,6 +76,23 @@ export default class productController {
     );
   }
 
+  async getHeroBanner(req, res) {
+    const banner = await this.service.getHeroBanner();
+    if (!banner) {
+      return sendResponse(
+        res,
+        STATUS_CODE.NOT_FOUND,
+        "Hero banner not configured.",
+      );
+    }
+    return sendResponse(
+      res,
+      STATUS_CODE.SUCCESS,
+      "Hero banner fetched successfully.",
+      banner,
+    );
+  }
+
   async searchProducts(req, res) {
     const { q = "", page = 1, limit = 12 } = req.query;
     if (!q.trim()) {

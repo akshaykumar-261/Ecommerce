@@ -525,6 +525,32 @@ export default class AdminServices {
     });
   };
 
+  getHeroBanner = async () => {
+    return this.Model.HeroBanner.findOne({
+      where: { is_active: true },
+      order: [["id", "DESC"]],
+    });
+  };
+
+  updateHeroBanner = async (payload) => {
+    const HeroBanner = this.Model.HeroBanner;
+    let banner = await HeroBanner.findOne({
+      where: { is_active: true },
+      order: [["id", "DESC"]],
+    });
+
+    if (!banner) {
+      banner = await HeroBanner.create({
+        ...payload,
+        is_active: true,
+      });
+    } else {
+      await banner.update(payload);
+    }
+
+    return banner;
+  };
+
   async updateUser(userId, payload) {
     return await this.Model.Users.update(payload, {
       where: {

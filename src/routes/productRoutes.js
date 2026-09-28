@@ -6,6 +6,7 @@ import Products from "../../dataBase/models/productModel.js";
 import Category from "../../dataBase/models/categoryModel.js";
 import ProductMedia from "../../dataBase/models/productMedia.js";
 import Store from "../../dataBase/models/storeModel.js";
+import HeroBanner from "../../dataBase/models/heroBannerModel.js";
 import {
   categoryIdParamValidation,
   productIdParamValidation,
@@ -24,8 +25,16 @@ await productCtrl.init({
     Category,
     ProductMedia,
     Store,
+    HeroBanner,
   },
 });
+
+// Public read for the home page hero banner. Must be registered before "/:id"
+// so the literal path wins over the numeric product id param.
+router.get(
+  "/hero-banner",
+  asyncHandler(productCtrl.getHeroBanner.bind(productCtrl))
+);
 
 router.get(
   "/AllProduct",

@@ -396,6 +396,67 @@ export default class AdminController {
     );
   }
 
+  async getHeroBanner(req, res) {
+    const banner = await this.service.getHeroBanner();
+    if (!banner) {
+      return sendResponse(
+        res,
+        STATUS_CODE.NOT_FOUND,
+        "Hero banner not configured.",
+      );
+    }
+    return sendResponse(
+      res,
+      STATUS_CODE.SUCCESS,
+      "Hero banner fetched successfully.",
+      banner,
+    );
+  }
+
+  async updateHeroBanner(req, res) {
+    // Whitelist so admins cannot smuggle is_active/id/updated_by through the form
+    const allowedFields = [
+      "badge_text",
+      "heading_line_one",
+      "heading_line_two",
+      "description",
+    ];
+    const payload = {};
+    for (const field of allowedFields) {
+      if (req.body?.[field] !== undefined) {
+        payload[field] = req.body[field];
+      }
+    }
+
+    if (Object.keys(payload).length === 0 && !req.file) {
+      return sendResponse(
+        res,
+        STATUS_CODE.BAD_REQUEST,
+        "No banner fields provided to update.",
+      );
+    }
+
+    if (req.file) {
+      const existing = await this.service.getHeroBanner();
+      if (existing?.image_public_id) {
+        await deleteFromCloudinary(existing.image_public_id);
+      }
+      const result = await uploadToCloudinary(req.file, "home/hero-banner");
+      payload.image_url = result.secure_url;
+      payload.image_public_id = result.public_id;
+    }
+
+    payload.updated_by = req.user?.id ?? null;
+
+    const banner = await this.service.updateHeroBanner(payload);
+    return sendResponse(
+      res,
+      STATUS_CODE.SUCCESS,
+      "Hero banner updated successfully.",
+      banner,
+    );
+  }
+
   async createCategory(req, res) {
     const { cat_name } = req.body;
     if (!cat_name || !cat_name.trim()) {
