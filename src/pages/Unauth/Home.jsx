@@ -1,4 +1,5 @@
-import React, { useState, useEffect, useRef, useMemo } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
+import toast from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
 import pro4 from "../../assets/pro4.png";
 import { GetTopRatedProducts } from "../../api/productApi";
@@ -179,32 +180,92 @@ function TrustBadges() {
    ──────────────────────────────────────── */
 function CategoriesSection() {
   const navigate = useNavigate();
-  const scrollRef = React.useRef(null);
+  const scrollRef = useRef(null);
+  const dragState = useRef({ active: false, startX: 0, startScroll: 0, moved: false });
   const [canScrollLeft, setCanScrollLeft] = useState(false);
-  const [canScrollRight, setCanScrollRight] = useState(true);
+  const [canScrollRight, setCanScrollRight] = useState(false);
   const { data: categoryData, isLoading } = useGetCategory();
   const categories = categoryData?.data?.categories || [];
 
   const checkScroll = () => {
     const el = scrollRef.current;
-    if (el) {
-      setCanScrollLeft(el.scrollLeft > 10);
-      setCanScrollRight(el.scrollLeft < el.scrollWidth - el.clientWidth - 10);
-    }
+    if (!el) return;
+    setCanScrollLeft(el.scrollLeft > 10);
+    setCanScrollRight(el.scrollLeft < el.scrollWidth - el.clientWidth - 10);
   };
 
+  // The arrows must be re-evaluated whenever the row's content or width changes,
+  // not just on mount — otherwise they are measured while the list is still
+  // empty and stay hidden (or stuck visible) once the categories arrive.
   useEffect(() => {
     const el = scrollRef.current;
-    if (el) {
-      checkScroll();
-      el.addEventListener("scroll", checkScroll);
-      window.addEventListener("resize", checkScroll);
-    }
+    if (!el) return undefined;
+    el.scrollLeft = 0;
+    checkScroll();
+    el.addEventListener("scroll", checkScroll, { passive: true });
+    window.addEventListener("resize", checkScroll);
+    const observer = new ResizeObserver(checkScroll);
+    observer.observe(el);
+    for (const child of el.children) observer.observe(child);
     return () => {
-      if (el) el.removeEventListener("scroll", checkScroll);
+      el.removeEventListener("scroll", checkScroll);
       window.removeEventListener("resize", checkScroll);
+      observer.disconnect();
     };
-  }, []);
+  }, [categories.length, isLoading]);
+
+  // Vertical wheel over the row scrolls it sideways. Registered natively
+  // (non-passive) because React's onWheel cannot call preventDefault.
+  useEffect(() => {
+    const el = scrollRef.current;
+    if (!el) return undefined;
+    const onWheel = (event) => {
+      if (el.scrollWidth <= el.clientWidth + 1) return;
+      if (Math.abs(event.deltaY) <= Math.abs(event.deltaX)) return;
+      const atStart = el.scrollLeft <= 0;
+      const atEnd = el.scrollLeft >= el.scrollWidth - el.clientWidth - 1;
+      // Once the row is at its edge, hand the gesture back to the page so the
+      // visitor is never stuck scrolling sideways.
+      if ((event.deltaY < 0 && atStart) || (event.deltaY > 0 && atEnd)) return;
+      event.preventDefault();
+      el.scrollLeft += event.deltaY;
+    };
+    el.addEventListener("wheel", onWheel, { passive: false });
+    return () => el.removeEventListener("wheel", onWheel);
+  }, [categories.length, isLoading]);
+
+  // Drag to scroll, so the row can be moved without using the arrows.
+  const onPointerDown = (event) => {
+    if (event.pointerType === "mouse" && event.button !== 0) return;
+    const el = scrollRef.current;
+    if (!el) return;
+    dragState.current = {
+      active: true,
+      startX: event.clientX,
+      startScroll: el.scrollLeft,
+      moved: false,
+    };
+  };
+
+  const onPointerMove = (event) => {
+    const el = scrollRef.current;
+    const drag = dragState.current;
+    if (!el || !drag.active) return;
+    const deltaX = event.clientX - drag.startX;
+    if (Math.abs(deltaX) > 5) {
+      drag.moved = true;
+      el.setPointerCapture?.(event.pointerId);
+    }
+    if (drag.moved) el.scrollLeft = drag.startScroll - deltaX;
+  };
+
+  const onPointerUp = (event) => {
+    const el = scrollRef.current;
+    if (el?.hasPointerCapture?.(event.pointerId)) {
+      el.releasePointerCapture(event.pointerId);
+    }
+    dragState.current.active = false;
+  };
 
   const scroll = (direction) => {
     if (scrollRef.current) {
@@ -233,6 +294,7 @@ function CategoriesSection() {
           {canScrollLeft && (
             <button
               onClick={() => scroll("left")}
+              aria-label="Scroll categories left"
               className="absolute -left-3 top-1/2 z-10 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full border border-gray-200 bg-white shadow-lg text-gray-600 transition-all duration-200 hover:bg-[#4c2ed8] hover:text-white hover:shadow-xl hover:scale-105 active:scale-95"
             >
               <ChevronRight size={22} className="rotate-180" />
@@ -253,6 +315,7 @@ function CategoriesSection() {
           {canScrollRight && (
             <button
               onClick={() => scroll("right")}
+              aria-label="Scroll categories right"
               className="absolute -right-3 top-1/2 z-10 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full border border-gray-200 bg-white shadow-lg text-gray-600 transition-all duration-200 hover:bg-[#4c2ed8] hover:text-white hover:shadow-xl hover:scale-105 active:scale-95"
             >
               <ChevronRight size={22} />
@@ -262,7 +325,11 @@ function CategoriesSection() {
           {/* Scrollable Categories */}
           <div
             ref={scrollRef}
-            className="flex gap-4 overflow-x-auto scroll-smooth pb-4"
+            onPointerDown={onPointerDown}
+            onPointerMove={onPointerMove}
+            onPointerUp={onPointerUp}
+            onPointerCancel={onPointerUp}
+            className="flex cursor-grab gap-4 overflow-x-auto scroll-smooth pb-4 active:cursor-grabbing"
             style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
           >
             {isLoading ? (
@@ -274,7 +341,14 @@ function CategoriesSection() {
               return (
                 <button
                   key={cat.id}
-                  onClick={() => navigate(`/products/category/${cat.id}`)}
+                  onClick={() => {
+                    // A drag that ends over a card must not open it.
+                    if (dragState.current.moved) {
+                      dragState.current.moved = false;
+                      return;
+                    }
+                    navigate(`/products/category/${cat.id}`);
+                  }}
                   className="group flex w-[132px] shrink-0 flex-col items-center gap-3 rounded-2xl border border-gray-100 bg-white p-5 shadow-sm transition-all duration-200 hover:border-[#4c2ed8]/20 hover:shadow-md hover:shadow-[#4c2ed8]/5 hover:-translate-y-0.5"
                 >
                   <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-[#4c2ed8]/8 to-[#368de8]/8 text-[#4c2ed8] transition-all duration-200 group-hover:from-[#4c2ed8] group-hover:to-[#368de8] group-hover:text-white group-hover:shadow-lg group-hover:shadow-[#4c2ed8]/20">
