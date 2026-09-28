@@ -1,4 +1,7 @@
 import { useState } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { contactSchema } from "../../validation/contact";
 import {
   MapPin,
   Mail,
@@ -13,6 +16,7 @@ import Navbar from "../../components/common/Navbar";
 import Footer from "../../components/common/Footer";
 import toast from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
+import { SendContactMessage } from "../../api/contactApi";
 
 const CONTACT_INFO = [
   {
@@ -43,31 +47,55 @@ const CONTACT_INFO = [
 
 const initialForm = { name: "", email: "", subject: "", message: "" };
 
+// Shared input styling: the red ring only appears once a field has an error.
+const fieldCls = (hasError) =>
+  `w-full rounded-xl border bg-gray-50 px-4 py-3 text-sm text-gray-800 outline-none transition focus:bg-white focus:ring-2 focus:ring-[#4c2ed8]/10 ${
+    hasError
+      ? "border-red-300 focus:border-red-400 focus:ring-red-500/10"
+      : "border-gray-200 focus:border-[#4c2ed8]"
+  }`;
+
+function FieldError({ error }) {
+  if (!error) return null;
+  return <p className="mt-1.5 text-xs text-red-500">{error.message}</p>;
+}
+
 function Contact() {
   const navigate = useNavigate();
-  const [form, setForm] = useState(initialForm);
   const [sending, setSending] = useState(false);
 
-  const handleChange = (e) => {
-    setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
-  };
+  const {
+    register,
+    handleSubmit,
+    reset,
+    formState: { errors },
+  } = useForm({
+    resolver: zodResolver(contactSchema),
+    defaultValues: initialForm,
+  });
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    if (!form.name.trim() || !form.email.trim() || !form.message.trim()) {
-      toast.error("Please fill in all required fields.");
-      return;
-    }
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) {
-      toast.error("Please enter a valid email address.");
-      return;
-    }
+  const onSubmit = async (values) => {
     setSending(true);
-    setTimeout(() => {
+    try {
+      const response = await SendContactMessage({
+        name: values.name,
+        email: values.email,
+        subject: values.subject,
+        message: values.message,
+      });
+      reset(initialForm);
+      toast.success(
+        response?.message || "Message sent! We'll get back to you soon.",
+      );
+    } catch (error) {
+      toast.error(
+        error?.response?.data?.error ||
+          error?.response?.data?.message ||
+          "Something went wrong. Please try again later.",
+      );
+    } finally {
       setSending(false);
-      setForm(initialForm);
-      toast.success("Message sent! We'll get back to you soon.");
-    }, 900);
+    }
   };
 
   return (
@@ -142,60 +170,76 @@ function Contact() {
               </div>
             </div>
 
-            <form onSubmit={handleSubmit} className="space-y-4">
+            <form onSubmit={handleSubmit(onSubmit)} className="space-y-4" noValidate>
               <div className="grid gap-4 sm:grid-cols-2">
                 <div>
-                  <label className="mb-1.5 block text-sm font-medium text-gray-700">
+                  <label
+                    htmlFor="name"
+                    className="mb-1.5 block text-sm font-medium text-gray-700"
+                  >
                     Name <span className="text-red-500">*</span>
                   </label>
                   <input
+                    id="name"
                     type="text"
-                    name="name"
-                    value={form.name}
-                    onChange={handleChange}
                     placeholder="Your full name"
-                    className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-800 outline-none transition focus:border-[#4c2ed8] focus:bg-white focus:ring-2 focus:ring-[#4c2ed8]/10"
+                    className={fieldCls(errors.name)}
+                    aria-invalid={Boolean(errors.name)}
+                    {...register("name")}
                   />
+                  <FieldError error={errors.name} />
                 </div>
                 <div>
-                  <label className="mb-1.5 block text-sm font-medium text-gray-700">
+                  <label
+                    htmlFor="email"
+                    className="mb-1.5 block text-sm font-medium text-gray-700"
+                  >
                     Email <span className="text-red-500">*</span>
                   </label>
                   <input
+                    id="email"
                     type="email"
-                    name="email"
-                    value={form.email}
-                    onChange={handleChange}
                     placeholder="you@example.com"
-                    className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-800 outline-none transition focus:border-[#4c2ed8] focus:bg-white focus:ring-2 focus:ring-[#4c2ed8]/10"
+                    className={fieldCls(errors.email)}
+                    aria-invalid={Boolean(errors.email)}
+                    {...register("email")}
                   />
+                  <FieldError error={errors.email} />
                 </div>
               </div>
               <div>
-                <label className="mb-1.5 block text-sm font-medium text-gray-700">
+                <label
+                  htmlFor="subject"
+                  className="mb-1.5 block text-sm font-medium text-gray-700"
+                >
                   Subject
                 </label>
                 <input
+                  id="subject"
                   type="text"
-                  name="subject"
-                  value={form.subject}
-                  onChange={handleChange}
                   placeholder="How can we help?"
-                  className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-800 outline-none transition focus:border-[#4c2ed8] focus:bg-white focus:ring-2 focus:ring-[#4c2ed8]/10"
+                  className={fieldCls(errors.subject)}
+                  aria-invalid={Boolean(errors.subject)}
+                  {...register("subject")}
                 />
+                <FieldError error={errors.subject} />
               </div>
               <div>
-                <label className="mb-1.5 block text-sm font-medium text-gray-700">
+                <label
+                  htmlFor="message"
+                  className="mb-1.5 block text-sm font-medium text-gray-700"
+                >
                   Message <span className="text-red-500">*</span>
                 </label>
                 <textarea
-                  name="message"
-                  value={form.message}
-                  onChange={handleChange}
+                  id="message"
                   rows={5}
                   placeholder="Tell us a bit more about your query..."
-                  className="w-full resize-none rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-800 outline-none transition focus:border-[#4c2ed8] focus:bg-white focus:ring-2 focus:ring-[#4c2ed8]/10"
+                  className={`${fieldCls(errors.message)} resize-none`}
+                  aria-invalid={Boolean(errors.message)}
+                  {...register("message")}
                 />
+                <FieldError error={errors.message} />
               </div>
               <button
                 type="submit"

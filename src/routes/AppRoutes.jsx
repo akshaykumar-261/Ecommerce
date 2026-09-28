@@ -46,6 +46,7 @@ import AdminOrders from "../pages/Admin/AdminOrders";
 import AdminPayouts from "../pages/Admin/AdminPayouts";
 import AdminSettings from "../pages/Admin/AdminSettings";
 import AdminChat from "../pages/Admin/AdminChat";
+import AdminMessages from "../pages/Admin/AdminMessages";
 import VendorChat from "../pages/Vendor/VendorChat";
 import ErrorBoundary from "../components/admin/ErrorBoundary";
 
@@ -223,6 +224,7 @@ function AppRoutes() {
       <Route path="/admin/payouts" element={eb(AdminPayouts)} />
       <Route path="/admin/settings" element={eb(AdminSettings)} />
       <Route path="/admin/chat" element={eb(AdminChat)} />
+      <Route path="/admin/messages" element={eb(AdminMessages)} />
     </Routes>
   );
 }

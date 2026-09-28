@@ -102,10 +102,10 @@ function AdminPayouts() {
             rows.map((payout) => (
               <tr key={payout.id} className="transition hover:bg-slate-50/60">
                 <td className="px-5 py-3.5">
-                  <p className="text-sm font-semibold text-slate-700">#{payout.id}</p>
-                  <p className="text-[11px] text-slate-400">Order #{payout.order_id}</p>
+                  <p className="text-sm font-semibold text-slate-700">{payout.id}</p>
+                  <p className="text-[11px] text-slate-400">Order {payout.order_id}</p>
                 </td>
-                <td className="px-5 py-3.5 text-xs text-slate-500">Vendor #{payout.vendor_id}</td>
+                <td className="px-5 py-3.5 text-xs text-slate-500">Vendor {payout.vendor_id}</td>
                 <td className="px-5 py-3.5 text-xs font-medium text-slate-700">
                   {formatMoney(payout.gross_amount, payout.currency)}
                 </td>

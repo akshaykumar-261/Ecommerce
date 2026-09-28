@@ -19,6 +19,8 @@ const styles = {
   rejected: "bg-red-50 text-red-500 ring-red-200",
   blocked: "bg-red-50 text-red-500 ring-red-200",
   refunded: "bg-amber-50 text-amber-600 ring-amber-200",
+  replied: "bg-emerald-50 text-emerald-600 ring-emerald-200",
+  closed: "bg-slate-100 text-slate-500 ring-slate-200",
   unknown: "bg-slate-50 text-slate-500 ring-slate-200",
 };
 

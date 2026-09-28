@@ -14,6 +14,7 @@ import {
   LogOut,
   X,
   MessageCircle,
+  Mail,
 } from "lucide-react";
 import { AdminLogo, logoutAdmin } from "./adminShared";
 import ConfirmDialog from "./ConfirmDialog";
@@ -44,6 +45,7 @@ export const adminGroups = [
       { label: "Orders", path: "/admin/orders", icon: ShoppingBag },
       { label: "Payouts", path: "/admin/payouts", icon: WalletCards },
       { label: "Chat", path: "/admin/chat", icon: MessageCircle },
+      { label: "Messages", path: "/admin/messages", icon: Mail },
       { label: "Settings", path: "/admin/settings", icon: Settings },
     ],
   },
