@@ -7,7 +7,6 @@ import {
   ChevronRight,
   ChevronLeft,
   X,
-  Share2,
   Truck,
   Shield,
   RotateCcw,
@@ -20,6 +19,7 @@ import WishlistButton from "../../components/common/WishlistButton";
 import Navbar from "../../components/common/Navbar";
 import Popup from "../../components/common/Popup";
 import ProductReviews from "../../components/product/ProductReviews";
+import ShareButton from "../../components/product/ShareButton";
 import { LogIn } from "lucide-react";
 import toast from "react-hot-toast";
 
@@ -481,10 +481,11 @@ export default function ProductDetail() {
                 className="flex items-center gap-2 rounded-xl border border-gray-200 px-5 py-2.5 text-sm font-medium text-gray-600 transition-all duration-200 hover:bg-gray-50"
                 activeClassName="border-red-200 bg-red-50 text-red-600"
               />
-              <button className="flex items-center gap-2 rounded-xl border border-gray-200 px-5 py-2.5 text-sm font-medium text-gray-600 transition hover:bg-gray-50">
-                <Share2 size={16} />
-                Share
-              </button>
+              <ShareButton
+                title={product.pro_name || product.name}
+                text={`${product.pro_name || product.name} on ShopEase — ₹${discountPrice || price}`}
+                className="flex items-center gap-2 rounded-xl border border-gray-200 px-5 py-2.5 text-sm font-medium text-gray-600 transition hover:bg-gray-50"
+              />
             </div>
 
             {/* Delivery Info */}
