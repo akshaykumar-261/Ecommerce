@@ -231,3 +231,15 @@ export const categoryMessages = {
   CATEGORY_DELETED: "Category deleted successfully.",
   CATEGORY_UPDATE_DATA_REQUIRED: "No data provided for update.",
 };
+
+export const contactMessages = {
+  MESSAGE_SENT: "Message sent successfully.",
+  MESSAGE_FETCHED: "Message fetched successfully.",
+  MESSAGES_FETCHED: "Messages fetched successfully.",
+  MESSAGE_NOT_FOUND: "Message not found.",
+  REPLY_SENT: "Reply sent successfully.",
+  REPLIES_FETCHED: "Replies fetched successfully.",
+  STATUS_UPDATED: "Message status updated successfully.",
+  MESSAGE_DELETED: "Message deleted successfully.",
+  INVALID_STATUS: "Invalid status. Allowed values are PENDING, REPLIED or CLOSED.",
+};

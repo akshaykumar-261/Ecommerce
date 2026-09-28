@@ -14,6 +14,8 @@ import PaymentModel from "../dataBase/models/paymetModel.js";
 import VendorPayoutModel from "../dataBase/models/vendor_payouts.js";
 import ReviewModel from "../dataBase/models/reviewModel.js";
 import WishListModel from "../dataBase/models/wishListModel.js";
+import ContactMessageModel from "../dataBase/models/contactMessageModel.js";
+import ContactReplyModel from "../dataBase/models/contactReplyModel.js";
 UserModel.belongsTo(RoleModel, {
   foreignKey: "role_Id",
 });
@@ -153,6 +155,27 @@ WishListModel.belongsTo(UserModel, {
 ProductModel.hasMany(WishListModel, {
   foreignKey: "product_id",
 })
+
+// Contact Model
+UserModel.hasMany(ContactMessageModel, {
+  foreignKey: "user_id",
+});
+ContactMessageModel.belongsTo(UserModel, {
+  foreignKey: "user_id",
+});
+ContactMessageModel.hasMany(ContactReplyModel, {
+  foreignKey: "message_id",
+});
+ContactReplyModel.belongsTo(ContactMessageModel, {
+  foreignKey: "message_id",
+});
+UserModel.hasMany(ContactReplyModel, {
+  foreignKey: "admin_id",
+});
+ContactReplyModel.belongsTo(UserModel, {
+  as: "admin",
+  foreignKey: "admin_id",
+});
 WishListModel.belongsTo(ProductModel, {
   foreignKey: "product_id"
 })

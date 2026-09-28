@@ -15,6 +15,7 @@ import adminRoutes from "../src/routes/adminRoutes.js";
 import reviewRoutes from "../src/routes/reviewRoutes.js";
 import chatRoutes from "../src/routes/chatRoutes.js";
 import productRoutes from "../src/routes/productRoutes.js";
+import contactRoutes from "../src/routes/contactRoutes.js";
 import "./association.js";
 import "../utility/queue/emailWorkers.js";
 import "./cloudnary.js";
@@ -32,6 +33,7 @@ app.use("/admin", adminRoutes);
 app.use("/users", reviewRoutes);
 app.use("/chat", chatRoutes);
 app.use("/products", productRoutes);
+app.use("/contact", contactRoutes);
 const server = http.createServer(app);
 const io = new Server(server, {
   cors: {
