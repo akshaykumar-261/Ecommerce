@@ -4,6 +4,7 @@ import {
   Mail,
   MessageCircle,
   Phone,
+  RotateCcw,
   ShieldCheck,
   Truck,
   Zap,
@@ -18,22 +19,17 @@ const QUICK_LINKS = [
 ];
 
 const SUPPORT_LINKS = [
-  { label: "Help Center", to: "/faq" },
-  { label: "Shipping Info", to: "/contact" },
-  { label: "Returns", to: "/faq" },
-  { label: "Privacy Policy", to: "/about" },
-];
-
-const UTILITY_LINKS = [
-  { label: "Terms", to: "/faq" },
-  { label: "Privacy", to: "/about" },
-  { label: "Sitemap", to: "/home" },
+  { label: "Help Center", to: "/help-center" },
+  { label: "Shipping Info", to: "/shipping-info" },
+  { label: "Returns", to: "/returns" },
+  { label: "Privacy Policy", to: "/privacy-policy" },
 ];
 
 const SERVICE_HIGHLIGHTS = [
   { label: "Fast & Reliable Shipping", Icon: Truck },
   { label: "Secure Payments", Icon: ShieldCheck },
   { label: "24/7 Support", Icon: Headphones },
+  { label: "Easy Returns", Icon: RotateCcw },
 ];
 
 const SOCIAL_LINKS = [
@@ -42,6 +38,23 @@ const SOCIAL_LINKS = [
   { label: "X", href: "https://x.com/" },
   { label: "YouTube", href: "https://www.youtube.com/" },
   { label: "LinkedIn", href: "https://www.linkedin.com/" },
+];
+
+const CONTACT_CHANNELS = [
+  {
+    label: "Call us",
+    value: "+91 98765 43210",
+    note: "Mon - Sun, 9AM - 11PM",
+    href: "tel:+919876543210",
+    Icon: Phone,
+  },
+  {
+    label: "Email us",
+    value: "support@shopease.com",
+    note: "We reply within 24 hours",
+    href: "mailto:support@shopease.com",
+    Icon: Mail,
+  },
 ];
 
 function SocialIcon({ label }) {
@@ -89,16 +102,19 @@ function SocialIcon({ label }) {
 function FooterLinkGroup({ title, links }) {
   return (
     <div>
-      <h2 className="text-sm font-bold text-[#171c3b]">{title}</h2>
-      <span className="mt-2.5 block h-1 w-7 rounded-full bg-[#6d63e8]" />
-      <ul className="mt-4 space-y-1">
+      <h2 className="text-[0.7rem] font-bold uppercase tracking-[0.18em] text-[#9aa0b8]">
+        {title}
+      </h2>
+      <span className="mt-3 block h-[3px] w-9 rounded-full bg-gradient-to-r from-[#7c3aed] to-[#38bdf8]" />
+      <ul className="mt-4 space-y-0.5">
         {links.map((link) => (
           <li key={link.label}>
             <Link
               to={link.to}
-              className="group inline-flex min-h-9 items-center text-sm text-[#66708f] transition-colors duration-200 hover:text-[#4f46e5] focus:outline-none focus:text-[#4f46e5]"
+              className="group inline-flex min-h-9 items-center text-sm text-[#66708f] transition-colors duration-200 hover:text-[#4f46e5] focus:outline-none focus-visible:text-[#4f46e5]"
             >
-              <span className="mr-2 h-1 w-1 rounded-full bg-[#c8c1ff] transition-colors group-hover:bg-[#4f46e5]" />
+              {/* The dash lives in a reserved slot and scales in place, so the
+                  label itself never shifts on hover. */}
               {link.label}
             </Link>
           </li>
@@ -114,29 +130,45 @@ function Footer() {
   };
 
   return (
-    <footer id="site-footer" className="relative isolate overflow-hidden border-t border-[#eeeafd] bg-[linear-gradient(180deg,#ffffff_0%,#fdfcff_58%,#faf9ff_100%)] font-sans text-[#10152f]">
-      <div className="pointer-events-none absolute -right-24 -top-28 -z-10 h-80 w-80 rounded-full bg-[#e9e4ff]/40 blur-3xl" />
-      <div className="pointer-events-none absolute -bottom-28 -left-24 -z-10 h-72 w-72 rounded-full bg-[#f1eaff]/60 blur-3xl" />
+    <footer
+      id="site-footer"
+      className="relative isolate overflow-hidden border-t border-[#eeeafd] font-sans text-[#10152f] bg-[linear-gradient(180deg,#ffffff_0%,#fdfcff_55%,#faf9ff_100%)]"
+    >
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute -right-28 -top-32 -z-10 h-96 w-96 rounded-full bg-[#e9e4ff] blur-[90px]"
+      />
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute -bottom-32 -left-24 -z-10 h-80 w-80 rounded-full bg-[#e0f2fe] blur-[90px]"
+      />
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-x-0 top-0 -z-10 h-px bg-gradient-to-r from-transparent via-[#c4b5fd] to-transparent"
+      />
 
-      <div className="mx-auto max-w-7xl px-5 pt-12 sm:px-6 lg:px-8 lg:pt-14">
-        <div className="grid gap-x-8 gap-y-10 md:grid-cols-[minmax(0,1.5fr)_minmax(0,0.75fr)_minmax(0,0.85fr)]">
+      <div className="mx-auto max-w-7xl px-5 pt-9 sm:px-6 lg:px-8 lg:pt-10">
+        <div className="grid gap-x-10 gap-y-8 md:grid-cols-2 lg:grid-cols-[minmax(0,1.4fr)_minmax(0,0.8fr)_minmax(0,0.8fr)_minmax(0,1.1fr)]">
           <section aria-labelledby="footer-brand-title">
             <Link
               to="/home"
               className="group inline-flex items-center gap-3"
               aria-label="ShopEase home"
             >
-              <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-gradient-to-br from-[#4f46e5] to-[#7c3aed] shadow-[0_8px_20px_rgba(79,70,229,0.22)] transition-transform duration-300 group-hover:-rotate-3 group-hover:scale-105">
-                <Zap size={21} className="fill-white text-white" />
+              <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-gradient-to-br from-[#7c3aed] via-[#4f46e5] to-[#38bdf8] shadow-[0_10px_26px_rgba(99,102,241,0.28)] ring-1 ring-[#4f46e5]/10 transition-transform duration-300 group-hover:-rotate-6 group-hover:scale-105">
+                <Zap size={22} className="fill-white text-white" />
               </span>
-              <span id="footer-brand-title" className="text-[1.35rem] font-extrabold tracking-tight text-[#111735]">
-                Shop<span className="text-[#4f46e5]">Ease</span>
+              <span
+                id="footer-brand-title"
+                className="text-[1.45rem] font-extrabold tracking-tight text-[#111735]"
+              >
+                Shop<span className="bg-gradient-to-r from-[#7c3aed] to-[#0ea5e9] bg-clip-text text-transparent">Ease</span>
               </span>
             </Link>
 
-            <p className="mt-4 max-w-sm text-sm leading-6 text-[#66708f]">
+            <p className="mt-3.5 max-w-sm text-sm leading-6 text-[#66708f]">
               Your one-stop destination for the best products at unbeatable
-              prices. Shop with confidence.
+              prices. Shop with confidence — every order is protected end to end.
             </p>
 
             <ul className="mt-5 flex items-center gap-2" aria-label="Social media">
@@ -147,28 +179,10 @@ function Footer() {
                     target="_blank"
                     rel="noreferrer noopener"
                     aria-label={label}
-                    className="flex h-9 w-9 items-center justify-center rounded-full border border-[#e3defb] bg-[#f7f5ff] text-[#5d55cf] transition duration-200 hover:-translate-y-0.5 hover:border-[#4f46e5] hover:bg-[#4f46e5] hover:text-white hover:shadow-[0_7px_15px_rgba(79,70,229,0.18)] focus:outline-none focus:ring-2 focus:ring-[#4f46e5]/30"
+                    className="flex h-9 w-9 items-center justify-center rounded-full border border-[#e6e1fb] bg-[#f7f5ff] text-[#5d55cf] transition duration-300 hover:-translate-y-0.5 hover:border-transparent hover:bg-gradient-to-br hover:from-[#7c3aed] hover:to-[#4f46e5] hover:text-white hover:shadow-[0_10px_20px_rgba(99,102,241,0.3)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#4f46e5]/40"
                   >
                     <SocialIcon label={label} />
                   </a>
-                </li>
-              ))}
-            </ul>
-
-            <ul className="mt-5 grid w-full max-w-[350px] grid-cols-3 gap-6" aria-label="Shopping benefits">
-              {SERVICE_HIGHLIGHTS.map(({ label, Icon }, index) => (
-                <li
-                  key={label}
-                  className="flex min-h-16 flex-col items-center justify-center gap-2 text-center text-[10px] font-medium leading-4 text-[#46506f]"
-                >
-                  <span
-                    className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-[#ddd7ff] bg-[#f7f5ff] text-[#5b52d8] ${
-                      index === 0 ? "-translate-x-8" : ""
-                    }`}
-                  >
-                    <Icon size={14} strokeWidth={2.2} />
-                  </span>
-                  <span className="whitespace-nowrap">{label}</span>
                 </li>
               ))}
             </ul>
@@ -182,99 +196,85 @@ function Footer() {
             <FooterLinkGroup title="Customer Support" links={SUPPORT_LINKS} />
           </nav>
 
-        </div>
+          <section aria-label="Contact support">
+            <h2 className="text-[0.7rem] font-bold uppercase tracking-[0.18em] text-[#9aa0b8]">
+              Get In Touch
+            </h2>
+            <span className="mt-3 block h-[3px] w-9 rounded-full bg-gradient-to-r from-[#7c3aed] to-[#38bdf8]" />
 
-        <section
-          className="mt-10 rounded-[1.5rem] border border-[#e8e3ff] bg-[#f8f6ff]/90 p-5 sm:p-6"
-          aria-label="Contact support"
-        >
-          <div className="grid items-center gap-y-5 md:grid-cols-2 lg:grid-cols-[minmax(0,1.35fr)_minmax(0,0.85fr)_minmax(0,1fr)_auto] lg:gap-5">
-            <div className="flex items-center gap-3.5">
-              <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-[#ddd7ff] bg-white text-[#5b52d8] shadow-sm">
-                <Headphones size={20} />
-              </span>
-              <div>
-                <h2 className="text-xs font-extrabold uppercase tracking-[0.14em] text-[#4f46e5]">
-                  Need Help?
-                </h2>
-                <p className="mt-1 text-xs leading-5 text-[#69718c]">
-                  Our support team is available 24/7 to assist you.
-                </p>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-3">
-              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-[#e0dbf8] bg-white text-[#6259dc]">
-                <Phone size={17} />
-              </span>
-              <div className="min-w-0">
-                <a
-                  href="tel:+919876543210"
-                  className="block text-sm font-bold text-[#303754] transition hover:text-[#4f46e5] focus:outline-none focus:text-[#4f46e5]"
-                >
-                  +91 98765 43210
-                </a>
-                <p className="mt-0.5 text-[11px] text-[#8a91a7]">
-                  Mon - Sun, 9AM - 11PM
-                </p>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-3">
-              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-[#e0dbf8] bg-white text-[#6259dc]">
-                <Mail size={17} />
-              </span>
-              <div className="min-w-0">
-                <a
-                  href="mailto:support@shopease.com"
-                  className="block truncate text-sm font-bold text-[#303754] transition hover:text-[#4f46e5] focus:outline-none focus:text-[#4f46e5]"
-                >
-                  support@shopease.com
-                </a>
-                <p className="mt-0.5 text-[11px] text-[#8a91a7]">
-                  We reply within 24 hours
-                </p>
-              </div>
-            </div>
+            <ul className="mt-4 space-y-2.5">
+              {CONTACT_CHANNELS.map(({ label, value, note, href, Icon }) => (
+                <li key={label}>
+                  <a
+                    href={href}
+                    className="group flex items-start gap-3.5 rounded-2xl border border-[#eae6fb] bg-[#faf9ff] p-3 transition duration-300 hover:-translate-y-0.5 hover:border-[#c9c1ff] hover:bg-white hover:shadow-[0_10px_24px_rgba(99,102,241,0.12)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#4f46e5]/40"
+                  >
+                    <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-[#7c3aed] to-[#4f46e5] text-white shadow-[0_6px_16px_rgba(79,70,229,0.28)]">
+                      <Icon size={17} />
+                    </span>
+                    <span className="min-w-0">
+                      <span className="block text-[10px] font-bold uppercase tracking-[0.16em] text-[#a3a9c0]">
+                        {label}
+                      </span>
+                      <span className="mt-1 block truncate text-sm font-bold text-[#232a4d] transition-colors group-hover:text-[#4f46e5]">
+                        {value}
+                      </span>
+                      <span className="mt-0.5 block text-[11px] text-[#8a91a7]">
+                        {note}
+                      </span>
+                    </span>
+                  </a>
+                </li>
+              ))}
+            </ul>
 
             <Link
               to="/contact"
-              className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-[#4f46e5] to-[#7c3aed] px-5 text-sm font-semibold text-white shadow-[0_8px_18px_rgba(79,70,229,0.2)] transition duration-300 hover:-translate-y-0.5 hover:shadow-[0_10px_22px_rgba(79,70,229,0.28)] focus:outline-none focus:ring-2 focus:ring-[#4f46e5]/40 md:col-span-2 lg:col-span-1 lg:w-auto"
+              className="mt-3.5 inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-[#7c3aed] to-[#4f46e5] px-5 text-sm font-bold text-white shadow-[0_12px_26px_rgba(79,70,229,0.28)] transition duration-300 hover:-translate-y-0.5 hover:shadow-[0_16px_32px_rgba(79,70,229,0.36)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#4f46e5]/50"
             >
               <MessageCircle size={17} />
               Contact Us
             </Link>
-          </div>
+          </section>
+        </div>
+
+        <section
+          className="mt-8 grid gap-2.5 sm:grid-cols-2 lg:grid-cols-4"
+          aria-label="Shopping benefits"
+        >
+          {SERVICE_HIGHLIGHTS.map(({ label, Icon }) => (
+            <div
+              key={label}
+              className="group flex items-center gap-3.5 rounded-2xl border border-[#ece8fb] bg-white px-4 py-2.5 transition duration-300 hover:-translate-y-0.5 hover:border-[#c9c1ff] hover:shadow-[0_10px_24px_rgba(99,102,241,0.12)]"
+            >
+              <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-[#f3f1ff] text-[#5b52d8] ring-1 ring-[#e6e1fb] transition duration-300 group-hover:bg-gradient-to-br group-hover:from-[#7c3aed] group-hover:to-[#4f46e5] group-hover:text-white group-hover:ring-transparent">
+                <Icon size={18} strokeWidth={2.1} />
+              </span>
+              <span className="text-[13px] font-semibold leading-5 text-[#3c4467]">
+                {label}
+              </span>
+            </div>
+          ))}
         </section>
 
-        <div className="mt-8 border-t border-[#eae7f6] py-6">
-          <div className="flex flex-col items-center gap-5 sm:grid sm:grid-cols-[1fr_auto_1fr] sm:items-center">
-            <p className="text-center text-xs text-[#7b839d] sm:col-start-2">
+        <div className="mt-8 border-t border-[#eceaf6] py-5">
+          <div className="relative flex items-center justify-center">
+            <p className="text-center text-xs text-[#7b839d]">
               &copy; 2026 ShopEase. All rights reserved.
             </p>
 
-            <div className="flex w-full flex-wrap items-center justify-center gap-3 sm:col-start-3 sm:w-auto sm:justify-end">
-              <nav className="flex flex-wrap items-center gap-x-4 gap-y-2" aria-label="Legal links">
-                {UTILITY_LINKS.map((link) => (
-                  <Link
-                    key={link.label}
-                    to={link.to}
-                    className="text-xs text-[#7b839d] transition hover:text-[#4f46e5] focus:outline-none focus:text-[#4f46e5]"
-                  >
-                    {link.label}
-                  </Link>
-                ))}
-              </nav>
-              <button
-                type="button"
-                onClick={scrollToTop}
-                aria-label="Back to top"
-                title="Back to top"
-                className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-[#ddd7ff] bg-white text-[#5d55cf] shadow-sm transition duration-200 hover:-translate-y-0.5 hover:border-[#4f46e5] hover:bg-[#4f46e5] hover:text-white focus:outline-none focus:ring-2 focus:ring-[#4f46e5]/30"
-              >
-                <ArrowUp size={15} />
-              </button>
-            </div>
+            <button
+              type="button"
+              onClick={scrollToTop}
+              aria-label="Back to top"
+              title="Back to top"
+              className="group absolute right-0 flex h-9 w-9 items-center justify-center rounded-full border border-[#e6e1fb] bg-[#f7f5ff] text-[#5d55cf] transition duration-300 hover:-translate-y-0.5 hover:border-transparent hover:bg-gradient-to-br hover:from-[#7c3aed] hover:to-[#4f46e5] hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-[#4f46e5]/40"
+            >
+              <ArrowUp
+                size={16}
+                className="transition-transform duration-300 group-hover:-translate-y-0.5"
+              />
+            </button>
           </div>
         </div>
       </div>

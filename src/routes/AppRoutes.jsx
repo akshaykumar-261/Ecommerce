@@ -11,6 +11,10 @@ import About from "../pages/Unauth/About";
 import Contact from "../pages/Unauth/Contact";
 import Faq from "../pages/Unauth/Faq";
 import Blog from "../pages/Unauth/Blog";
+import HelpCenter from "../pages/Unauth/HelpCenter";
+import ShippingInfo from "../pages/Unauth/ShippingInfo";
+import Returns from "../pages/Unauth/Returns";
+import PrivacyPolicy from "../pages/Unauth/PrivacyPolicy";
 import OtpVerify from "../pages/Auth/OtpVerify";
 import OtpVerifyForgotPassword from "../pages/Auth/OtpVerifyForgotPassword";
 import ResetPassword from "../pages/Auth/ResetPassword";
@@ -95,6 +99,10 @@ function AppRoutes() {
       <Route path="/contact" element={<Contact />} />
       <Route path="/faq" element={<Faq />} />
       <Route path="/blog" element={<Blog />} />
+      <Route path="/help-center" element={<HelpCenter />} />
+      <Route path="/shipping-info" element={<ShippingInfo />} />
+      <Route path="/returns" element={<Returns />} />
+      <Route path="/privacy-policy" element={<PrivacyPolicy />} />
       <Route
         path="/otpVerify"
         element={

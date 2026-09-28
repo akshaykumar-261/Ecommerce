@@ -19,7 +19,7 @@ function App() {
       <ScrollToTop />
       <AppRoutes />
       <Toaster
-        position="top-left"
+        position="top-right"
         toastOptions={{
           duration: 5000,
         }}

@@ -1,5 +1,50 @@
 @import "tailwindcss";
 
+/* Pointer cursor for anything that is actually clickable. Tailwind's preflight
+   leaves form controls on the default arrow, which makes buttons, links, cards
+   and toggles look inert until hovered. */
+@layer base {
+  a[href],
+  button,
+  [role="button"],
+  summary,
+  label,
+  select,
+  option,
+  [onclick],
+  [data-cursor-pointer] {
+    cursor: pointer;
+  }
+
+  button:disabled,
+  [aria-disabled="true"],
+  a[aria-disabled="true"] {
+    cursor: not-allowed;
+  }
+
+  input[type="checkbox"],
+  input[type="radio"],
+  input[type="range"],
+  input[type="submit"],
+  input[type="button"],
+  input[type="reset"] {
+    cursor: pointer;
+  }
+
+  input[type="text"],
+  input[type="email"],
+  input[type="password"],
+  input[type="number"],
+  input[type="tel"],
+  input[type="url"],
+  input[type="search"],
+  input[type="date"],
+  input[type="file"],
+  textarea {
+    cursor: text;
+  }
+}
+
 /* Shared admin panel entrance animations (referenced by class, defined once) */
 @keyframes adminFadeUp {
   from {
