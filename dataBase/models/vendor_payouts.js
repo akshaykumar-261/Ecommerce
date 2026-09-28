@@ -53,6 +53,19 @@ const VendorPayoutModel = sequelize.define(
       type: DataTypes.ENUM("pending", "paid", "failed", "refunded"),
       defaultValue: "pending",
     },
+
+    // Stripe transfer that moved the vendor's share, e.g. "tr_1abc...".
+    // Needed to reverse a payout on refund and to reconcile against Stripe.
+    transfer_id: {
+      type: DataTypes.STRING(255),
+      allowNull: true,
+    },
+
+    // Set when a transfer attempt failed, so payouts can be retried.
+    failure_reason: {
+      type: DataTypes.STRING(500),
+      allowNull: true,
+    },
   },
   {
     timestamps: true,
