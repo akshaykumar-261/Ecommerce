@@ -100,51 +100,6 @@ function About() {
           ))}
         </div>
       </section>
-
-      {/* Story */}
-      <section className="mx-auto max-w-6xl px-4 py-16 lg:px-8">
-        <div className="grid items-center gap-10 lg:grid-cols-2">
-          <div className="relative">
-            <div className="rounded-3xl bg-gradient-to-br from-[#4c2ed8] to-[#368de8] p-1">
-              <div className="flex h-72 items-center justify-center rounded-3xl bg-white">
-                <div className="text-center">
-                  <div className="mx-auto mb-3 flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-[#4c2ed8] to-[#368de8]">
-                    <Package size={28} className="text-white" />
-                  </div>
-                  <p className="text-sm font-semibold text-gray-800">
-                    Est. 2021
-                  </p>
-                  <p className="text-xs text-gray-500">
-                    Built with love in India
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
-          <div>
-            <span className="mb-3 inline-block rounded-full bg-[#4c2ed8]/10 px-4 py-1.5 text-xs font-semibold uppercase tracking-wider text-[#4c2ed8]">
-              Our Story
-            </span>
-            <h2 className="mb-4 text-3xl font-bold text-gray-900">
-              From a small idea to a smarter way to shop
-            </h2>
-            <p className="mb-4 text-gray-600 leading-relaxed">
-              ShopEase started in 2021 with a simple belief — shopping online
-              should feel effortless, fair, and trustworthy. We began by
-              partnering with local sellers to bring genuine products at
-              honest prices, and today we serve millions of happy customers
-              across the country.
-            </p>
-            <p className="text-gray-600 leading-relaxed">
-              Whether it's day-to-day essentials, the latest gadgets, or
-              fashion for every season, we're here to make sure you find
-              exactly what you need — backed by secure payments, fast
-              delivery, and support that actually cares.
-            </p>
-          </div>
-        </div>
-      </section>
-
       {/* Values */}
       <section className="bg-white py-16">
         <div className="mx-auto max-w-6xl px-4 lg:px-8">

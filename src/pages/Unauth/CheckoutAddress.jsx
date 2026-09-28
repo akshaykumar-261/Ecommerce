@@ -667,12 +667,6 @@ const handlePaymentSuccess = async (paymentMethodId, paymentParams = {}) => {
               Delivery Address
             </span>
             <ChevronRight size={14} className="text-gray-300" />
-            <span className="flex items-center gap-1.5 rounded-full bg-white px-4 py-2 text-gray-400 ring-1 ring-gray-200">
-              <span className="flex h-5 w-5 items-center justify-center rounded-full bg-gray-100 text-[10px]">
-                2
-              </span>
-              Payment
-            </span>
           </div>
         </div>
 
@@ -876,9 +870,7 @@ const handlePaymentSuccess = async (paymentMethodId, paymentParams = {}) => {
                         ) : (
                           <Trash2 size={16} className="text-gray-300" />
                         )}
-                        <span className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-[#4c2ed8] text-[9px] font-bold text-white">
-                          {item.quantity}
-                        </span>
+                      
                       </div>
                       <div className="min-w-0 flex-1">
                         <p className="truncate text-xs font-semibold text-gray-800">
