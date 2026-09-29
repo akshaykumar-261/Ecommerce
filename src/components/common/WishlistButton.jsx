@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
 import { Heart } from "lucide-react";
 import {
   useWishlist,
@@ -7,7 +6,7 @@ import {
   useRemoveFromWishlist,
 } from "../../api/useWishlist";
 import toast from "react-hot-toast";
-import Popup from "./Popup";
+import LoginRequiredModal from "./LoginRequiredModal";
 
 function WishlistButton({
   productId,
@@ -17,13 +16,13 @@ function WishlistButton({
   inactiveIconClassName = "text-gray-400",
   label,
   activeLabel,
+  redirectTo,
 }) {
   const { data: wishlistData } = useWishlist();
   const { mutate: addToWishlist } = useAddToWishlist();
   const { mutate: removeFromWishlist } = useRemoveFromWishlist();
   const [pendingId, setPendingId] = useState(null);
   const [showLoginPrompt, setShowLoginPrompt] = useState(false);
-  const navigate = useNavigate();
 
   const wishlist =
     wishlistData?.data?.wishlists || wishlistData?.data?.wishlist || [];
@@ -78,32 +77,11 @@ function WishlistButton({
         )}
       </button>
 
-      <Popup
+      <LoginRequiredModal
         open={showLoginPrompt}
         onClose={() => setShowLoginPrompt(false)}
-        icon={<Heart size={24} className="text-red-500" />}
-        iconClassName="bg-red-50"
-        title="Login Required"
-        message="Please login to your account to add products to your wishlist."
-      >
-        <div className="flex gap-3">
-          <button
-            onClick={() => setShowLoginPrompt(false)}
-            className="flex-1 rounded-xl border border-gray-200 px-4 py-2.5 text-sm font-medium text-gray-700 transition hover:bg-gray-50"
-          >
-            Cancel
-          </button>
-          <button
-            onClick={() => {
-              setShowLoginPrompt(false);
-              navigate("/login");
-            }}
-            className="flex-1 rounded-xl bg-[#4c2ed8] px-4 py-2.5 text-sm font-medium text-white transition hover:bg-[#3a24b0]"
-          >
-            Login
-          </button>
-        </div>
-      </Popup>
+        redirectTo={redirectTo}
+      />
     </>
   );
 }

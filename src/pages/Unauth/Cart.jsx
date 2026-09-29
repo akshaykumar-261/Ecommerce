@@ -21,6 +21,7 @@ import {
 import toast from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
 import Navbar from "../../components/common/Navbar";
+import LoginRequiredModal from "../../components/common/LoginRequiredModal";
 
 function LoadingSkeleton() {
   return (
@@ -57,6 +58,7 @@ function Cart() {
   const { mutate: updateQuantity } = useUpdateCartQuantity();
   const { mutate: removeFromCart } = useRemoveFromCart();
   const { items: guestItems } = useGuestCart();
+  const [showLoginModal, setShowLoginModal] = useState(false);
   const [updatingId, setUpdatingId] = useState(null);
   const [removingId, setRemovingId] = useState(null);
   const [localQuantities, setLocalQuantities] = useState({});
@@ -435,7 +437,7 @@ function Cart() {
                       onClick={() =>
                         isLoggedIn
                           ? navigate("/checkout")
-                          : navigate("/login")
+                          : setShowLoginModal(true)
                       }
                       className="mt-6 flex w-full items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-[#4c2ed8] to-[#368de8] px-6 py-4 text-sm font-bold text-white shadow-lg shadow-[#4c2ed8]/25 transition hover:shadow-xl hover:shadow-[#4c2ed8]/35 active:scale-[0.98]"
                     >
@@ -464,6 +466,11 @@ function Cart() {
           </>
         )}
       </main>
+      <LoginRequiredModal
+        open={showLoginModal}
+        onClose={() => setShowLoginModal(false)}
+        redirectTo="/cart"
+      />
     </div>
   );
 }

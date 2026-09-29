@@ -21,10 +21,9 @@ import {
 import { useProductReviews } from "../../api/useReviews";
 import WishlistButton from "../../components/common/WishlistButton";
 import Navbar from "../../components/common/Navbar";
-import Popup from "../../components/common/Popup";
+import LoginRequiredModal from "../../components/common/LoginRequiredModal";
 import ProductReviews from "../../components/product/ProductReviews";
 import ShareButton from "../../components/product/ShareButton";
-import { LogIn } from "lucide-react";
 import toast from "react-hot-toast";
 
 function ImageGallery({ images, productId }) {
@@ -289,11 +288,10 @@ export default function ProductDetail() {
   };
 
   const handleBuyNow = () => {
-    // Buy Now skips the cart, so it needs a real account. Guests are sent to
-    // login and returned here afterwards - nothing is added to their cart.
+    // Buy Now skips the cart, so it needs a real account. Guests get the shared
+    // login modal and are returned here afterwards - nothing is added to cart.
     if (!isLoggedIn) {
-      toast("Please login to buy this product.", { icon: "🔒" });
-      navigate("/login", { state: { from: `/product/${id}` } });
+      setShowLoginPopup(true);
       return;
     }
 
@@ -539,32 +537,11 @@ export default function ProductDetail() {
         />
       </div>
     </div>
-    <Popup
+    <LoginRequiredModal
       open={showLoginPopup}
       onClose={() => setShowLoginPopup(false)}
-      title="Login Required"
-      message="Please login to read and write reviews for this product"
-    >
-      <div className="flex gap-3 mt-4">
-        <button
-          onClick={() => {
-            setShowLoginPopup(false);
-            navigate("/login");
-          }}
-          className="flex-1 flex items-center justify-center gap-2 rounded-xl bg-[#4c2ed8] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[#3a24b0]"
-        >
-          <LogIn size={16} />
-          Login
-        </button>
-        <button
-          onClick={() => setShowLoginPopup(false)}
-          className="flex-1 flex items-center justify-center gap-2 rounded-xl border border-gray-200 px-4 py-2.5 text-sm font-semibold text-gray-600 transition hover:bg-gray-50"
-        >
-          <X size={16} />
-          Cancel
-        </button>
-      </div>
-    </Popup>
+      redirectTo={`/product/${id}`}
+    />
   </>
   );
 }

@@ -1,7 +1,8 @@
 import { useState } from "react";
 import {
   Check,
-  MessageSquare,
+  LockKeyhole,
+  LogIn,
   Send,
   ShieldCheck,
   Star,
@@ -131,19 +132,21 @@ function ReviewForm({ productId, myReview, onLoginRequired }) {
   if (!localStorage.getItem("accessToken")) {
     return (
       <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-[#4c2ed8]/20 bg-[#faf9ff] px-5 py-10 text-center">
-        <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-[#f1efff] text-[#4c2ed8]">
-          <MessageSquare size={22} />
+        <div className="flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-br from-[#f1efff] to-[#e8e4ff]">
+          <LockKeyhole size={20} className="text-[#4c2ed8]" />
         </div>
-        <h3 className="text-base font-semibold text-gray-900">Share your experience</h3>
-        <p className="mt-1 max-w-sm text-sm leading-6 text-gray-500">
-          Login to read and write reviews for this product.
+        <h3 className="mt-4 text-lg font-bold text-[#131a35]">Login Required</h3>
+        <p className="mt-2 max-w-sm text-sm leading-6 text-slate-500">
+          Please log in to your account to read and write reviews for this
+          product.
         </p>
         <button
           type="button"
           onClick={onLoginRequired}
-          className="mt-5 rounded-xl bg-[#4c2ed8] px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-[#3a24b0]"
+          className="mt-6 inline-flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-[#4c2ed8] to-[#6d4bf0] px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-[#4c2ed8]/30 transition hover:shadow-xl hover:shadow-[#4c2ed8]/40"
         >
-          Login to continue
+          <LogIn size={17} />
+          Login
         </button>
       </div>
     );
@@ -274,17 +277,21 @@ export default function ProductReviews({ productId, onLoginRequired }) {
 
       {!isLoggedIn ? (
         <div className="mt-5 rounded-2xl border border-dashed border-[#4c2ed8]/20 bg-[#faf9ff] px-5 py-10 text-center">
-          <MessageSquare className="mx-auto text-[#4c2ed8]" size={28} />
-          <h3 className="mt-3 text-base font-semibold text-gray-900">Login to see customer reviews</h3>
-          <p className="mx-auto mt-1 max-w-md text-sm leading-6 text-gray-500">
-            Sign in to read verified customer feedback and share your own experience.
+          <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-gradient-to-br from-[#f1efff] to-[#e8e4ff]">
+            <LockKeyhole size={24} className="text-[#4c2ed8]" />
+          </div>
+          <h3 className="mt-4 text-xl font-bold text-[#131a35]">Login Required</h3>
+          <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-slate-500">
+            Please log in to your account to read and write reviews for this
+            product.
           </p>
           <button
             type="button"
             onClick={onLoginRequired}
-            className="mt-5 rounded-xl bg-[#4c2ed8] px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-[#3a24b0]"
+            className="mt-6 inline-flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-[#4c2ed8] to-[#6d4bf0] px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-[#4c2ed8]/30 transition hover:shadow-xl hover:shadow-[#4c2ed8]/40"
           >
-            Login to continue
+            <LogIn size={17} />
+            Login
           </button>
         </div>
       ) : (
