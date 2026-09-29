@@ -225,8 +225,7 @@ function Register() {
 
         {/* BUTTON */}
         <Button type="submit" className="py-2 text-sm">
-          CREATE VENDOR ACCOUNT
-        </Button>
+REGISTER        </Button>
       </form>
 
       <p className="text-center mt-3 text-xs text-gray-600">

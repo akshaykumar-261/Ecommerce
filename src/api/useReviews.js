@@ -13,7 +13,7 @@ export const useProductReviews = (productId) => {
   return useQuery({
     queryKey: ["product-reviews", productId],
     queryFn: () => GetProductReviews(productId),
-    enabled: Boolean(productId) && isLoggedIn(),
+    enabled: Boolean(productId),
   });
 };
 

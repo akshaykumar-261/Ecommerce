@@ -1,8 +1,6 @@
 import { useState } from "react";
 import {
   Check,
-  LockKeyhole,
-  LogIn,
   Send,
   ShieldCheck,
   Star,
@@ -71,7 +69,7 @@ function RatingStars({ rating, interactive = false, onChange }) {
   );
 }
 
-function ReviewForm({ productId, myReview, onLoginRequired }) {
+function ReviewForm({ productId, myReview }) {
   const [rating, setRating] = useState(Number(myReview?.rating) || 0);
   const [reviewText, setReviewText] = useState(myReview?.review || "");
   const createReview = useCreateReview(productId);
@@ -128,29 +126,6 @@ function ReviewForm({ productId, myReview, onLoginRequired }) {
       },
     });
   };
-
-  if (!localStorage.getItem("accessToken")) {
-    return (
-      <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-[#4c2ed8]/20 bg-[#faf9ff] px-5 py-10 text-center">
-        <div className="flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-br from-[#f1efff] to-[#e8e4ff]">
-          <LockKeyhole size={20} className="text-[#4c2ed8]" />
-        </div>
-        <h3 className="mt-4 text-lg font-bold text-[#131a35]">Login Required</h3>
-        <p className="mt-2 max-w-sm text-sm leading-6 text-slate-500">
-          Please log in to your account to read and write reviews for this
-          product.
-        </p>
-        <button
-          type="button"
-          onClick={onLoginRequired}
-          className="mt-6 inline-flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-[#4c2ed8] to-[#6d4bf0] px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-[#4c2ed8]/30 transition hover:shadow-xl hover:shadow-[#4c2ed8]/40"
-        >
-          <LogIn size={17} />
-          Login
-        </button>
-      </div>
-    );
-  }
 
   return (
     <>
@@ -244,7 +219,7 @@ function ReviewForm({ productId, myReview, onLoginRequired }) {
   );
 }
 
-export default function ProductReviews({ productId, onLoginRequired }) {
+export default function ProductReviews({ productId }) {
   const isLoggedIn = Boolean(localStorage.getItem("accessToken"));
   const { data, isLoading, isError, refetch } = useProductReviews(productId);
   const { data: myReviewData, isLoading: myReviewLoading } = useMyReview(productId);
@@ -261,55 +236,41 @@ export default function ProductReviews({ productId, onLoginRequired }) {
 
   return (
     <section className="mt-8 rounded-[2rem] border border-[#4c2ed8]/10 bg-white p-5 shadow-[0_18px_50px_rgba(76,46,216,0.08)] sm:p-7 lg:p-8">
-      <div className="flex flex-col gap-2 border-b border-gray-100 pb-5 sm:flex-row sm:items-end sm:justify-between">
-        <div>
-          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#4c2ed8]">Customer feedback</p>
-          <h2 className="mt-1 text-xl font-bold text-gray-900">Reviews & Ratings</h2>
-        </div>
-        {reviews.length > 0 && (
-          <div className="flex items-center gap-2 text-sm text-gray-500">
-            <RatingStars rating={Math.round(averageRating)} />
-            <span className="font-semibold text-gray-800">{averageRating.toFixed(1)}</span>
-            <span>({reviews.length})</span>
-          </div>
-        )}
+      <div className="border-b border-gray-100 pb-5">
+        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#4c2ed8]">Customer feedback</p>
+        <h2 className="mt-1 text-xl font-bold text-gray-900">Reviews &amp; Ratings</h2>
       </div>
 
-      {!isLoggedIn ? (
-        <div className="mt-5 rounded-2xl border border-dashed border-[#4c2ed8]/20 bg-[#faf9ff] px-5 py-10 text-center">
-          <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-gradient-to-br from-[#f1efff] to-[#e8e4ff]">
-            <LockKeyhole size={24} className="text-[#4c2ed8]" />
-          </div>
-          <h3 className="mt-4 text-xl font-bold text-[#131a35]">Login Required</h3>
-          <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-slate-500">
-            Please log in to your account to read and write reviews for this
-            product.
-          </p>
-          <button
-            type="button"
-            onClick={onLoginRequired}
-            className="mt-6 inline-flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-[#4c2ed8] to-[#6d4bf0] px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-[#4c2ed8]/30 transition hover:shadow-xl hover:shadow-[#4c2ed8]/40"
+      <div
+        className={`mt-6 grid gap-6 ${
+          isLoggedIn
+            ? "lg:grid-cols-[minmax(220px,0.7fr)_minmax(0,1.3fr)]"
+            : "lg:grid-cols-1"
+        }`}
+      >
+        <div className="rounded-2xl bg-[#faf9ff] p-5">
+          <div
+            className={
+              isLoggedIn ? "" : "lg:flex lg:items-start lg:gap-10"
+            }
           >
-            <LogIn size={17} />
-            Login
-          </button>
-        </div>
-      ) : (
-        <div className="mt-6 grid gap-6 lg:grid-cols-[minmax(220px,0.7fr)_minmax(0,1.3fr)]">
-          <div className="rounded-2xl bg-[#faf9ff] p-5">
-            <div className="flex items-end gap-2">
-              <span className="text-4xl font-extrabold text-[#4c2ed8]">
-                {averageRating ? averageRating.toFixed(1) : "—"}
-              </span>
-              <span className="pb-1 text-sm text-gray-500">out of 5</span>
+            <div className="lg:w-44 lg:shrink-0">
+              <div className="flex items-end gap-2">
+                <span className="text-4xl font-extrabold text-[#4c2ed8]">
+                  {averageRating ? averageRating.toFixed(1) : "—"}
+                </span>
+                <span className="pb-1 text-sm text-gray-500">out of 5</span>
+              </div>
+              <div className="mt-2">
+                <RatingStars rating={Math.round(averageRating)} />
+              </div>
+              <p className="mt-2 text-sm text-gray-500">
+                {reviews.length}{" "}
+                {reviews.length === 1 ? "review" : "reviews"}
+              </p>
             </div>
-            <div className="mt-2">
-              <RatingStars rating={Math.round(averageRating)} />
-            </div>
-            <p className="mt-2 text-sm text-gray-500">
-              {reviews.length} {reviews.length === 1 ? "review" : "reviews"}
-            </p>
-            <div className="mt-5 space-y-2.5">
+
+            <div className="mt-5 space-y-2.5 lg:mt-0 lg:flex-1">
               {ratingCounts.map((count, index) => {
                 const rating = 5 - index;
                 const percentage = reviews.length ? (count / reviews.length) * 100 : 0;
@@ -325,12 +286,14 @@ export default function ProductReviews({ productId, onLoginRequired }) {
                 );
               })}
             </div>
-            <div className="mt-5 flex items-center gap-2 border-t border-[#4c2ed8]/10 pt-4 text-xs text-gray-500">
-              <ShieldCheck size={15} className="text-[#4c2ed8]" />
-              Verified customer feedback
-            </div>
           </div>
+          <div className="mt-5 flex items-center gap-2 border-t border-[#4c2ed8]/10 pt-4 text-xs text-gray-500">
+            <ShieldCheck size={15} className="text-[#4c2ed8]" />
+            Verified customer feedback
+          </div>
+        </div>
 
+        {isLoggedIn && (
           <div className="min-w-0">
             {myReviewLoading ? (
               <div className="h-48 animate-pulse rounded-2xl bg-gray-100" />
@@ -339,72 +302,69 @@ export default function ProductReviews({ productId, onLoginRequired }) {
                 key={myReview?.id || "new-review"}
                 productId={productId}
                 myReview={myReview}
-                onLoginRequired={onLoginRequired}
               />
             )}
           </div>
-        </div>
-      )}
+        )}
+      </div>
 
-      {isLoggedIn && (
-        <div className="mt-8 border-t border-gray-100 pt-6">
-          <div className="mb-4 flex items-center justify-between gap-3">
-            <h3 className="text-base font-semibold text-gray-900">What customers said</h3>
-            {isLoading && <span className="text-xs text-gray-400">Loading reviews...</span>}
+      <div className="mt-8 border-t border-gray-100 pt-6">
+        <div className="mb-4 flex items-center justify-between gap-3">
+          <h3 className="text-base font-semibold text-gray-900">What customers said</h3>
+          {isLoading && <span className="text-xs text-gray-400">Loading reviews...</span>}
+        </div>
+        {isError ? (
+          <div className="rounded-2xl border border-red-100 bg-red-50 px-4 py-5 text-center">
+            <p className="text-sm text-red-500">Unable to load reviews right now.</p>
+            <button
+              type="button"
+              onClick={() => refetch()}
+              className="mt-3 text-sm font-semibold text-[#4c2ed8] hover:underline"
+            >
+              Try again
+            </button>
           </div>
-          {isError ? (
-            <div className="rounded-2xl border border-red-100 bg-red-50 px-4 py-5 text-center">
-              <p className="text-sm text-red-500">Unable to load reviews right now.</p>
-              <button
-                type="button"
-                onClick={() => refetch()}
-                className="mt-3 text-sm font-semibold text-[#4c2ed8] hover:underline"
-              >
-                Try again
-              </button>
-            </div>
-          ) : reviews.length === 0 && !isLoading ? (
-            <div className="rounded-2xl border border-dashed border-gray-200 px-5 py-8 text-center text-sm text-gray-500">
-              No reviews yet. Be the first to share your experience.
-            </div>
-          ) : (
-            <div className="grid gap-3 md:grid-cols-2">
-              {reviews.map((review) => {
-                const reviewerName = getReviewerName(review);
-                const isCurrentUser =
-                  myReview && Number(review.user_id) === Number(myReview.user_id);
+        ) : reviews.length === 0 && !isLoading ? (
+          <div className="rounded-2xl border border-dashed border-gray-200 px-5 py-8 text-center text-sm text-gray-500">
+            No reviews yet. Be the first to share your experience.
+          </div>
+        ) : (
+          <div className="grid gap-3 md:grid-cols-2">
+            {reviews.map((review) => {
+              const reviewerName = getReviewerName(review);
+              const isCurrentUser =
+                myReview && Number(review.user_id) === Number(myReview.user_id);
 
-                return (
-                  <article
-                    key={review.id}
-                    className="rounded-2xl border border-gray-100 bg-gray-50/70 p-4"
-                  >
-                    <div className="flex items-start justify-between gap-3">
-                      <div className="flex items-center gap-3">
-                        <div className="flex h-9 w-9 items-center justify-center rounded-full bg-[#f1efff] text-xs font-bold text-[#4c2ed8]">
-                          {isCurrentUser ? "Y" : reviewerName.charAt(0).toUpperCase()}
-                        </div>
-                        <div>
-                          <p className="text-sm font-semibold text-gray-800">
-                            {isCurrentUser ? "You" : reviewerName}
-                          </p>
-                          <p className="text-[11px] text-gray-400">
-                            {formatReviewDate(review.createdAt)}
-                          </p>
-                        </div>
+              return (
+                <article
+                  key={review.id}
+                  className="rounded-2xl border border-gray-100 bg-gray-50/70 p-4"
+                >
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="flex items-center gap-3">
+                      <div className="flex h-9 w-9 items-center justify-center rounded-full bg-[#f1efff] text-xs font-bold text-[#4c2ed8]">
+                        {isCurrentUser ? "Y" : reviewerName.charAt(0).toUpperCase()}
                       </div>
-                      <RatingStars rating={Number(review.rating)} />
+                      <div>
+                        <p className="text-sm font-semibold text-gray-800">
+                          {isCurrentUser ? "You" : reviewerName}
+                        </p>
+                        <p className="text-[11px] text-gray-400">
+                          {formatReviewDate(review.createdAt)}
+                        </p>
+                      </div>
                     </div>
-                    <p className="mt-3 text-sm leading-6 text-gray-600">
-                      {review.review}
-                    </p>
-                  </article>
-                );
-              })}
-            </div>
-          )}
-        </div>
-      )}
+                    <RatingStars rating={Number(review.rating)} />
+                  </div>
+                  <p className="mt-3 text-sm leading-6 text-gray-600">
+                    {review.review}
+                  </p>
+                </article>
+              );
+            })}
+          </div>
+        )}
+      </div>
     </section>
   );
 }
