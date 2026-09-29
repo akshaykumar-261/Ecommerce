@@ -5,7 +5,7 @@ function Button({ children, type = "button", onClick, className = "" }) {
       onClick={onClick}
       className={`
         w-full
-        py-4
+        py-3
         rounded-lg
         text-white
         font-semibold

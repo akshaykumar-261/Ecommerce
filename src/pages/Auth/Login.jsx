@@ -10,6 +10,10 @@ import authBanner from "../../assets/image.png";
 import { useLogin } from "../../api/useAuth";
 import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
+
+import authFieldClass from "../../components/auth/authFieldClass";
+import AuthFieldError from "../../components/auth/AuthFieldError";
+
 function Login() {
   const [showPassword, setShowPassword] = useState(false);
   const { mutate: loginUser } = useLogin();
@@ -23,6 +27,7 @@ function Login() {
     formState: { errors },
   } = useForm({
     resolver: zodResolver(loginSchema),
+    mode: "onTouched",
   });
 
   const onSubmitData = (data) => {
@@ -65,7 +70,7 @@ function Login() {
       </div>
 
       {/* FORM */}
-      <form onSubmit={handleSubmit(onSubmitData)} className="space-y-4">
+      <form onSubmit={handleSubmit(onSubmitData)} className="space-y-4" noValidate>
         {/* EMAIL */}
         <div>
           <div className="relative">
@@ -77,23 +82,11 @@ function Login() {
               type="email"
               placeholder="Enter Your Email"
               {...register("email")}
-              className="
-                w-full
-                border
-                border-gray-300
-                rounded-lg
-                py-2
-                pl-10
-                pr-4
-                text-sm
-                outline-none
-                focus:border-violet-500
-              "
+              className={authFieldClass()}
+              aria-invalid={!!errors.email}
             />
           </div>
-          {errors.email && (
-            <p className="text-red-500 text-xs mt-1">{errors.email.message}</p>
-          )}
+          <AuthFieldError message={errors.email?.message} />
         </div>
 
         {/* PASSWORD */}
@@ -107,43 +100,24 @@ function Login() {
               type={showPassword ? "text" : "password"}
               placeholder="Enter Your Password"
               {...register("password")}
-              className="
-                w-full
-                border
-                border-gray-300
-                rounded-lg
-                py-2
-                pl-10
-                pr-10
-                text-sm
-                outline-none
-                focus:border-violet-500
-              "
+              className={authFieldClass("pr-10")}
+              aria-invalid={!!errors.password}
             />
             <button
               type="button"
               onClick={() => setShowPassword(!showPassword)}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500"
+              aria-label={showPassword ? "Hide password" : "Show password"}
+              className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-500 transition hover:text-violet-600"
             >
               {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
             </button>
           </div>
-          {errors.password && (
-            <p className="text-red-500 text-xs mt-1">
-              {errors.password.message}
-            </p>
-          )}
+          <AuthFieldError message={errors.password?.message} />
         </div>
 
         {/* REMEMBER & FORGOT PASSWORD */}
         <div className="flex items-center justify-between text-xs">
-          <label className="flex items-center gap-2 text-gray-600 cursor-pointer">
-            <input
-              type="checkbox"
-              className="w-3.5 h-3.5 accent-violet-600 rounded"
-            />
-            Remember me
-          </label>
+        
           <Link
             to="/forgot-password"
             className="text-violet-600 hover:underline font-medium"

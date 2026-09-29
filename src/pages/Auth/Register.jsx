@@ -11,6 +11,9 @@ import { useRegister } from "../../api/useAuth";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../components/common/ AuthContext";
 import toast from "react-hot-toast";
+import authFieldClass from "../../components/auth/authFieldClass";
+import AuthFieldError from "../../components/auth/AuthFieldError";
+
 function Register() {
   const [showPassword, setShowPassword] = useState(false);
   const { mutate: createUser } = useRegister();
@@ -23,14 +26,16 @@ function Register() {
     formState: { errors },
   } = useForm({
     resolver: zodResolver(registerSchema),
+    mode: "onTouched",
   });
 
   const onSubmitData = (data) => {
-    const { confirmPassword, ...payload } = data;
+    const payload = { ...data };
+    delete payload.confirmPassword;
     createUser(payload, {
       onSuccess: () => {
         toast.success("Account Created Successfully!");
-         setRegistrationCompleted(true);
+        setRegistrationCompleted(true);
         reset();
         navigate("/otpVerify");
       },
@@ -38,7 +43,6 @@ function Register() {
         toast.error(error.response?.data?.message || "Registeration Failed");
       },
     });
-    reset();
   };
 
   return (
@@ -64,168 +68,148 @@ function Register() {
         </p>
       </div>
 
-      <form
-        className="space-y-3"
-        onSubmit={handleSubmit(onSubmitData, (errors) => {
-          console.log("VALIDATION ERRORS:", errors);
-        })}
-      >
+      <form className="space-y-4" onSubmit={handleSubmit(onSubmitData)} noValidate>
         {/* FIRST NAME & LAST NAME */}
-        <div className="grid grid-cols-2 gap-3">
-          {/* FIRST NAME */}
-          <div className="relative">
-            <User
-              size={18}
-              className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
-            />
-
-            <input
-              type="text"
-              placeholder="First Name"
-              {...register("name")}
-              className="w-full border border-violet-200 rounded-lg py-1.5 pl-10 pr-3 text-sm outline-none bg-white shadow-[0_2px_8px_rgba(139,92,246,0.12)] focus:border-violet-500 focus:shadow-[0_3px_10px_rgba(139,92,246,0.18)]"
-            />
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <div>
+            <div className="relative">
+              <User
+                size={18}
+                className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+              />
+              <input
+                type="text"
+                placeholder="First Name"
+                {...register("name")}
+                className={authFieldClass()}
+                aria-invalid={!!errors.name}
+              />
+            </div>
+            <AuthFieldError message={errors.name?.message} />
           </div>
-          {errors.name && (
-            <p className="text-red-500 text-xs mt-0.5">{errors.name.message}</p>
-          )}
-          {/* LAST NAME */}
-          <div className="relative">
-            <User
-              size={18}
-              className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
-            />
 
-            <input
-              type="text"
-              {...register("lastname")}
-              placeholder="Last Name"
-              className="w-full border border-violet-200 rounded-lg py-1.5 pl-10 pr-3 text-sm outline-none bg-white shadow-[0_2px_8px_rgba(139,92,246,0.12)] focus:border-violet-500 focus:shadow-[0_3px_10px_rgba(139,92,246,0.18)]"
-            />
+          <div>
+            <div className="relative">
+              <User
+                size={18}
+                className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+              />
+              <input
+                type="text"
+                placeholder="Last Name"
+                {...register("lastname")}
+                className={authFieldClass()}
+                aria-invalid={!!errors.lastname}
+              />
+            </div>
+            <AuthFieldError message={errors.lastname?.message} />
           </div>
-          {errors.lastname && (
-            <p className="text-red-500 text-xs mt-0.5">
-              {errors.lastname.message}
-            </p>
-          )}
         </div>
 
         {/* EMAIL */}
-        <div className="relative">
-          <Mail
-            size={18}
-            className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
-          />
-
-          <input
-            type="email"
-            placeholder="Enter Your Email"
-            {...register("email")}
-            className="w-full border border-violet-200 rounded-lg py-1.5 pl-10 pr-3 text-sm outline-none bg-white shadow-[0_2px_8px_rgba(139,92,246,0.12)] focus:border-violet-500 focus:shadow-[0_3px_10px_rgba(139,92,246,0.18)]"
-          />
+        <div>
+          <div className="relative">
+            <Mail
+              size={18}
+              className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+            />
+            <input
+              type="email"
+              placeholder="Enter Your Email"
+              {...register("email")}
+              className={authFieldClass()}
+              aria-invalid={!!errors.email}
+            />
+          </div>
+          <AuthFieldError message={errors.email?.message} />
         </div>
-        {errors.email && (
-          <p className="text-red-500 text-xs mt-0.5">{errors.email.message}</p>
-        )}
+
         {/* MOBILE */}
-        <div className="relative">
-          <Phone
-            size={18}
-            className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
-          />
-
-          <input
-            type="text"
-            placeholder="Enter Mobile Number"
-            {...register("phoneNo")}
-            className="w-full border border-violet-200 rounded-lg py-1.5 pl-10 pr-3 text-sm outline-none bg-white shadow-[0_2px_8px_rgba(139,92,246,0.12)] focus:border-violet-500 focus:shadow-[0_3px_10px_rgba(139,92,246,0.18)]"
-          />
+        <div>
+          <div className="relative">
+            <Phone
+              size={18}
+              className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+            />
+            <input
+              type="tel"
+              inputMode="numeric"
+              maxLength={10}
+              placeholder="Enter Mobile Number"
+              {...register("phoneNo")}
+              className={authFieldClass()}
+              aria-invalid={!!errors.phoneNo}
+            />
+          </div>
+          <AuthFieldError message={errors.phoneNo?.message} />
         </div>
-        {errors.phoneNo && (
-          <p className="text-red-500 text-xs mt-0.5">
-            {errors.phoneNo.message}
-          </p>
-        )}
+
         {/* ADDRESS */}
-        <div className="relative">
-          <MapPin
-            size={18}
-            className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
-          />
-
-          <input
-            type="text"
-            placeholder="Enter Address"
-            {...register("address")}
-            className="w-full border border-violet-200 rounded-lg py-1.5 pl-10 pr-3 text-sm outline-none bg-white shadow-[0_2px_8px_rgba(139,92,246,0.12)] focus:border-violet-500 focus:shadow-[0_3px_10px_rgba(139,92,246,0.18)]"
-          />
+        <div>
+          <div className="relative">
+            <MapPin
+              size={18}
+              className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+            />
+            <input
+              type="text"
+              placeholder="Enter Address"
+              {...register("address")}
+              className={authFieldClass()}
+              aria-invalid={!!errors.address}
+            />
+          </div>
+          <AuthFieldError message={errors.address?.message} />
         </div>
-        {errors.address && (
-          <p className="text-red-500 text-xs mt-0.5">
-            {errors.address.message}
-          </p>
-        )}
+
         {/* PASSWORD & CONFIRM PASSWORD */}
-        <div className="grid grid-cols-2 gap-3">
-          {/* PASSWORD */}
-          <div className="relative">
-            <Lock
-              size={18}
-              className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
-            />
-
-            <input
-              type={showPassword ? "text" : "password"}
-              placeholder="Password"
-              {...register("password")}
-              className="w-full border border-violet-200 rounded-lg py-1.5 pl-10 pr-8 text-sm outline-none bg-white shadow-[0_2px_8px_rgba(139,92,246,0.12)] focus:border-violet-500 focus:shadow-[0_3px_10px_rgba(139,92,246,0.18)]"
-            />
-
-            <button
-              type="button"
-              onClick={() => setShowPassword(!showPassword)}
-              className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-500"
-            >
-              {showPassword ? <Eye size={16} /> : <EyeOff size={16} />}
-            </button>
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <div>
+            <div className="relative">
+              <Lock
+                size={18}
+                className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+              />
+              <input
+                type={showPassword ? "text" : "password"}
+                placeholder="Password"
+                {...register("password")}
+                className={authFieldClass("pr-10")}
+                aria-invalid={!!errors.password}
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                aria-label={showPassword ? "Hide password" : "Show password"}
+                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-500 transition hover:text-violet-600"
+              >
+                {showPassword ? <Eye size={16} /> : <EyeOff size={16} />}
+              </button>
+            </div>
+            <AuthFieldError message={errors.password?.message} />
           </div>
-          {errors.password && (
-            <p className="text-red-500 text-xs mt-0.5">
-              {errors.password.message}
-            </p>
-          )}
 
-          {/* CONFIRM PASSWORD */}
-          <div className="relative">
-            <Lock
-              size={18}
-              className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
-            />
-
-            <input
-              type={showPassword ? "text" : "password"}
-              placeholder="Confirm"
-              {...register("confirmPassword")}
-              className="w-full border border-violet-200 rounded-lg py-1.5 pl-10 pr-8 text-sm outline-none bg-white shadow-[0_2px_8px_rgba(139,92,246,0.12)] focus:border-violet-500 focus:shadow-[0_3px_10px_rgba(139,92,246,0.18)]"
-            />
+          <div>
+            <div className="relative">
+              <Lock
+                size={18}
+                className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+              />
+              <input
+                type={showPassword ? "text" : "password"}
+                placeholder="Confirm Password"
+                {...register("confirmPassword")}
+                className={authFieldClass("pr-10")}
+                aria-invalid={!!errors.confirmPassword}
+              />
+            </div>
+            <AuthFieldError message={errors.confirmPassword?.message} />
           </div>
-          {errors.confirmPassword && (
-            <p className="text-red-500 text-xs mt-0.5">
-              {errors.confirmPassword.message}
-            </p>
-          )}
         </div>
 
-        {/* TERMS */}
-        <label className="flex items-center gap-2 text-xs text-gray-500">
-          <input type="checkbox" className="accent-violet-600 rounded" />
-
-          <span>I agree to Terms & Conditions</span>
-        </label>
-
-        {/* BUTTON */}
         <Button type="submit" className="py-2 text-sm">
-REGISTER        </Button>
+          REGISTER
+        </Button>
       </form>
 
       <p className="text-center mt-3 text-xs text-gray-600">

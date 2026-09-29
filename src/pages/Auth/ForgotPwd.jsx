@@ -11,6 +11,9 @@ import { useForgetPassword } from "../../api/useAuth";
 import toast from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
 import {useAuth} from "../../components/common/ AuthContext"
+import leftArrow from "../../assets/left-arrow.png";
+import authFieldClass from "../../components/auth/authFieldClass";
+import AuthFieldError from "../../components/auth/AuthFieldError";
 function ForgotPwd() {
   const { mutate: userForgotPassword } = useForgetPassword();
   const { setForgotPasswordEmail } = useAuth();
@@ -22,6 +25,7 @@ function ForgotPwd() {
     formState: { errors },
   } = useForm({
     resolver: zodResolver(forgotPasswordSchema),
+    mode: "onTouched",
   });
   const onSubmitData = (data) => {
     userForgotPassword(data, {
@@ -38,57 +42,56 @@ function ForgotPwd() {
   };
 
   return (
-    <AuthLayout image={authBanner}>
-      <Link to="/login" className="text-sm text-gray-500">
-        ← Back to Login
+    <AuthLayout image={authBanner} centerContent>
+      <Link
+        to="/login"
+        className="absolute left-5 top-5 flex w-fit items-center gap-2 text-xs font-medium text-gray-600 transition hover:text-violet-600 md:right-8 md:top-6"
+      >
+        <img src={leftArrow} alt="" aria-hidden="true" className="h-4 w-4" />
+        Back to Login
       </Link>
-      <div>
-        <Mail size={35} className="mt-10 text-violet-600" />
-      </div>
-      <div className="mt-10">
-        <h1 className="text-3xl mt-1 font-bold text-gray-900">
-          Enter Your Email
-        </h1>
-        <p className="text-gray-500 mt-2">
-          We'll send a 6-digit verification code to your email address.
+
+      {/* HEADING */}
+      <div className="mb-6 text-center">
+        <h1 className="text-xl font-bold text-gray-900">Forgot Password?</h1>
+        <p className="text-xs text-gray-500 mt-1">
+          Enter your email and we'll send you a 6-digit verification code to
+          reset your password.
         </p>
       </div>
-      <form onSubmit={handleSubmit(onSubmitData)} className="mt-8">
+
+      {/* FORM */}
+      <form onSubmit={handleSubmit(onSubmitData)} className="space-y-4" noValidate>
         <div>
           <div className="relative">
-            <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+            <Mail
+              size={18}
+              className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+            />
             <input
               type="email"
-              placeholder="Enter Your Email Address"
+              placeholder="Enter Your Email"
               {...register("email")}
-              className="
-         w-full
-                border
-                border-gray-300
-                rounded-lg
-                py-4
-                pl-15
-                pr-4
-                text-sm
-                outline-none
-                focus:border-violet-500
-          "
+              className={authFieldClass()}
+              aria-invalid={!!errors.email}
             />
           </div>
-          {errors.email && (
-            <p className="text-red-500 text-xs mt-1">{errors.email.message}</p>
-          )}
+          <AuthFieldError message={errors.email?.message} />
         </div>
-        <Button type="submit" className="py-2 mt-10 text-sm">
-          VERIFY OTP
-        </Button>
+
+        <div className="pt-3">
+          <Button type="submit" className="py-2 text-sm">
+            SEND OTP
+          </Button>
+        </div>
       </form>
 
-      <p className="mt-7 text-1 text-gray-600">
-        Remember Your Password?
-        <Link to="/login" className="text-violet-600">
+      {/* BOTTOM */}
+      <p className="text-center mt-6 text-xs text-gray-600">
+        Remember your password?{" "}
+        <Link to="/login" className="text-violet-600 font-medium">
           Login
-        </Link>{" "}
+        </Link>
       </p>
     </AuthLayout>
   );

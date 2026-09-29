@@ -1,4 +1,4 @@
-function AuthLayout({ children, image }) {
+function AuthLayout({ children, image, centerContent = false }) {
   return (
     <div className="min-h-screen bg-gray-100 flex items-center justify-center p-4 md:p-8">
       <div
@@ -25,8 +25,14 @@ function AuthLayout({ children, image }) {
         </div>
 
         {/* RIGHT SIDE - LOGIN / REGISTER */}
-        <div className="h-full overflow-y-auto px-5 py-6 md:px-8 md:py-7">
-          <div className="w-full max-w-sm mx-auto text-sm">{children}</div>
+        <div className="relative h-full overflow-y-auto px-5 py-6 md:px-8 md:py-7">
+          <div
+            className={`w-full max-w-sm mx-auto text-sm ${
+              centerContent ? "min-h-full flex flex-col justify-center" : ""
+            }`}
+          >
+            {children}
+          </div>
         </div>
       </div>
     </div>
