@@ -18,13 +18,6 @@ const QUICK_LINKS = [
   { label: "Blog", to: "/blog" },
 ];
 
-const SUPPORT_LINKS = [
-  { label: "Help Center", to: "/help-center" },
-  { label: "Shipping Info", to: "/shipping-info" },
-  { label: "Returns", to: "/returns" },
-  { label: "Privacy Policy", to: "/privacy-policy" },
-];
-
 const SERVICE_HIGHLIGHTS = [
   { label: "Fast & Reliable Shipping", Icon: Truck },
   { label: "Secure Payments", Icon: ShieldCheck },
@@ -148,7 +141,7 @@ function Footer() {
       />
 
       <div className="mx-auto max-w-7xl px-5 pt-9 sm:px-6 lg:px-8 lg:pt-10">
-        <div className="grid gap-x-10 gap-y-8 md:grid-cols-2 lg:grid-cols-[minmax(0,1.4fr)_minmax(0,0.8fr)_minmax(0,0.8fr)_minmax(0,1.1fr)]">
+        <div className="grid gap-x-10 gap-y-8 md:grid-cols-2 lg:grid-cols-[minmax(0,1.4fr)_minmax(0,0.8fr)_minmax(0,1.2fr)]">
           <section aria-labelledby="footer-brand-title">
             <Link
               to="/home"
@@ -192,17 +185,16 @@ function Footer() {
             <FooterLinkGroup title="Quick Links" links={QUICK_LINKS} />
           </nav>
 
-          <nav aria-label="Customer support">
-            <FooterLinkGroup title="Customer Support" links={SUPPORT_LINKS} />
-          </nav>
-
-          <section aria-label="Contact support">
+          <section
+            aria-label="Contact support"
+            className="md:col-span-2 lg:col-span-1"
+          >
             <h2 className="text-[0.7rem] font-bold uppercase tracking-[0.18em] text-[#9aa0b8]">
               Get In Touch
             </h2>
             <span className="mt-3 block h-[3px] w-9 rounded-full bg-gradient-to-r from-[#7c3aed] to-[#38bdf8]" />
 
-            <ul className="mt-4 space-y-2.5">
+            <ul className="mt-4 grid gap-3 md:grid-cols-2 lg:block lg:space-y-2.5">
               {CONTACT_CHANNELS.map(({ label, value, note, href, Icon }) => (
                 <li key={label}>
                   <a

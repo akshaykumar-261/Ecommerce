@@ -12,6 +12,8 @@ import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 import { jwtDecode } from "jwt-decode";
 import { useAuth } from "../../components/common/ AuthContext";
+import authFieldClass from "../../components/auth/authFieldClass";
+import AuthFieldError from "../../components/auth/AuthFieldError";
 function Login() {
   const [showPassword, setShowPassword] = useState(false);
   const { mutate: loginUser } = useLogin();
@@ -113,23 +115,10 @@ const onSubmitData = (data) => {
               type="email"
               placeholder="Enter Your Email"
               {...register("email")}
-              className="
-                w-full
-                border
-                border-gray-300
-                rounded-lg
-                py-2
-                pl-10
-                pr-4
-                text-sm
-                outline-none
-                focus:border-violet-500
-              "
+              className={authFieldClass("border-gray-300 focus:border-violet-500")}
             />
           </div>
-          {errors.email && (
-            <p className="text-red-500 text-xs mt-1">{errors.email.message}</p>
-          )}
+          <AuthFieldError message={errors.email?.message} />
         </div>
 
         {/* PASSWORD */}
@@ -143,18 +132,9 @@ const onSubmitData = (data) => {
               type={showPassword ? "text" : "password"}
               placeholder="Enter Your Password"
               {...register("password")}
-              className="
-                w-full
-                border
-                border-gray-300
-                rounded-lg
-                py-2
-                pl-10
-                pr-10
-                text-sm
-                outline-none
-                focus:border-violet-500
-              "
+              className={authFieldClass(
+                "border-gray-300 focus:border-violet-500 pr-10"
+              )}
             />
             <button
               type="button"
@@ -164,11 +144,7 @@ const onSubmitData = (data) => {
               {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
             </button>
           </div>
-          {errors.password && (
-            <p className="text-red-500 text-xs mt-1">
-              {errors.password.message}
-            </p>
-          )}
+          <AuthFieldError message={errors.password?.message} />
         </div>
 
         {/* REMEMBER & FORGOT PASSWORD */}
