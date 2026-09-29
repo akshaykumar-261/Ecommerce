@@ -9,45 +9,108 @@ export default class CartController {
     await this.services.init(db);
   }
 
-  async addProdct(req, res) {
-    const { product_id, quantity } = req.body;
-    let cart = await this.services.getCartByUserId(req.user.id);
+  async #getOrCreateCart(userId) {
+    let cart = await this.services.getCartByUserId(userId);
     if (!cart) {
-      cart = await this.services.createCart(req.user.id);
+      cart = await this.services.createCart(userId);
     }
+    return cart;
+  }
+
+  async #addItemToCart(cart, product_id, quantity) {
     const product = await this.services.getProductById(product_id);
     if (!product) {
+      return { status: "not_found", product_id };
+    }
+
+    const requestedQty = Number(quantity);
+    const existingItem = await this.services.getCartItem(
+      cart.id,
+      product.id,
+    );
+    const finalQty = existingItem
+      ? existingItem.quantity + requestedQty
+      : requestedQty;
+
+    if (finalQty > product.quantity) {
+      return { status: "out_of_stock", product_id, available: product.quantity };
+    }
+
+    const price = Number(product.price) * finalQty;
+
+    if (existingItem) {
+      await this.services.updateCartItem(existingItem.id, finalQty, price);
+      return { status: "merged", product_id: product.id };
+    }
+
+    await this.services.createCartItem({
+      cart_id: cart.id,
+      product_id: product.id,
+      quantity: requestedQty,
+      price,
+    });
+    return { status: "added", product_id: product.id };
+  }
+
+  async addProdct(req, res) {
+    const { product_id, quantity } = req.body;
+    const cart = await this.#getOrCreateCart(req.user.id);
+
+    const result = await this.#addItemToCart(cart, product_id, quantity);
+
+    if (result.status === "not_found") {
       return sendResponse(
         res,
         STATUS_CODE.NOT_FOUND,
         productMessage.PRODUCT_NOT_FOUND,
       );
     }
-    if (product.quantity < quantity) {
+    if (result.status === "out_of_stock") {
       return sendResponse(
         res,
         STATUS_CODE.BAD_REQUEST,
         productMessage.OUT_OF_STOCK,
       );
     }
-    const exitstingItem = await this.services.getCartItem(cart.id, product.id);
-    if (exitstingItem) {
-      const totalQty = exitstingItem.quantity + Number(quantity);
-      await this.services.updateCartItem(exitstingItem.id, totalQty);
+    if (result.status === "merged") {
       return sendResponse(
         res,
         STATUS_CODE.SUCCESS,
         productMessage.PRODUCT_QUANTITY,
       );
     }
-    const createItem = await this.services.createCartItem({
-      cart_id: cart.id,
-      product_id: product.id,
-      quantity,
-      price: product.price * quantity,
-    });
-    return sendResponse(res, STATUS_CODE.CREATED, cartMessage.ADDTO_CART, {
-      createItem,
+    return sendResponse(res, STATUS_CODE.CREATED, cartMessage.ADDTO_CART);
+  }
+
+  async mergeGuestCart(req, res) {
+    const { items } = req.body;
+    const cart = await this.#getOrCreateCart(req.user.id);
+
+    const merged = [];
+    const skipped = [];
+
+    for (const item of items) {
+      const result = await this.#addItemToCart(
+        cart,
+        item.product_id,
+        item.quantity,
+      );
+      if (result.status === "added" || result.status === "merged") {
+        merged.push(result.product_id);
+      } else {
+        skipped.push({
+          product_id: result.product_id,
+          reason: result.status,
+          ...(result.available !== undefined && {
+            available: result.available,
+          }),
+        });
+      }
+    }
+
+    return sendResponse(res, STATUS_CODE.SUCCESS, cartMessage.CART_MERGED, {
+      merged,
+      skipped,
     });
   }
 

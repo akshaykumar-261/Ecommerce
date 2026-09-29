@@ -44,6 +44,23 @@ export const updateCartItemQuantitySchema = Joi.object({
 //   }),
 // });
 
+export const mergeCartSchema = Joi.object({
+  items: Joi.array()
+    .items(
+      Joi.object({
+        product_id: Joi.number().integer().positive().required(),
+        quantity: Joi.number().integer().positive().required(),
+      }),
+    )
+    .min(1)
+    .required()
+    .messages({
+      "array.base": "Items must be an array",
+      "array.min": "Items array must not be empty",
+      "any.required": "Items is required",
+    }),
+});
+
 export const validateRequest = (schema) => {
   return (req, res, next) => {
     const { error } = schema.validate(req.body);

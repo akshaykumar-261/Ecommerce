@@ -126,6 +126,7 @@ export const cartMessage = {
   ITEM_REMOVED: "Item removed from cart successfully.",
   CART_CLEARED: "Cart cleared successfully.",
   ADDTO_CART: "Product added to cart successfully.",
+  CART_MERGED: "Guest cart merged successfully.",
   NOT_FOUND: "Cart Not Found",
   CART_ITEM_NOT_FOUND: "Cart item not found",
   REMOVE_FROM_CART: "Product Reove from cart",

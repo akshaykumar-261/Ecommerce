@@ -13,6 +13,7 @@ import {
   validateRequest,
   addToCartSchema,
   updateCartItemQuantitySchema,
+  mergeCartSchema,
 } from "../cart/cartValidation.js";
 const router = express.Router();
 const cartController = new CartController();
@@ -27,6 +28,13 @@ router.post(
   role,
   validateRequest(addToCartSchema),
   asyncHandler(cartController.addProdct.bind(cartController)),
+);
+router.post(
+  "/merge-cart",
+  authorize,
+  role,
+  validateRequest(mergeCartSchema),
+  asyncHandler(cartController.mergeGuestCart.bind(cartController)),
 );
 router.get(
   "/get-cart-items",
