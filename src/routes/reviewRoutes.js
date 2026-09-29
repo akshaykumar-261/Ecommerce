@@ -43,8 +43,6 @@ router.get(
 );
 router.get(
   "/get-allReviewsProduct/:productId",
-  authorize,
-  role,
   asyncHandler(reviewController.getReviewsByProduct.bind(reviewController)),
 );
 router.put(
