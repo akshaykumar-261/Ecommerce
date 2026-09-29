@@ -16,6 +16,7 @@ import {
   useCart,
   useUpdateCartQuantity,
   useRemoveFromCart,
+  useGuestCart,
 } from "../../api/useCart";
 import toast from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
@@ -55,10 +56,13 @@ function Cart() {
   const { data, isLoading, isError } = useCart();
   const { mutate: updateQuantity } = useUpdateCartQuantity();
   const { mutate: removeFromCart } = useRemoveFromCart();
+  const { items: guestItems } = useGuestCart();
   const [updatingId, setUpdatingId] = useState(null);
   const [removingId, setRemovingId] = useState(null);
   const [localQuantities, setLocalQuantities] = useState({});
   const updateTimers = useRef({});
+
+  const isLoggedIn = !!localStorage.getItem("accessToken");
 
   useEffect(() => {
     const timers = updateTimers.current;
@@ -68,7 +72,25 @@ function Cart() {
   }, []);
 
   const cart = data?.data?.cart;
-  const items = cart?.cartItems || [];
+  const serverItems = cart?.cartItems || [];
+
+  const items = isLoggedIn
+    ? serverItems
+    : guestItems.map((item) => ({
+        id: `guest-${item.product_id}`,
+        product_id: item.product_id,
+        quantity: item.quantity,
+        product: {
+          id: item.product_id,
+          pro_name: item.pro_name,
+          price: item.price,
+          discount_price: item.discount_price,
+          quantity: item.stock,
+          product_media: item.image
+            ? [{ media_url: item.image, is_primary: true }]
+            : [],
+        },
+      }));
 
   const formatINR = (value) => `₹${value.toFixed(2)}`;
 
@@ -89,7 +111,8 @@ function Cart() {
         lineMrp,
         lineDiscount: lineMrp - lineFinal,
         lineFinal,
-        imageUrl: primaryMedia?.media_url || null,
+        imageUrl:
+          primaryMedia?.media_url || product?.product_media?.[0]?.media_url || null,
       };
     });
 
@@ -117,7 +140,11 @@ function Cart() {
     updateTimers.current[item.id] = setTimeout(() => {
       setUpdatingId(item.id);
       updateQuantity(
-        { cartItemId: item.id, quantity: newQuantity },
+        {
+          cartItemId: item.id,
+          product_id: item.product_id,
+          quantity: newQuantity,
+        },
         {
           onSuccess: () => {
             setUpdatingId(null);
@@ -137,11 +164,11 @@ function Cart() {
     });
   };
 
-  if (isLoading) {
+  if (isLoggedIn && isLoading) {
     return <LoadingSkeleton />;
   }
 
-  if (isError || !cart) {
+  if (isLoggedIn && (isError || !cart)) {
     return (
       <div className="min-h-screen bg-gradient-to-b from-[#eef0ff] via-[#f8f9fc] to-white">
         <Navbar />
@@ -394,11 +421,25 @@ function Cart() {
                       </div>
                     )}
 
+                    {!isLoggedIn && (
+                      <div className="mt-4 flex items-start gap-2.5 rounded-2xl border border-[#c9c4f5] bg-[#faf9ff] px-4 py-3">
+                        <Tag size={16} className="mt-0.5 shrink-0 text-[#4c2ed8]" />
+                        <p className="text-xs font-medium leading-relaxed text-gray-600">
+                          Your cart is saved on this device. Login to place your
+                          order — everything will be merged automatically.
+                        </p>
+                      </div>
+                    )}
+
                     <button
-                      onClick={() => navigate("/checkout")}
+                      onClick={() =>
+                        isLoggedIn
+                          ? navigate("/checkout")
+                          : navigate("/login")
+                      }
                       className="mt-6 flex w-full items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-[#4c2ed8] to-[#368de8] px-6 py-4 text-sm font-bold text-white shadow-lg shadow-[#4c2ed8]/25 transition hover:shadow-xl hover:shadow-[#4c2ed8]/35 active:scale-[0.98]"
                     >
-                      Place Order
+                      {isLoggedIn ? "Place Order" : "Login to Checkout"}
                       <ArrowRight size={16} />
                     </button>
 

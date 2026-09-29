@@ -5,6 +5,11 @@ export const AddToCart = async (payload) => {
   return response.data;
 };
 
+export const MergeGuestCart = async (items) => {
+  const response = await axiosInstance.post("/cart/merge-cart", { items });
+  return response.data;
+};
+
 export const GetCartItems = async () => {
   const response = await axiosInstance.get("/cart/get-cart-items");
   return response.data;

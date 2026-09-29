@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import AuthLayout from "../../components/auth/AuthLayout";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { Mail, Lock, Eye, EyeOff } from "lucide-react";
 import Button from "../../components/common/Button";
 import { loginSchema } from "../../validation/auth";
@@ -14,6 +14,8 @@ function Login() {
   const [showPassword, setShowPassword] = useState(false);
   const { mutate: loginUser } = useLogin();
   const navigate = useNavigate();
+  const location = useLocation();
+  const redirectTo = location.state?.from;
   const {
     register,
     reset,
@@ -28,7 +30,7 @@ function Login() {
       onSuccess: () => {
         toast.success("Login Successfully!");
         reset();
-        navigate("/home");
+        navigate(redirectTo || "/home", { replace: true });
       },
       onError: (error) => {
         toast.error(error.response?.data?.message || "Login Failed");

@@ -34,15 +34,9 @@ export default function Navbar() {
   const { data: cartCountData } = useCartCount();
   const user = userData?.data;
   const isLoggedIn = !!localStorage.getItem("accessToken");
-  const cartCount = isLoggedIn
-    ? Number(cartCountData?.data?.count) || 0
-    : 0;
+  const cartCount = Number(cartCountData?.data?.count) || 0;
 
   const handleCartClick = () => {
-    if (!isLoggedIn) {
-      navigate("/login");
-      return;
-    }
     navigate("/cart");
   };
 

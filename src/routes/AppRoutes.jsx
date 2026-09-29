@@ -188,14 +188,7 @@ function AppRoutes() {
           </ProtectedRoute>
         }
       />
-      <Route
-        path="/cart"
-        element={
-          <ProtectedRoute requireAuth>
-            <Cart />
-          </ProtectedRoute>
-        }
-      />
+      <Route path="/cart" element={<Cart />} />
       <Route
         path="/checkout"
         element={

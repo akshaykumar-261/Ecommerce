@@ -15,13 +15,34 @@ import {
   UpdateUser,
   LogoutUser
 } from "./authApi";
+import { getGuestCart, clearGuestCart } from "./guestCart";
+import { MergeGuestCart } from "./cartApi";
+
+const mergeGuestCartOnAuth = async () => {
+  const guestItems = getGuestCart();
+  if (!guestItems.length) return null;
+  try {
+    const response = await MergeGuestCart(
+      guestItems.map((i) => ({
+        product_id: Number(i.product_id),
+        quantity: Number(i.quantity),
+      })),
+    );
+    clearGuestCart();
+    return response?.data || { merged: [], skipped: [] };
+  } catch (error) {
+    console.error("GUEST CART MERGE ERROR:", error.response?.data || error);
+    return null;
+  }
+};
 export const useRegister = () => {
   return useMutation({
     mutationFn: RegisterUser,
-    onSuccess: (data) => {
+    onSuccess: async (data) => {
       const { accessToken, refreshToken } = data.data;
       localStorage.setItem("accessToken", accessToken);
       localStorage.setItem("refreshToken", refreshToken);
+      await mergeGuestCartOnAuth();
       console.log("User registered successfully:", data);
     },
     onError: (error) => {
@@ -34,10 +55,11 @@ export const useRegister = () => {
 export const useLogin = () => {
   return useMutation({
     mutationFn: LoginUser,
-    onSuccess: (data) => {
+    onSuccess: async (data) => {
       const { accessToken, refreshToken } = data.data;
       localStorage.setItem("accessToken", accessToken);
       localStorage.setItem("refreshToken", refreshToken);
+      await mergeGuestCartOnAuth();
       console.log("User registered successfully:", data);
     },
     onError: (error) => {
@@ -79,10 +101,11 @@ export const useOtpVerifyUser = () => {
 export const useOtpResendUser = () => {
   return useMutation({
     mutationFn: OtpResendUser,
-    onSuccess: (data) => {
+    onSuccess: async (data) => {
       const { accessToken, refreshToken } = data.data;
       localStorage.setItem("accessToken", accessToken);
       localStorage.setItem("refreshToken", refreshToken);
+      await mergeGuestCartOnAuth();
       console.log("User registered successfully:", data);
     },
     onError: (error) => {
@@ -111,10 +134,11 @@ export const useOtpVerifyForgotPassword = () => {
 export const useOtpResendForgotPassword = () => {
   return useMutation({
     mutationFn: OtpResendForgotPassword,
-    onSuccess: (data) => {
+    onSuccess: async (data) => {
       const { accessToken, refreshToken } = data.data;
       localStorage.setItem("accessToken", accessToken);
       localStorage.setItem("refreshToken", refreshToken);
+      await mergeGuestCartOnAuth();
       console.log("User registered successfully:", data);
     },
     onError: (error) => {

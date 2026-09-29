@@ -9,20 +9,22 @@ import {
   Star,
 } from "lucide-react";
 import { GetProductsByCategory } from "../../api/productApi";
-import { useAddToCart, useCart } from "../../api/useCart";
+import { useAddToCart, useCart, useIsInGuestCart } from "../../api/useCart";
 import { useGetCategory } from "../../api/useVendorApi";
 import WishlistButton from "../../components/common/WishlistButton";
 import Navbar from "../../components/common/Navbar";
-import Popup from "../../components/common/Popup";
-import { LogIn, X } from "lucide-react";
 
 function ProductCard({ product }) {
   const navigate = useNavigate();
   const { mutate: addToCart, isPending: addingToCart } = useAddToCart();
   const { data: cartData } = useCart();
-  const isInCart = (cartData?.data?.cart?.cartItems || []).some(
-    (item) => item.product_id === product.id,
-  );
+  const isInGuestCart = useIsInGuestCart(product.id);
+  const isLoggedIn = !!localStorage.getItem("accessToken");
+  const isInCart = isLoggedIn
+    ? (cartData?.data?.cart?.cartItems || []).some(
+        (item) => item.product_id === product.id,
+      )
+    : isInGuestCart;
 
   const price = parseFloat(product.price) || 0;
   const discountPrice = parseFloat(product.discount_price) || 0;
@@ -35,14 +37,9 @@ function ProductCard({ product }) {
   const imageUrl = primaryMedia?.media_url || product.product_media?.[0]?.media_url || null;
   const avgRating = parseFloat(product.avgRating) || 0;
   const reviewCount = parseInt(product.reviewCount) || 0;
-  const [showLoginPopup, setShowLoginPopup] = useState(false);
 
   const handleAddToCartClick = (e) => {
     e.stopPropagation();
-    if (!localStorage.getItem("accessToken")) {
-      setShowLoginPopup(true);
-      return;
-    }
     if (isInCart) {
       navigate("/cart");
       return;
@@ -52,7 +49,7 @@ function ProductCard({ product }) {
       return;
     }
     addToCart(
-      { product_id: product.id, quantity: 1 },
+      { product_id: product.id, product, quantity: 1 },
       {
         onSuccess: (res) =>
           toast.success(res?.message || "Added to cart successfully"),
@@ -63,7 +60,6 @@ function ProductCard({ product }) {
   };
 
   return (
-    <>
       <div
         onClick={() => navigate(`/product/${product.id}`)}
         className="group relative flex cursor-pointer flex-col overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm transition-all duration-300 hover:shadow-lg hover:shadow-gray-200/60 hover:-translate-y-1"
@@ -140,33 +136,6 @@ function ProductCard({ product }) {
         </div>
       </div>
     </div>
-    <Popup
-      open={showLoginPopup}
-      onClose={() => setShowLoginPopup(false)}
-      title="Login Required"
-      message="Please login to add items to your cart"
-    >
-      <div className="flex gap-3 mt-4">
-        <button
-          onClick={() => {
-            setShowLoginPopup(false);
-            navigate("/login");
-          }}
-          className="flex-1 flex items-center justify-center gap-2 rounded-xl bg-[#4c2ed8] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[#3a24b0]"
-        >
-          <LogIn size={16} />
-          Login
-        </button>
-        <button
-          onClick={() => setShowLoginPopup(false)}
-          className="flex-1 flex items-center justify-center gap-2 rounded-xl border border-gray-200 px-4 py-2.5 text-sm font-semibold text-gray-600 transition hover:bg-gray-50"
-        >
-          <X size={16} />
-          Cancel
-        </button>
-      </div>
-    </Popup>
-  </>
   );
 }
 

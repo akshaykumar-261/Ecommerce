@@ -13,7 +13,11 @@ import {
   Star,
 } from "lucide-react";
 import { GetProductById } from "../../api/productApi";
-import { useAddToCart, useCart } from "../../api/useCart";
+import {
+  useAddToCart,
+  useCart,
+  useIsInGuestCart,
+} from "../../api/useCart";
 import { useProductReviews } from "../../api/useReviews";
 import WishlistButton from "../../components/common/WishlistButton";
 import Navbar from "../../components/common/Navbar";
@@ -232,13 +236,16 @@ export default function ProductDetail() {
   const [showLoginPopup, setShowLoginPopup] = useState(false);
   const { mutate: addToCart, isPending: addingToCart } = useAddToCart();
   const { data: cartData } = useCart();
+  const isInGuestCart = useIsInGuestCart(Number(id));
+  const isLoggedIn = !!localStorage.getItem("accessToken");
   const { data: reviewData } = useProductReviews(Number(id));
   const [justAdded, setJustAdded] = useState(false);
 
   const cartItems = cartData?.data?.cart?.cartItems || [];
-  const isInCart =
-    justAdded ||
-    cartItems.some((item) => item.product_id === Number(id));
+  const isInCart = isLoggedIn
+    ? justAdded ||
+      cartItems.some((item) => item.product_id === Number(id))
+    : isInGuestCart;
 
   useEffect(() => {
     const fetchProduct = async () => {
@@ -257,10 +264,6 @@ export default function ProductDetail() {
   }, [id]);
 
   const handleAddToCart = () => {
-    if (!localStorage.getItem("accessToken")) {
-      setShowLoginPopup(true);
-      return;
-    }
     if (isInCart) {
       navigate("/cart");
       return;
@@ -270,10 +273,11 @@ export default function ProductDetail() {
       return;
     }
     addToCart(
-      { product_id: Number(id), quantity },
+      { product_id: Number(id), product, quantity },
       {
         onSuccess: (res) => {
           setJustAdded(true);
+          toast.success(res?.message || "Added to cart successfully");
         },
         onError: (err) => {
           toast.error(
@@ -285,10 +289,14 @@ export default function ProductDetail() {
   };
 
   const handleBuyNow = () => {
-    if (!localStorage.getItem("accessToken")) {
-      setShowLoginPopup(true);
+    // Buy Now skips the cart, so it needs a real account. Guests are sent to
+    // login and returned here afterwards - nothing is added to their cart.
+    if (!isLoggedIn) {
+      toast("Please login to buy this product.", { icon: "🔒" });
+      navigate("/login", { state: { from: `/product/${id}` } });
       return;
     }
+
     if (product.quantity < quantity) {
       toast.error("This product is currently out of stock.");
       return;
@@ -304,7 +312,7 @@ export default function ProductDetail() {
     }
 
     addToCart(
-      { product_id: Number(id), quantity },
+      { product_id: Number(id), product, quantity },
       {
         onSuccess: () => {
           setJustAdded(true);
@@ -535,7 +543,7 @@ export default function ProductDetail() {
       open={showLoginPopup}
       onClose={() => setShowLoginPopup(false)}
       title="Login Required"
-      message="Please login to add items to your cart"
+      message="Please login to read and write reviews for this product"
     >
       <div className="flex gap-3 mt-4">
         <button
