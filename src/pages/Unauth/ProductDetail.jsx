@@ -13,6 +13,7 @@ import {
   Star,
 } from "lucide-react";
 import { GetProductById } from "../../api/productApi";
+import { useRelatedProducts } from "../../api/useProduct";
 import {
   useAddToCart,
   useCart,
@@ -22,6 +23,7 @@ import { useProductReviews } from "../../api/useReviews";
 import WishlistButton from "../../components/common/WishlistButton";
 import Navbar from "../../components/common/Navbar";
 import LoginRequiredModal from "../../components/common/LoginRequiredModal";
+import ProductCard from "../../components/product/ProductCard";
 import ProductReviews from "../../components/product/ProductReviews";
 import ShareButton from "../../components/product/ShareButton";
 import toast from "react-hot-toast";
@@ -222,6 +224,74 @@ function ImageGallery({ images, productId }) {
         </div>
       )}
     </>
+  );
+}
+
+function RelatedProductsSkeleton() {
+  return (
+    <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
+      {Array.from({ length: 5 }).map((_, index) => (
+        <div
+          key={index}
+          className="overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm"
+        >
+          <div className="h-52 animate-pulse bg-gray-100" />
+          <div className="space-y-2 p-4">
+            <div className="h-3 w-4/5 animate-pulse rounded bg-gray-100" />
+            <div className="h-3 w-2/5 animate-pulse rounded bg-gray-100" />
+            <div className="h-4 w-1/3 animate-pulse rounded bg-gray-100" />
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function RelatedProducts({ categoryId, categoryName }) {
+  const navigate = useNavigate();
+  const { data, isPending, isError } = useRelatedProducts(categoryId, 5);
+
+  const products = data?.data?.products?.data || [];
+  const totalProducts = Number(data?.data?.products?.totalRecords) || 0;
+  const categoryLabel = categoryName || "this category";
+
+  if (!categoryId) return null;
+  if (isPending) return <RelatedProductsSkeleton />;
+  // A category with nothing to show is a normal outcome, not an error worth
+  // shouting about on the page.
+  if (isError || products.length === 0) return null;
+
+  return (
+    <section className="mt-12" aria-labelledby="related-products-title">
+      <div className="mb-5 flex flex-wrap items-end justify-between gap-3">
+        <div>
+          <h2
+            id="related-products-title"
+            className="text-xl font-bold text-gray-900"
+          >
+            Related Products
+          </h2>
+          <p className="mt-1 text-sm text-gray-500">
+            More products from {categoryLabel}
+            {totalProducts > 0 && ` (${products.length} of ${totalProducts})`}
+          </p>
+        </div>
+
+        <button
+          onClick={() => navigate(`/products/category/${categoryId}`)}
+          className="flex items-center gap-1.5 rounded-xl border border-gray-200 px-4 py-2 text-sm font-medium text-gray-600 transition hover:border-[#4c2ed8] hover:text-[#4c2ed8]"
+        >
+          View all
+          <ChevronRight size={16} />
+        </button>
+      </div>
+
+      <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
+        {products.map((item) => (
+          <ProductCard key={item._id || item.id} product={item} />
+        ))}
+      </div>
+    </section>
   );
 }
 
@@ -531,6 +601,11 @@ export default function ProductDetail() {
             </div>
           </div>
         </div>
+        <RelatedProducts
+          categoryId={product.category_id}
+          categoryName={product.category?.cat_name}
+        />
+
         <ProductReviews
           productId={Number(id)}
           onLoginRequired={() => setShowLoginPopup(true)}

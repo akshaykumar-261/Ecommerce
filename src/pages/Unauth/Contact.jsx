@@ -273,7 +273,7 @@ function Contact() {
               </button>
             </div>
 
-            <div className="rounded-3xl border border-gray-100 bg-white p-8 shadow-sm">
+            {/* <div className="rounded-3xl border border-gray-100 bg-white p-8 shadow-sm">
               <h3 className="mb-4 text-lg font-bold text-gray-900">
                 Follow ShopEase
               </h3>
@@ -292,7 +292,7 @@ function Contact() {
                   <span className="text-sm text-[#4c2ed8]">{social.tag}</span>
                 </div>
               ))}
-            </div>
+            </div> */}
           </div>
         </div>
       </section>

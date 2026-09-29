@@ -2,6 +2,7 @@ import { useEffect } from "react";
 import { Toaster } from "react-hot-toast";
 import { useLocation } from "react-router-dom";
 import AppRoutes from "./routes/AppRoutes";
+import BackToTop from "./components/common/BackToTop";
 
 function ScrollToTop() {
   const { pathname } = useLocation();
@@ -18,6 +19,7 @@ function App() {
     <>
       <ScrollToTop />
       <AppRoutes />
+      <BackToTop />
       <Toaster
         position="top-right"
         toastOptions={{

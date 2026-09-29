@@ -255,7 +255,7 @@ function Footer() {
               &copy; 2026 ShopEase. All rights reserved.
             </p>
 
-            <button
+            {/* <button
               type="button"
               onClick={scrollToTop}
               aria-label="Back to top"
@@ -266,7 +266,7 @@ function Footer() {
                 size={16}
                 className="transition-transform duration-300 group-hover:-translate-y-0.5"
               />
-            </button>
+            </button> */}
           </div>
         </div>
       </div>
