@@ -92,19 +92,25 @@ function SocialIcon({ label }) {
   );
 }
 
-function FooterLinkGroup({ title, links }) {
+function FooterLinkGroup({ title, links, centered = false }) {
   return (
-    <div>
+    <div className={centered ? "text-center" : undefined}>
       <h2 className="text-[0.7rem] font-bold uppercase tracking-[0.18em] text-[#9aa0b8]">
         {title}
       </h2>
-      <span className="mt-3 block h-[3px] w-9 rounded-full bg-gradient-to-r from-[#7c3aed] to-[#38bdf8]" />
+      <span
+        className={`mt-3 block h-[3px] w-9 rounded-full bg-gradient-to-r from-[#7c3aed] to-[#38bdf8] ${
+          centered ? "mx-auto" : ""
+        }`}
+      />
       <ul className="mt-4 space-y-0.5">
         {links.map((link) => (
           <li key={link.label}>
             <Link
               to={link.to}
-              className="group inline-flex min-h-9 items-center text-sm text-[#66708f] transition-colors duration-200 hover:text-[#4f46e5] focus:outline-none focus-visible:text-[#4f46e5]"
+              className={`group inline-flex min-h-9 items-center text-sm text-[#66708f] transition-colors duration-200 hover:text-[#4f46e5] focus:outline-none focus-visible:text-[#4f46e5] ${
+                centered ? "justify-center" : ""
+              }`}
             >
               {/* The dash lives in a reserved slot and scales in place, so the
                   label itself never shifts on hover. */}
@@ -182,7 +188,7 @@ function Footer() {
           </section>
 
           <nav aria-label="Quick links">
-            <FooterLinkGroup title="Quick Links" links={QUICK_LINKS} />
+            <FooterLinkGroup title="Quick Links" links={QUICK_LINKS} centered />
           </nav>
 
           <section
