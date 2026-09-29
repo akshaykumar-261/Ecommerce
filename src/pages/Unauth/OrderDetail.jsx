@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import {
   ArrowLeft,
@@ -11,6 +12,7 @@ import {
 import toast from "react-hot-toast";
 import { useQueryClient } from "@tanstack/react-query";
 import Navbar from "../../components/common/Navbar";
+import Popup from "../../components/common/Popup";
 import {
   useOrderById,
   useTrackOrder,
@@ -135,29 +137,9 @@ function OrderDetail() {
   const { data, isLoading, isError } = useOrderById(orderId);
   const { data: trackData } = useTrackOrder(orderId);
   const { mutate: cancelOrder, isPending: cancelling } = useCancelOrder();
+  const [showCancelPopup, setShowCancelPopup] = useState(false);
 
-  const order = data?.data?.order;
   const track = trackData?.data;
-
-  const items = order?.orderItems || [];
-  const isCancelled = order?.order_status === "Cancelled";
-  const isDelivered = order?.order_status === "Delivered";
-  const canCancel = !isCancelled && !isDelivered;
-
-  const handleCancel = () => {
-    if (!window.confirm("Are you sure you want to cancel this order?")) return;
-    cancelOrder(order.id, {
-      onSuccess: (res) => {
-        toast.success(res?.message || "Order cancelled successfully");
-        queryClient.invalidateQueries({ queryKey: ["order", orderId] });
-        queryClient.invalidateQueries({ queryKey: ["trackOrder", orderId] });
-        queryClient.invalidateQueries({ queryKey: ["myOrders"] });
-      },
-      onError: (error) => {
-        toast.error(error.response?.data?.message || "Failed to cancel order");
-      },
-    });
-  };
 
   if (isLoading) {
     return (
@@ -172,7 +154,7 @@ function OrderDetail() {
     );
   }
 
-  if (isError || !order) {
+  if (isError || !data?.data?.order) {
     return (
       <div className="min-h-screen bg-[#f8f9fc]">
         <Navbar />
@@ -190,6 +172,27 @@ function OrderDetail() {
       </div>
     );
   }
+
+  const order = data.data.order;
+  const items = order.orderItems || [];
+  const isCancelled = order.order_status === "Cancelled";
+  const isDelivered = order.order_status === "Delivered";
+  const canCancel = !isCancelled && !isDelivered;
+
+  const confirmCancel = () => {
+    setShowCancelPopup(false);
+    cancelOrder(order.id, {
+      onSuccess: (res) => {
+        toast.success(res?.message || "Order cancelled successfully");
+        queryClient.invalidateQueries({ queryKey: ["order", orderId] });
+        queryClient.invalidateQueries({ queryKey: ["trackOrder", orderId] });
+        queryClient.invalidateQueries({ queryKey: ["myOrders"] });
+      },
+      onError: (error) => {
+        toast.error(error.response?.data?.message || "Failed to cancel order");
+      },
+    });
+  };
 
   return (
     <div className="min-h-screen bg-[#f8f9fc]">
@@ -239,9 +242,7 @@ function OrderDetail() {
             )}
           </div>
           <TrackTimeline
-            orderStatus={order.order_status}
-            lastUpdated={order.updatedAt}
-          />
+            orderStatus={order.order_status}          />
         </div>
 
         {/* Items */}
@@ -273,9 +274,7 @@ function OrderDetail() {
                     ) : (
                       <ShoppingCart size={16} className="text-gray-300" />
                     )}
-                    <span className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-[#4c2ed8] text-[9px] font-bold text-white">
-                      {item.quantity}
-                    </span>
+                   
                   </div>
                   <div className="min-w-0 flex-1">
                     <p className="truncate text-sm font-semibold text-gray-800">
@@ -332,7 +331,7 @@ function OrderDetail() {
             {/* Cancel */}
             {canCancel && (
               <button
-                onClick={handleCancel}
+                onClick={() => setShowCancelPopup(true)}
                 disabled={cancelling}
                 className="w-full rounded-2xl border border-red-200 bg-red-50/60 px-5 py-3.5 text-sm font-bold text-red-600 transition hover:bg-red-50 disabled:opacity-50"
               >
@@ -349,6 +348,30 @@ function OrderDetail() {
           </div>
         </div>
       </main>
+
+      <Popup
+        open={showCancelPopup}
+        onClose={() => setShowCancelPopup(false)}
+        icon={<XCircle size={24} className="text-red-500" />}
+        iconClassName="bg-red-50"
+        title="Cancel Order"
+        message={`Are you sure you want to cancel order #${order?.order_number}? This action cannot be undone.`}
+      >
+        <div className="mt-4 flex gap-3">
+          <button
+            onClick={() => setShowCancelPopup(false)}
+            className="flex-1 rounded-xl border border-gray-200 px-4 py-2.5 text-sm font-semibold text-gray-600 transition hover:bg-gray-50"
+          >
+            Keep Order
+          </button>
+          <button
+            onClick={confirmCancel}
+            className="flex-1 rounded-xl bg-red-500 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-red-600"
+          >
+            Yes, Cancel
+          </button>
+        </div>
+      </Popup>
     </div>
   );
 }

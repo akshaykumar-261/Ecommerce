@@ -8,6 +8,7 @@ import {
   Trash2,
 } from "lucide-react";
 import toast from "react-hot-toast";
+import Popup from "../common/Popup";
 import {
   useCreateReview,
   useDeleteReview,
@@ -77,6 +78,7 @@ function ReviewForm({ productId, myReview, onLoginRequired }) {
   const deleteReview = useDeleteReview(productId);
   const isSaving = createReview.isPending || updateReview.isPending;
   const isDeleting = deleteReview.isPending;
+  const [showDeletePopup, setShowDeletePopup] = useState(false);
 
   const handleSubmit = (event) => {
     event.preventDefault();
@@ -113,7 +115,8 @@ function ReviewForm({ productId, myReview, onLoginRequired }) {
   };
 
   const handleDelete = () => {
-    if (!myReview || !window.confirm("Delete your review?")) return;
+    if (!myReview) return;
+    setShowDeletePopup(false);
 
     deleteReview.mutate(myReview.id, {
       onSuccess: (response) => {
@@ -147,6 +150,7 @@ function ReviewForm({ productId, myReview, onLoginRequired }) {
   }
 
   return (
+    <>
     <form onSubmit={handleSubmit} className="rounded-2xl border border-[#4c2ed8]/10 bg-[#faf9ff] p-5">
       <div className="mb-4 flex items-center justify-between gap-3">
         <div>
@@ -182,7 +186,7 @@ function ReviewForm({ productId, myReview, onLoginRequired }) {
         {myReview && (
           <button
             type="button"
-            onClick={handleDelete}
+            onClick={() => setShowDeletePopup(true)}
             disabled={isDeleting}
             className="inline-flex items-center gap-1.5 rounded-xl px-3 py-2 text-xs font-semibold text-red-500 transition hover:bg-red-50 disabled:opacity-50"
           >
@@ -206,6 +210,34 @@ function ReviewForm({ productId, myReview, onLoginRequired }) {
         </button>
       </div>
     </form>
+
+    <Popup
+      open={showDeletePopup}
+      onClose={() => setShowDeletePopup(false)}
+      icon={<Trash2 size={24} className="text-red-500" />}
+      iconClassName="bg-red-50"
+      title="Delete Review"
+      message="Are you sure you want to delete your review? This action cannot be undone."
+    >
+      <div className="mt-4 flex gap-3">
+        <button
+          type="button"
+          onClick={() => setShowDeletePopup(false)}
+          className="flex-1 rounded-xl border border-gray-200 px-4 py-2.5 text-sm font-semibold text-gray-600 transition hover:bg-gray-50"
+        >
+          Keep Review
+        </button>
+        <button
+          type="button"
+          onClick={handleDelete}
+          disabled={isDeleting}
+          className="flex-1 rounded-xl bg-red-500 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-red-600 disabled:opacity-60"
+        >
+          {isDeleting ? "Deleting..." : "Yes, Delete"}
+        </button>
+      </div>
+    </Popup>
+    </>
   );
 }
 

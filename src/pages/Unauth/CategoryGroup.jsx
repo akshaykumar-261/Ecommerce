@@ -300,7 +300,8 @@ export default function CategoryGroup() {
             <button
               key={cat.id}
               onClick={() => navigate(`/products/category/${cat.id}`)}
-              className="rounded-full border border-gray-200 bg-white px-4 py-2 text-sm font-medium text-gray-600 transition hover:border-[#4c2ed8] hover:bg-[#4c2ed8]/5 hover:text-[#4c2ed8]"
+              title={cat.cat_name}
+              className="max-w-[220px] truncate rounded-full border border-gray-200 bg-white px-4 py-2 text-sm font-medium text-gray-600 transition hover:border-[#4c2ed8] hover:bg-[#4c2ed8]/5 hover:text-[#4c2ed8]"
             >
               {cat.cat_name}
             </button>

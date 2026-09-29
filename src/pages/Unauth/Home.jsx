@@ -101,13 +101,13 @@ function HeroBanner() {
           </p>
 
           <div className="flex flex-wrap gap-3">
-            <button className="flex items-center gap-2 rounded-xl bg-white px-7 py-3.5 text-sm font-semibold text-[#4c2ed8] shadow-lg transition hover:shadow-xl hover:shadow-white/20">
+            {/* <button className="flex items-center gap-2 rounded-xl bg-white px-7 py-3.5 text-sm font-semibold text-[#4c2ed8] shadow-lg transition hover:shadow-xl hover:shadow-white/20">
               Shop Now
               <ArrowRight size={16} />
-            </button>
-            <button className="flex items-center gap-2 rounded-xl border border-white/30 px-7 py-3.5 text-sm font-semibold text-white backdrop-blur-sm transition hover:bg-white/10">
+            </button> */}
+            {/* <button className="flex items-center gap-2 rounded-xl border border-white/30 px-7 py-3.5 text-sm font-semibold text-white backdrop-blur-sm transition hover:bg-white/10">
               View Deals
-            </button>
+            </button> */}
           </div>
         </div>
       </div>
@@ -249,12 +249,15 @@ function CategoriesSection() {
                 <button
                   key={cat.id}
                   onClick={() => navigate(`/products/category/${cat.id}`)}
-                  className="group flex min-w-[120px] flex-col items-center gap-3 rounded-2xl border border-gray-100 bg-white p-5 shadow-sm transition-all duration-200 hover:border-[#4c2ed8]/20 hover:shadow-md hover:shadow-[#4c2ed8]/5 hover:-translate-y-0.5"
+                  className="group flex w-[132px] shrink-0 flex-col items-center gap-3 rounded-2xl border border-gray-100 bg-white p-5 shadow-sm transition-all duration-200 hover:border-[#4c2ed8]/20 hover:shadow-md hover:shadow-[#4c2ed8]/5 hover:-translate-y-0.5"
                 >
                   <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-[#4c2ed8]/8 to-[#368de8]/8 text-[#4c2ed8] transition-all duration-200 group-hover:from-[#4c2ed8] group-hover:to-[#368de8] group-hover:text-white group-hover:shadow-lg group-hover:shadow-[#4c2ed8]/20">
                     <Icon size={24} />
                   </div>
-                  <span className="whitespace-nowrap text-center text-xs font-medium leading-tight text-gray-700 group-hover:text-[#4c2ed8]">
+                  <span
+                    title={cat.cat_name}
+                    className="mt-auto block w-full px-0.5 text-center text-xs font-medium leading-tight text-gray-700 group-hover:text-[#4c2ed8] line-clamp-2 break-words"
+                  >
                     {cat.cat_name}
                   </span>
                 </button>

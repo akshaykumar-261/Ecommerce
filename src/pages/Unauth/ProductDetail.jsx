@@ -274,7 +274,6 @@ export default function ProductDetail() {
       {
         onSuccess: (res) => {
           setJustAdded(true);
-          toast.success(res?.message || "Added to cart successfully");
         },
         onError: (err) => {
           toast.error(

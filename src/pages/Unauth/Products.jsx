@@ -6,6 +6,7 @@ import {
   ArrowLeft,
   Package,
   ChevronRight,
+  Star,
 } from "lucide-react";
 import { GetProductsByCategory } from "../../api/productApi";
 import { useAddToCart, useCart } from "../../api/useCart";
@@ -32,6 +33,8 @@ function ProductCard({ product }) {
 
   const primaryMedia = product.product_media?.find((m) => m.is_primary);
   const imageUrl = primaryMedia?.media_url || product.product_media?.[0]?.media_url || null;
+  const avgRating = parseFloat(product.avgRating) || 0;
+  const reviewCount = parseInt(product.reviewCount) || 0;
   const [showLoginPopup, setShowLoginPopup] = useState(false);
 
   const handleAddToCartClick = (e) => {
@@ -109,6 +112,19 @@ function ProductCard({ product }) {
         <h3 className="mb-1 line-clamp-2 text-sm font-semibold leading-snug text-gray-800 group-hover:text-[#4c2ed8]">
           {product.pro_name}
         </h3>
+        {avgRating > 0 && (
+          <div className="mb-2 flex items-center gap-1">
+            <div className="flex items-center gap-1 rounded-md bg-green-600 px-1.5 py-0.5">
+              <Star size={10} className="fill-white text-white" />
+              <span className="text-[11px] font-semibold text-white">
+                {avgRating.toFixed(1)}
+              </span>
+            </div>
+            <span className="text-[11px] text-gray-400">
+              ({reviewCount.toLocaleString()})
+            </span>
+          </div>
+        )}
         <p className="mb-2 line-clamp-2 text-xs text-gray-400">
           {product.description}
         </p>
@@ -222,15 +238,17 @@ export default function Products() {
 
       <div className="mx-auto max-w-7xl px-4 py-8 lg:px-8">
         {/* Breadcrumb */}
-        <div className="mb-6 flex items-center gap-2 text-sm text-gray-500">
+        <div className="mb-6 flex min-w-0 items-center gap-2 text-sm text-gray-500">
           <button
             onClick={() => navigate("/home")}
-            className="transition hover:text-[#4c2ed8]"
+            className="shrink-0 transition hover:text-[#4c2ed8]"
           >
             Home
           </button>
-          <ChevronRight size={14} />
-          <span className="font-medium text-gray-800">{categoryName}</span>
+          <ChevronRight size={14} className="shrink-0" />
+          <span className="min-w-0 break-words font-medium text-gray-800">
+            {categoryName}
+          </span>
         </div>
 
         {/* Header */}
@@ -241,8 +259,8 @@ export default function Products() {
           >
             <ArrowLeft size={20} />
           </button>
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900">
+          <div className="min-w-0 flex-1">
+            <h1 className="break-words text-2xl font-bold text-gray-900">
               {categoryName}
             </h1>
             <p className="text-sm text-gray-500">
