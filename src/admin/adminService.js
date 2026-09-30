@@ -397,6 +397,11 @@ export default class AdminServices {
         "vendor_amount",
         "currency",
         "payout_status",
+        // Without these two a failed payout is a dead end in the admin panel:
+        // the row says "failed" but never says why, or which Stripe transfer
+        // it did manage to create.
+        "transfer_id",
+        "failure_reason",
         "createdAt",
       ],
       limit: Number(limit),

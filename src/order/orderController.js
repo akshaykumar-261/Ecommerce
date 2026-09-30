@@ -12,9 +12,15 @@ import {
   PAYMENT_STATUS,
   ORDER_STATUS,
   PAYMENT_RECORD_STATUS,
+  PAYOUT_STATUS,
 } from "../helper/constants.js";
-import stripe from "../../config/stripe.js";
+import stripe, { CURRENCY } from "../../config/stripe.js";
 import { sequelize } from "../../config/db.js";
+import {
+  getEffectiveUnitPrice,
+  getEffectiveLineTotal,
+} from "../helper/commonFunction.js";
+import { describeStripeTransferFailure } from "../stripe/stripeErrors.js";
 export default class OrderController {
   async init(db) {
     this.services = new OrderService();
@@ -59,23 +65,10 @@ export default class OrderController {
         "Customer Stripe account is not enabled",
       );
     }
-    const vendorId = cart.cartItems[0].product.store.user_id;
-    const vendor = await this.services.getVendorById(vendorId);
-    if (!vendor || !vendor.stripe_account_id) {
-      return sendResponse(
-        res,
-        STATUS_CODE.BAD_REQUEST,
-        orderMessages.VENDER_NO_SRIPE_ACCOUNT,
-      );
-    }
-    if (!vendor.is_account_enabled) {
-      return sendResponse(
-        res,
-        STATUS_CODE.BAD_REQUEST,
-        orderMessages.VENDER_SRIPE_ACCOUNT_NOT_ENABLED,
-      );
-    }
     // Calculate Total
+    // Priced from the live product, not cartItems.price: the cart row stores
+    // price x quantity captured when the item was added, so it goes stale and
+    // it ignores discount_price entirely.
     let grandTotal = 0;
     for (const item of cart.cartItems) {
       if (item.product.quantity < item.quantity) {
@@ -86,7 +79,7 @@ export default class OrderController {
           `${item.product.pro_name} is out of stock`,
         );
       }
-      grandTotal += Number(item.price);
+      grandTotal += getEffectiveLineTotal(item.product, item.quantity);
     }
     // Create Order
     const order = await this.services.createOrder(
@@ -102,13 +95,14 @@ export default class OrderController {
     );
     // Create Order Items
     for (const item of cart.cartItems) {
+      const unitPrice = getEffectiveUnitPrice(item.product);
       await this.services.createOrderItem(
         {
           order_id: order.id,
           product_id: item.product_id,
           quantity: item.quantity,
-          price: item.product.price,
-          total: item.price,
+          price: unitPrice,
+          total: unitPrice * item.quantity,
         },
         transaction,
       );
@@ -126,29 +120,99 @@ export default class OrderController {
     const commissionPercentage = Number(
       adminConfiguration.commission_percentage,
     );
-    const platformFee = grandTotal * (commissionPercentage / 100);
-    const commission = Math.round(platformFee * 100);
-    const vendorAmount = grandTotal - platformFee;
+
+    // ----------------------------------------------------
+    // 1. GROUP CART ITEMS BY VENDOR
+    // A single cart can hold products from several stores, so the payout
+    // split is derived per vendor instead of assuming one vendor.
+    // ----------------------------------------------------
+    const vendorGroups = new Map();
+
+    for (const item of cart.cartItems) {
+      const vendorId = item.product.store.user_id;
+
+      if (!vendorGroups.has(vendorId)) {
+        vendorGroups.set(vendorId, {
+          vendorId,
+          items: [],
+          grossAmount: 0,
+        });
+      }
+
+      const group = vendorGroups.get(vendorId);
+
+      group.items.push(item);
+      // Split on the discounted amount, so commission is a percentage of what
+      // the customer actually paid rather than of the undiscounted MRP.
+      group.grossAmount += getEffectiveLineTotal(item.product, item.quantity);
+    }
+
+    // ----------------------------------------------------
+    // 2. VALIDATE ALL VENDORS
+    // Every vendor must be able to receive a transfer, otherwise the order
+    // cannot be split later and the customer would pay for goods that can
+    // never be paid out.
+    // ----------------------------------------------------
+    const vendorPayouts = [];
+
+    for (const group of vendorGroups.values()) {
+      const vendor = await this.services.getVendorById(group.vendorId);
+
+      if (!vendor || !vendor.stripe_account_id) {
+        await transaction.rollback();
+        return sendResponse(
+          res,
+          STATUS_CODE.BAD_REQUEST,
+          orderMessages.VENDER_NO_SRITE_ACCOUNT,
+        );
+      }
+
+      if (!vendor.is_account_enabled) {
+        await transaction.rollback();
+        return sendResponse(
+          res,
+          STATUS_CODE.BAD_REQUEST,
+          orderMessages.VENDER_SRITE_ACCOUNT_NOT_ENABLED,
+        );
+      }
+
+      const platformFee = group.grossAmount * (commissionPercentage / 100);
+      const vendorAmount = group.grossAmount - platformFee;
+
+      vendorPayouts.push({
+        vendor,
+        grossAmount: group.grossAmount,
+        platformFee,
+        vendorAmount,
+      });
+    }
+
+    // ----------------------------------------------------
+    // 3. CREATE ONE PAYMENT INTENT ON THE PLATFORM ACCOUNT
+    // No transfer_data.destination and no application_fee_amount: the
+    // platform takes the whole charge and pays each vendor its share from
+    // the webhook using a separate transfer.
+    // ----------------------------------------------------
     const paymentIntent = await stripe.paymentIntents.create({
-      amount: Math.round(grandTotal * 100), // Total Amount
-      currency: "inr",
+      amount: Math.round(grandTotal * 100),
+      currency: CURRENCY,
       customer: user.stripe_customer_id,
       automatic_payment_methods: {
         enabled: true,
         allow_redirects: "never",
       },
-      transfer_data: {
-        destination: vendor.stripe_account_id,
-      },
-      application_fee_amount: commission,
+      transfer_group: `ORDER_${order.id}`,
       metadata: {
-        order_id: order.id,
-        vendor_id: vendor.id,
-        user_id: req.user.id,
+        order_id: String(order.id),
+        user_id: String(req.user.id),
         stripe_customer_id: user.stripe_customer_id,
       },
       description: `Payment for Order #${order.order_number}`,
     });
+
+    // ----------------------------------------------------
+    // 4. CREATE PAYMENT RECORD
+    // ----------------------------------------------------
     const payment = await this.services.createPayment(
       {
         order_id: order.id,
@@ -156,27 +220,38 @@ export default class OrderController {
         amount: grandTotal,
         payment_method: "Card",
         payment_provider: "Stripe",
-        payment_status: PAYMENT_RECORD_STATUS.PENDING,
+        status: PAYMENT_RECORD_STATUS.PENDING,
+        currency: CURRENCY,
       },
       transaction,
     );
-    await this.services.createVenderPayout(
-      {
-        order_id: order.id,
-        payment_id: payment.id,
-        vendor_id: vendor.id,
-        stripe_account_id: vendor.stripe_account_id,
-        gross_amount: grandTotal,
-        platform_fee: platformFee,
-        vendor_amount: vendorAmount,
-        payout_status: "pending",
-      },
-      transaction,
-    );
+
+    // ----------------------------------------------------
+    // 5. CREATE ONE PAYOUT RECORD PER VENDOR
+    // These stay "pending" until the webhook issues the matching transfer.
+    // ----------------------------------------------------
+    for (const payout of vendorPayouts) {
+      await this.services.createVenderPayout(
+        {
+          order_id: order.id,
+          payment_id: payment.id,
+          vendor_id: payout.vendor.id,
+          stripe_account_id: payout.vendor.stripe_account_id,
+          gross_amount: payout.grossAmount,
+          platform_fee: payout.platformFee,
+          vendor_amount: payout.vendorAmount,
+          currency: CURRENCY,
+          payout_status: PAYOUT_STATUS.PENDING,
+        },
+        transaction,
+      );
+    }
+
     await transaction.commit();
     return sendResponse(res, STATUS_CODE.CREATED, orderMessages.ORDER_CREATED, {
       order,
       payment_intent_id: paymentIntent.id,
+      client_secret: paymentIntent.client_secret,
     });
   }
 
@@ -213,13 +288,6 @@ export default class OrderController {
     }
     const paymentConfirm =
       await stripe.paymentIntents.retrieve(paymentIntentId);
-    if (paymentConfirm.status === "succeeded") {
-      return sendResponse(
-        res,
-        STATUS_CODE.BAD_REQUEST,
-        "Payment already confirmed",
-      );
-    }
     if (paymentConfirm.customer !== user.stripe_customer_id) {
       return sendResponse(
         res,
@@ -227,10 +295,14 @@ export default class OrderController {
         "Payment does not belong to this customer",
       );
     }
-    let paymentIntent;
-    paymentIntent = await stripe.paymentIntents.confirm(paymentIntentId, {
-      payment_method: payment_method_id,
-    });
+    // The webhook may have settled this intent before the client got here, so
+    // an already-succeeded intent is reported as success rather than an error.
+    let paymentIntent = paymentConfirm;
+    if (paymentIntent.status !== "succeeded") {
+      paymentIntent = await stripe.paymentIntents.confirm(paymentIntentId, {
+        payment_method: payment_method_id,
+      });
+    }
     // Payment Success
     if (paymentIntent.status === "succeeded") {
       const payment = await this.services.getPaymentByTransactionId(
@@ -247,21 +319,11 @@ export default class OrderController {
       await this.services.updatePayment(payment.id, {
         status: PAYMENT_RECORD_STATUS.SUCCESS,
       });
-      await this.services.updateOrder(orderId, {
-        payment_status: PAYMENT_STATUS.PAID,
-        order_status: ORDER_STATUS.CONFIRMED,
-      });
-      const order = await this.services.getOrderById(orderId);
-      for (const item of order.orderItems) {
-        await this.services.reduceStock(item.product_id, item.quantity);
-      }
-      const cart = await this.services.getCart(req.user.id);
-      if (cart) {
-        await this.services.clearCart(cart.id);
-      }
-      await this.services.updateVendorPayout(orderId, {
-        payout_status: "paid",
-      });
+      // Stock and cart are handled here so the shopper sees a confirmed order
+      // immediately. Vendor payouts are NOT touched: those are the webhook's
+      // job, because a transfer only counts as paid once Stripe has moved the
+      // money to the vendor's connected account.
+      await this.services.finalizePaidOrder(orderId, req.user.id);
       return sendResponse(
         res,
         STATUS_CODE.SUCCESS,
@@ -425,13 +487,66 @@ export default class OrderController {
         transaction,
       );
     }
+    // Money already sent to vendors has to come back, otherwise the platform
+    // eats the refund out of its own balance while payouts still read "paid".
+    const reversedPayouts = await this.reverseVendorTransfers(order);
     await transaction.commit();
     return sendResponse(
       res,
       STATUS_CODE.SUCCESS,
       paymentMessage.ORDER_REFUND,
-      refund,
+      { refund, reversed_payouts: reversedPayouts },
     );
+  }
+
+  /*
+   * Reverses every transfer this order produced and marks the payout row
+   * "refunded". A reversal that Stripe rejects is recorded on the row as
+   * "failed" with the reason instead of aborting the whole cancellation,
+   * because the customer refund has already succeeded at that point.
+   */
+  async reverseVendorTransfers(order) {
+    const payouts = await this.services.getVendorPayoutsByOrderId(order.id);
+    const results = [];
+
+    for (const payout of payouts) {
+      if (!payout.transfer_id) continue;
+      if (payout.payout_status === PAYOUT_STATUS.REFUNDED) continue;
+
+      try {
+        const reversal = await stripe.transfers.createReversal(
+          payout.transfer_id,
+          {},
+          { idempotencyKey: `refund-${payout.id}-${payout.transfer_id}` },
+        );
+        await this.services.updateVendorPayoutById(payout.id, {
+          payout_status: PAYOUT_STATUS.REFUNDED,
+          failure_reason: null,
+        });
+        results.push({
+          payout_id: payout.id,
+          vendor_id: payout.vendor_id,
+          transfer_id: payout.transfer_id,
+          reversal_id: reversal.id,
+          status: reversal.status,
+        });
+      } catch (error) {
+        const reason = describeStripeTransferFailure(error);
+        await this.services.updateVendorPayoutById(payout.id, {
+          payout_status: PAYOUT_STATUS.FAILED,
+          failure_reason: `Transfer reversal failed. ${reason}`,
+        });
+        results.push({
+          payout_id: payout.id,
+          vendor_id: payout.vendor_id,
+          transfer_id: payout.transfer_id,
+          status: "failed",
+          failure_reason: reason,
+        });
+      }
+    }
+
+    return results;
   }
   async updateOrderStatus(req, res) {
     // Admin Api

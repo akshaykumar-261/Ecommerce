@@ -1,5 +1,6 @@
 import { Op, where } from "sequelize";
 import { sequelize } from "../../config/db.js";
+import { ORDER_STATUS, PAYMENT_STATUS } from "../helper/constants.js";
 
 export default class OrderService {
   async init(db) {
@@ -59,11 +60,18 @@ export default class OrderService {
     });
   }
 
-  async reduceStock(productId, qty) {
-    const product = await this.Model.Product.findByPk(productId);
-    await product.update({
-      quantity: product.quantity - qty,
+  async reduceStock(productId, qty, transaction) {
+    const product = await this.Model.Product.findByPk(productId, {
+      transaction,
     });
+    await product.update(
+      {
+        quantity: product.quantity - qty,
+      },
+      {
+        transaction,
+      },
+    );
   }
 
   async restoreStock(productId, qty, transaction) {
@@ -79,11 +87,12 @@ export default class OrderService {
     );
   }
 
-  async clearCart(cartId) {
+  async clearCart(cartId, transaction) {
     return await this.Model.CartItem.destroy({
       where: {
         cart_id: cartId,
       },
+      transaction,
     });
   }
 
@@ -266,12 +275,79 @@ export default class OrderService {
     });
   }
 
-  async updateVendorPayout(orderId, payload) {
+  // Payouts are per vendor per order, so they are addressed by payout id —
+  // updating "all payouts of an order" would let one vendor's transfer
+  // outcome overwrite another's.
+  async updateVendorPayoutById(payoutId, payload) {
     return await this.Model.VendorPayout.update(payload, {
+      where: {
+        id: payoutId,
+      },
+    });
+  }
+
+  async getVendorPayoutsByOrderId(orderId) {
+    return await this.Model.VendorPayout.findAll({
       where: {
         order_id: orderId,
       },
+      order: [["id", "ASC"]],
     });
+  }
+
+  /*
+   * Flips an order to Confirmed/Paid, decrements stock and empties the cart.
+   * Shared by confirmPayment and the payment_intent.succeeded webhook, which
+   * can arrive in either order. Guarded by a row lock plus a status check so
+   * stock is never decremented twice for the same order.
+   */
+  async finalizePaidOrder(orderId, userId) {
+    const transaction = await sequelize.transaction();
+    try {
+      const order = await this.Model.Order.findByPk(orderId, {
+        transaction,
+        lock: transaction.LOCK.UPDATE,
+      });
+      if (!order) {
+        await transaction.rollback();
+        return null;
+      }
+      if (order.order_status === ORDER_STATUS.CONFIRMED) {
+        await transaction.rollback();
+        return { order, alreadyFinalized: true };
+      }
+
+      await this.updateOrder(
+        orderId,
+        {
+          payment_status: PAYMENT_STATUS.PAID,
+          order_status: ORDER_STATUS.CONFIRMED,
+        },
+        transaction,
+      );
+
+      const orderItems = await this.Model.OrderItem.findAll({
+        where: { order_id: orderId },
+        transaction,
+      });
+      for (const item of orderItems) {
+        await this.reduceStock(item.product_id, item.quantity, transaction);
+      }
+
+      const cart = await this.Model.Cart.findOne({
+        where: { user_id: userId },
+        transaction,
+      });
+      if (cart) {
+        await this.clearCart(cart.id, transaction);
+      }
+
+      await transaction.commit();
+      return { order, alreadyFinalized: false };
+    } catch (error) {
+      await transaction.rollback();
+      throw error;
+    }
   }
 
   async getAdminConfiguration() {

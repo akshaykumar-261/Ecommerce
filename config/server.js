@@ -16,10 +16,14 @@ import reviewRoutes from "../src/routes/reviewRoutes.js";
 import chatRoutes from "../src/routes/chatRoutes.js";
 import productRoutes from "../src/routes/productRoutes.js";
 import contactRoutes from "../src/routes/contactRoutes.js";
+import stripeRoutes from "../src/routes/stripeRoutes.js";
 import "./association.js";
 import "../utility/queue/emailWorkers.js";
 import "./cloudnary.js";
 const app = express();
+// Mounted before express.json(): the Stripe webhook needs the raw request body
+// to verify its signature.
+app.use("/stripe", stripeRoutes);
 app.use(express.json());
 app.use(cors({
   origin:" http://localhost:5173"

@@ -43,6 +43,27 @@ export const asyncHandler = (fn) => {
   };
 };
 
+/*
+ * The price a customer actually pays for one unit.
+ *
+ * discount_price is the discounted unit price (not a percentage), which is how
+ * the storefront already renders it. It is only honoured when it is a real
+ * discount — a missing, zero or above-MRP value falls back to price, so a
+ * pricing mistake can never charge someone more than the listed price.
+ *
+ * Kept here so the cart total, the order, the vendor split and the Stripe
+ * amount can never disagree about what a product costs.
+ */
+export const getEffectiveUnitPrice = (product) => {
+  const price = Number(product?.price) || 0;
+  const discountPrice = Number(product?.discount_price) || 0;
+  return discountPrice > 0 && discountPrice < price ? discountPrice : price;
+};
+
+// Line total for a cart/order item, i.e. unit price x quantity.
+export const getEffectiveLineTotal = (product, quantity) =>
+  getEffectiveUnitPrice(product) * (Number(quantity) || 0);
+
 export const pagignation = (page = 1, limit = 10, data = null) => {
   page = parseInt(page) || 1;
   limit = parseInt(limit) || 10;
