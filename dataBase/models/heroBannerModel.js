@@ -38,6 +38,13 @@ const HeroBannerModel = sequelize.define(
       allowNull: false,
       defaultValue: true,
     },
+    // Lets an admin switch the badge pill ("Mega Sale — Up to 70% Off") off
+    // without touching the banner image, headings or description.
+    show_badge: {
+      type: DataTypes.BOOLEAN,
+      allowNull: false,
+      defaultValue: true,
+    },
     updated_by: {
       type: DataTypes.INTEGER,
       allowNull: true,

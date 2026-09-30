@@ -420,12 +420,21 @@ export default class AdminController {
       "heading_line_one",
       "heading_line_two",
       "description",
+      "show_badge",
     ];
     const payload = {};
     for (const field of allowedFields) {
       if (req.body?.[field] !== undefined) {
         payload[field] = req.body[field];
       }
+    }
+    // The switch is posted as multipart/form-data, so it arrives as a string
+    if (payload.show_badge !== undefined) {
+      payload.show_badge =
+        payload.show_badge === true ||
+        payload.show_badge === 1 ||
+        payload.show_badge === "1" ||
+        payload.show_badge === "true";
     }
 
     if (Object.keys(payload).length === 0 && !req.file) {

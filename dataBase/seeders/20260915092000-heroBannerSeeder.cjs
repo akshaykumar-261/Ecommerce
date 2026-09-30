@@ -11,6 +11,7 @@ module.exports = {
         description:
           "Shop from thousands of products across 20+ categories. Unbeatable prices, fast delivery, and secure payments.",
         is_active: true,
+        show_badge: true,
         createdAt: new Date(),
         updatedAt: new Date(),
       },
