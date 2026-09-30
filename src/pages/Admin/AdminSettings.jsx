@@ -66,6 +66,7 @@ function AdminSettings() {
     formData.append("heading_line_one", data.heading_line_one || "");
     formData.append("heading_line_two", data.heading_line_two || "");
     formData.append("description", data.description || "");
+    formData.append("show_badge", data.show_badge ? "true" : "false");
     if (data.image && data.image[0]) {
       formData.append("image", data.image[0]);
     }
@@ -173,6 +174,10 @@ function AdminSettings() {
 
 function HeroBannerForm({ defaults, saving, onSubmit }) {
   const [preview, setPreview] = useState(defaults.image_url || "");
+  // Kept as local state rather than a form field: it is a boolean switch, not
+  // text, and reading it via watch() would opt this form out of memoization.
+  // Absent (banner row predates the column) means the badge stays visible.
+  const [showBadge, setShowBadge] = useState(defaults.show_badge !== false);
   const { register, handleSubmit } = useForm({
     defaultValues: {
       badge_text: defaults.badge_text || "",
@@ -190,7 +195,10 @@ function HeroBannerForm({ defaults, saving, onSubmit }) {
   };
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+    <form
+      onSubmit={handleSubmit((data) => onSubmit({ ...data, show_badge: showBadge }))}
+      className="space-y-4"
+    >
       <div className="grid grid-cols-1 gap-5 lg:grid-cols-[260px_minmax(0,1fr)]">
         {/* Image */}
         <div>
@@ -225,6 +233,38 @@ function HeroBannerForm({ defaults, saving, onSubmit }) {
 
         {/* Text fields */}
         <div className="space-y-4">
+          <div className="flex items-center justify-between gap-4 rounded-xl border border-slate-200 bg-slate-50/70 px-4 py-3">
+            <div className="flex items-start gap-2.5">
+              <Flame size={15} className="mt-0.5 shrink-0 text-amber-500" />
+              <div>
+                <p className="text-sm font-semibold text-slate-700">
+                  Show sale badge
+                </p>
+                <p className="text-[11px] text-slate-400">
+                  {showBadge
+                    ? "The pill above the home page heading is visible."
+                    : "Hidden from the home page. The text is kept for later."}
+                </p>
+              </div>
+            </div>
+            <button
+              type="button"
+              role="switch"
+              aria-checked={showBadge}
+              aria-label="Show sale badge"
+              onClick={() => setShowBadge((prev) => !prev)}
+              className={`relative h-5 w-9 shrink-0 rounded-full transition-colors focus-visible:ring-4 focus-visible:ring-indigo-500/20 ${
+                showBadge ? "bg-green-500" : "bg-slate-300"
+              }`}
+            >
+              <span
+                className={`absolute top-0.5 h-4 w-4 rounded-full bg-white shadow transition-all ${
+                  showBadge ? "left-4.5" : "left-0.5"
+                }`}
+              />
+            </button>
+          </div>
+
           <div>
             <label className={labelCls}>Badge Text</label>
             <div className="relative">
@@ -235,10 +275,14 @@ function HeroBannerForm({ defaults, saving, onSubmit }) {
               <input
                 type="text"
                 placeholder="Mega Sale — Up to 70% Off"
+                readOnly={!showBadge}
                 {...register("badge_text")}
-                className={`${fieldCls} pl-10`}
+                className={`${fieldCls} pl-10 read-only:cursor-not-allowed read-only:opacity-60`}
               />
             </div>
+            <p className="mt-1.5 text-[11px] text-slate-400">
+              Turn the switch off to remove the sale pill from the home page.
+            </p>
           </div>
 
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
@@ -271,7 +315,8 @@ function HeroBannerForm({ defaults, saving, onSubmit }) {
               className={`${fieldCls} resize-none`}
             />
             <p className="mt-1.5 text-[11px] text-slate-400">
-              Leave any field blank to hide that element on the home page.
+              Leave a heading or the description blank to hide that element on
+              the home page.
             </p>
           </div>
         </div>

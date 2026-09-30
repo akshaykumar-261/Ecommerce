@@ -34,13 +34,13 @@ const CONTACT_INFO = [
   {
     icon: Phone,
     title: "Call Us",
-    lines: ["+91 98765 43210", "Mon–Sat, 9 AM – 9 PM"],
+    lines: ["+91 98765 43210", "Available 24/7"],
     color: "bg-green-50 text-green-600",
   },
   {
     icon: Clock,
     title: "Working Hours",
-    lines: ["Monday – Saturday", "9:00 AM – 9:00 PM IST"],
+    lines: ["Monday – Sunday", "Available 24/7"],
     color: "bg-orange-50 text-orange-500",
   },
 ];

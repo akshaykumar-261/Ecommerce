@@ -226,6 +226,11 @@ export const useLogout = () => {
     onSuccess: () => {
       queryClient.removeQueries({ queryKey: ["user"] });
     },
+    onSettled: () => {
+      queryClient.removeQueries({ queryKey: ["cart"] });
+      queryClient.removeQueries({ queryKey: ["cart-count"] });
+      clearGuestCart();
+    },
     onError: (error) => {
       console.error("STATUS:", error.response?.status);
       console.error("BACKEND ERROR:", error.response?.data);

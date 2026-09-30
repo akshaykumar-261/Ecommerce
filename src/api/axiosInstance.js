@@ -1,4 +1,5 @@
 import axios from "axios";
+import { clearGuestCart } from "./guestCart";
 
 const axiosInstance = axios.create({
   baseURL: import.meta.env.VITE_API_BASE_URL,
@@ -56,6 +57,7 @@ let refreshPromise = null;
 const clearSessionAndRedirect = () => {
   localStorage.removeItem("accessToken");
   localStorage.removeItem("refreshToken");
+  clearGuestCart();
   const path = window.location.pathname;
   if (path.startsWith("/admin") && !path.startsWith("/admin/login")) {
     window.location.href = "/admin/login";

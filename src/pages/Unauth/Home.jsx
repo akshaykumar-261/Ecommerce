@@ -79,8 +79,13 @@ function HeroBanner() {
   const banner = data?.data;
 
   // Fall back to the shipped defaults so the home page never renders empty
-  // if the banner row is missing or the request fails.
-  const badgeText = banner?.badge_text || DEFAULT_HERO_BADGE;
+  // if the banner row is missing or the request fails. The badge is the one
+  // exception: an explicit show_badge = false from the admin wins over the
+  // default text, otherwise the sale pill could never be switched off.
+  const showBadge = banner ? banner.show_badge !== false : true;
+  const badgeText = showBadge
+    ? banner?.badge_text || DEFAULT_HERO_BADGE
+    : "";
   const headingOne = banner?.heading_line_one || DEFAULT_HERO_HEADING_ONE;
   const headingTwo = banner?.heading_line_two || DEFAULT_HERO_HEADING_TWO;
   const description = banner?.description || DEFAULT_HERO_DESCRIPTION;
