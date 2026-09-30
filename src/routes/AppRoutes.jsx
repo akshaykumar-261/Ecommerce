@@ -81,14 +81,13 @@ function AppRoutes() {
           </GuestRoute>
         }
       />
-      <Route
-        path="/forgot-password"
-        element={
-          <GuestRoute>
-            <ForgotPassword />
-          </GuestRoute>
-        }
-      />
+      {/*
+        Not wrapped in GuestRoute on purpose: a signed-in user has to be able to
+        change their password too. GuestRoute redirects to /home whenever an
+        accessToken exists, which bounced the "Back" link on the verify-OTP page
+        straight to the home page.
+      */}
+      <Route path="/forgot-password" element={<ForgotPassword />} />
       <Route path="/home" element={<Home />} />
       <Route path="/" element={<Home />} />
       <Route path="/products/category/:id" element={<Products />} />

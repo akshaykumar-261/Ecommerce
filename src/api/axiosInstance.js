@@ -1,5 +1,6 @@
 import axios from "axios";
 import { clearGuestCart } from "./guestCart";
+import { clearPasswordResetToken } from "./passwordResetSession";
 
 const axiosInstance = axios.create({
   baseURL: import.meta.env.VITE_API_BASE_URL,
@@ -8,9 +9,13 @@ const axiosInstance = axios.create({
 // Request Interceptor: Access Token Lagayein
 axiosInstance.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem("accessToken");
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
+    // An explicit header wins: the password-reset flow passes its own token,
+    // which must not be replaced by a login token (or by nothing).
+    if (!config.headers.Authorization) {
+      const token = localStorage.getItem("accessToken");
+      if (token) {
+        config.headers.Authorization = `Bearer ${token}`;
+      }
     }
     return config;
   },
@@ -58,6 +63,7 @@ const clearSessionAndRedirect = () => {
   localStorage.removeItem("accessToken");
   localStorage.removeItem("refreshToken");
   clearGuestCart();
+  clearPasswordResetToken();
   const path = window.location.pathname;
   if (path.startsWith("/admin") && !path.startsWith("/admin/login")) {
     window.location.href = "/admin/login";

@@ -1,8 +1,7 @@
-import React from "react";
+import { useState } from "react";
 import AuthLayout from "../../components/auth/AuthLayout";
 import authBanner from "../../assets/image copy 13.png";
 import Button from "../../components/common/Button";
-import { Link } from "react-router-dom";
 import { LockKeyhole } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { useOtpVerifyUser, useOtpResendUser } from "../../api/useAuth";
@@ -10,24 +9,33 @@ import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 import { jwtDecode } from "jwt-decode";
 import { useAuth } from "../../components/common/ AuthContext";
+import OtpInput from "../../components/common/OtpInput";
 function OtpVerify() {
-  const handleNumberChange = (e) => {
-    e.target.value = e.target.value.replace(/[^0-9]/g, "");
-  };
   const navigate = useNavigate();
   const { setOtpVerified } = useAuth();
   const { mutate: otpVerifyUser } = useOtpVerifyUser();
+  const [otp, setOtp] = useState("");
   const {
     register,
+    setValue,
     handleSubmit,
     formState: { errors },
   } = useForm();
   const { mutate: otpResendUser } = useOtpResendUser();
+
+  register("otp", {
+    required: "Enter the 6-digit code",
+    pattern: { value: /^\d{6}$/, message: "Enter all 6 digits" },
+  });
+
+  const handleOtpChange = (next) => {
+    setOtp(next);
+    setValue("otp", next);
+  };
+
   const onSubmitData = (data) => {
-    const otp =
-      data.otp1 + data.otp2 + data.otp3 + data.otp4 + data.otp5 + data.otp6;
     otpVerifyUser(
-      { otp },
+      { otp: data.otp },
       {
         onSuccess: () => {
           const accessToken = localStorage.getItem("accessToken");
@@ -88,121 +96,16 @@ function OtpVerify() {
       {/* Form */}
       <form onSubmit={handleSubmit(onSubmitData)} className="mt-7">
         {/* OTP */}
-        <div className="flex gap-2">
-          <input
-            type="text"
-            inputMode="numeric"
-            maxLength="1"
-            onChange={handleNumberChange}
-            {...register("otp1")}
-            className="
-              w-11 h-11
-              border
-              border-violet-600
-              rounded-lg
-              text-center
-              text-lg
-              outline-none
-              focus:border-violet-500
-            "
-          />
-
-          <input
-            type="text"
-            maxLength="1"
-            inputMode="numeric"
-            onChange={handleNumberChange}
-            {...register("otp2")}
-            className="
-              w-11 h-11
-              border
-              border-gray-300
-              rounded-lg
-              text-center
-              text-lg
-              outline-none
-              focus:border-violet-500
-            "
-          />
-
-          <input
-            type="text"
-            maxLength="1"
-            inputMode="numeric"
-            onChange={handleNumberChange}
-            {...register("otp3")}
-            className="
-              w-11 h-11
-              border
-              border-gray-300
-              rounded-lg
-              text-center
-              text-lg
-              outline-none
-              focus:border-violet-500
-            "
-          />
-
-          <input
-            type="text"
-            maxLength="1"
-            inputMode="numeric"
-            onChange={handleNumberChange}
-            {...register("otp4")}
-            className="
-              w-11 h-11
-              border
-              border-gray-300
-              rounded-lg
-              text-center
-              text-lg
-              outline-none
-              focus:border-violet-500
-            "
-          />
-
-          <input
-            type="text"
-            maxLength="1"
-            inputMode="numeric"
-            onChange={handleNumberChange}
-            {...register("otp5")}
-            className="
-              w-11 h-11
-              border
-              border-gray-300
-              rounded-lg
-              text-center
-              text-lg
-              outline-none
-              focus:border-violet-500
-            "
-          />
-
-          <input
-            type="text"
-            maxLength="1"
-            inputMode="numeric"
-            onChange={handleNumberChange}
-            {...register("otp6")}
-            className="
-              w-11 h-11
-              border
-              border-gray-300
-              rounded-lg
-              text-center
-              text-lg
-              outline-none
-              focus:border-violet-500
-            "
-          />
-        </div>
+        <OtpInput value={otp} onChange={handleOtpChange} hasError={!!errors.otp} />
+        {errors.otp && (
+          <p className="mt-2 text-xs text-red-500">{errors.otp.message}</p>
+        )}
 
         {/* Resend OTP */}
         <button
           type="button"
           onClick={handleResendOtp}
-          className="text-sm text-violet-600"
+          className="mt-4 text-sm text-violet-600"
         >
           Resend OTP
         </button>

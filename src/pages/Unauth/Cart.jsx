@@ -103,13 +103,17 @@ function Cart() {
       const price = parseFloat(product?.price) || 0;
       const discountPrice = parseFloat(product?.discount_price) || 0;
       const lineMrp = price * item.quantity;
-      const lineFinal =
-        (discountPrice > 0 ? discountPrice : price) * item.quantity;
+      // Same rule as the backend's getEffectiveUnitPrice, so the cart total
+      // here is the amount that actually gets charged at checkout.
+      const unitPrice =
+        discountPrice > 0 && discountPrice < price ? discountPrice : price;
+      const lineFinal = unitPrice * item.quantity;
       const primaryMedia = product?.product_media?.find((m) => m.is_primary);
       return {
         ...item,
         price,
         discountPrice,
+        unitPrice,
         lineMrp,
         lineDiscount: lineMrp - lineFinal,
         lineFinal,
@@ -251,8 +255,7 @@ function Cart() {
                   const isUpdating = updatingId === item.id;
                   const isRemoving = removingId === item.id;
                   const currentQty = localQuantities[item.id] ?? item.quantity;
-                  const unitPrice =
-                    item.discountPrice > 0 ? item.discountPrice : item.price;
+                  const unitPrice = item.unitPrice ?? item.price;
 
                   return (
                     <div
@@ -302,14 +305,16 @@ function Cart() {
                               <span className="text-lg font-bold text-gray-900">
                                 {formatINR(item.lineFinal)}
                               </span>
-                              {item.discountPrice > 0 && item.price > 0 && (
+                              {item.lineDiscount > 0 && (
                                 <span className="text-sm text-gray-400 line-through">
                                   {formatINR(item.lineMrp)}
                                 </span>
                               )}
-                              <span className="text-xs font-semibold text-green-600">
-                                Save {formatINR(item.lineDiscount)}
-                              </span>
+                              {item.lineDiscount > 0 && (
+                                <span className="text-xs font-semibold text-green-600">
+                                  Save {formatINR(item.lineDiscount)}
+                                </span>
+                              )}
                             </div>
                             <p className="mt-1 text-[11px] text-gray-400">
                               {formatINR(unitPrice)} / piece × {currentQty}

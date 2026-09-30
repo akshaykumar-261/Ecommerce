@@ -117,6 +117,19 @@ function AdminPayouts() {
                 </td>
                 <td className="px-5 py-3.5">
                   <StatusBadge status={payout.payout_status} />
+                  {payout.failure_reason && (
+                    <p
+                      title={payout.failure_reason}
+                      className="mt-1.5 max-w-[22rem] cursor-help text-[11px] leading-snug text-red-500 line-clamp-2"
+                    >
+                      {payout.failure_reason}
+                    </p>
+                  )}
+                  {payout.transfer_id && (
+                    <p className="mt-1 text-[11px] text-slate-400">
+                      {payout.transfer_id}
+                    </p>
+                  )}
                 </td>
                 <td className="px-5 py-3.5 text-xs text-slate-500">
                   {payout.createdAt ? new Date(payout.createdAt).toLocaleDateString() : "-"}

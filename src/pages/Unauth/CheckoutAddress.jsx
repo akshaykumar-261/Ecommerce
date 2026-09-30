@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
-import { CardElement } from "@stripe/react-stripe-js";
 import {
   MapPin,
   Plus,
@@ -26,11 +25,10 @@ import {
   Lock,
   CheckCircle2,
   Store,
-  AlertCircle,
 } from "lucide-react";
 import toast from "react-hot-toast";
 import Navbar from "../../components/common/Navbar";
-import { useCart, useAddToCart, useRemoveFromCart } from "../../api/useCart";
+import { useCart } from "../../api/useCart";
 import {
   useAddresses,
   useAddAddress,
@@ -90,8 +88,6 @@ function CheckoutAddress() {
   const addAddress = useAddAddress();
   const updateAddress = useUpdateAddress();
   const deleteAddress = useDeleteAddress();
-  const addToCart = useAddToCart();
-  const removeFromCart = useRemoveFromCart();
   const placeOrder = usePlaceOrder();
   const confirmPayment = useConfirmPayment();
 
@@ -109,15 +105,9 @@ function CheckoutAddress() {
   const [paymentSuccess, setPaymentSuccess] = useState(false);
   const [placedOrderId, setPlacedOrderId] = useState(null);
 
-  const [vendorOrders, setVendorOrders] = useState([]);
-  const [placingOrders, setPlacingOrders] = useState(false);
-  const [placingProgress, setPlacingProgress] = useState(null);
-  const [payProgress, setPayProgress] = useState({
-    current: 0,
-    processing: false,
-    error: null,
-  });
-  const [paidIntentIds, setPaidIntentIds] = useState([]);
+  // The single order/payment created for the whole cart. Vendor splitting is
+  // the backend's job, so there is no per-vendor list here any more.
+  const [placedOrder, setPlacedOrder] = useState(null);
 
   const effectiveSelectedId = selectedId || addresses[0]?.id || null;
   const selectedAddress = addresses.find((a) => a.id === effectiveSelectedId);
@@ -131,14 +121,19 @@ function CheckoutAddress() {
       const product = item.product;
       const price = parseFloat(product?.price) || 0;
       const discountPrice = parseFloat(product?.discount_price) || 0;
+      // Must match the backend's getEffectiveUnitPrice: discount_price is only
+      // honoured when it is a real discount, so the amount shown here is the
+      // amount that actually gets charged.
+      const unitPrice =
+        discountPrice > 0 && discountPrice < price ? discountPrice : price;
       const lineMrp = price * item.quantity;
-      const lineFinal =
-        (discountPrice > 0 ? discountPrice : price) * item.quantity;
+      const lineFinal = unitPrice * item.quantity;
       const primaryMedia = product?.product_media?.find((m) => m.is_primary);
       return {
         ...item,
         price,
         discountPrice,
+        unitPrice,
         lineMrp,
         lineDiscount: lineMrp - lineFinal,
         lineFinal,
@@ -270,179 +265,74 @@ function CheckoutAddress() {
     });
   };
 
+  /*
+   * One cart -> one order -> one PaymentIntent.
+   *
+   * The backend groups the cart by vendor itself, creates a single order for
+   * the whole cart, and splits the payout per vendor from the Stripe webhook.
+   * So there is nothing to loop over here and no reason to touch the cart: the
+   * previous version rebuilt the cart around each seller and placed N orders,
+   * which would now create duplicate orders and overcharge the customer once
+   * per seller.
+   */
   const handlePlaceOrder = async () => {
     if (!effectiveSelectedId) {
       toast.error("Please select a delivery address.");
       return;
     }
 
-    if (vendorGroups.length === 0) {
-      toast.error("Unable to determine sellers for your cart items.");
+    if (enrichedItems.length === 0) {
+      toast.error("Your cart is empty.");
       return;
     }
 
-    setPlacingOrders(true);
-    setPlacingProgress({ current: 1, total: vendorGroups.length, label: "" });
     try {
-      const orders = [];
-      let productsInCart = new Set(
-        enrichedItems.map((it) => it.product_id).filter(Boolean),
-      );
-
-      for (let i = 0; i < vendorGroups.length; i++) {
-        const group = vendorGroups[i];
-        setPlacingProgress({
-          current: i + 1,
-          total: vendorGroups.length,
-          label: group.vendorName,
-        });
-
-        // Rebuild the backend cart so it only contains THIS seller's items,
-        // because the backend places one order (and one Stripe payment) from
-        // the whole cart at a time.
-        const targetIds = new Set(group.items.map((it) => it.product_id));
-        for (const pid of [...productsInCart]) {
-          if (!targetIds.has(pid)) {
-            try {
-              await removeFromCart.mutateAsync(pid);
-            } catch {
-              // item already gone - safe to skip
-            }
-            productsInCart.delete(pid);
-          }
-        }
-        for (const it of group.items) {
-          if (!productsInCart.has(it.product_id)) {
-            await addToCart.mutateAsync({
-              product_id: it.product_id,
-              quantity: it.quantity,
-            });
-            productsInCart.add(it.product_id);
-          }
-        }
-
-        const res = await placeOrder.mutateAsync(effectiveSelectedId);
-        const piId = res?.data?.payment_intent_id;
-        if (!piId) {
-          throw new Error(`Payment intent not created for ${group.vendorName}`);
-        }
-        orders.push({
-          orderId: res?.data?.order?.id,
-          paymentIntentId: piId,
-          amount: Number(res?.data?.order?.grand_total || group.subtotal),
-          vendorName: group.vendorName,
-        });
+      const res = await placeOrder.mutateAsync(effectiveSelectedId);
+      const piId = res?.data?.payment_intent_id;
+      if (!piId) {
+        throw new Error("Payment intent was not created");
       }
 
-      // Restore the full original cart so nothing looks lost before payment.
-      for (const pid of [...productsInCart]) {
-        try {
-          await removeFromCart.mutateAsync(pid);
-        } catch {
-          // item already gone - safe to skip
-        }
-      }
-      for (const it of enrichedItems) {
-        try {
-          await addToCart.mutateAsync({
-            product_id: it.product_id,
-            quantity: it.quantity,
-          });
-        } catch {
-          // best-effort restore
-        }
-      }
-
-      setVendorOrders(orders);
-      setPaidIntentIds([]);
-      setPayProgress({ current: 0, processing: false, error: null });
-      setPaymentIntentId(orders[0]?.paymentIntentId || null);
+      setPlacedOrder({
+        orderId: res?.data?.order?.id ?? null,
+        paymentIntentId: piId,
+        amount: Number(res?.data?.order?.grand_total || finalTotal),
+      });
+      setPaymentIntentId(piId);
       setShowPaymentForm(true);
-      toast.success(
-        orders.length > 1
-          ? `${orders.length} orders created. Please complete payment for each seller.`
-          : "Order created. Please complete payment.",
-      );
+      toast.success("Order created. Please complete payment.");
     } catch (error) {
       toast.error(
         error.response?.data?.message || error.message || "Failed to place order",
       );
-      try {
-        for (const it of enrichedItems) {
-          await addToCart.mutateAsync({
-            product_id: it.product_id,
-            quantity: it.quantity,
-          });
-        }
-      } catch {
-        // best-effort restore
-      }
-    } finally {
-      setPlacingOrders(false);
-      setPlacingProgress(null);
     }
   };
 
-const handlePaymentSuccess = async (paymentMethodId, paymentParams = {}) => {
-    if (!vendorOrders.length) return;
+  /*
+   * A single PaymentIntent covers the whole cart, so one payment method and
+   * one confirm call settle everything. The per-vendor split happens server
+   * side in the webhook, not here.
+   */
+  const handlePaymentSuccess = async (paymentMethodId) => {
+    if (!placedOrder?.paymentIntentId) return;
 
-    const { stripe, elements } = paymentParams;
-    const unpaid = vendorOrders
-      .map((o, i) => ({ o, i }))
-      .filter(({ o }) => !paidIntentIds.includes(o.paymentIntentId));
-
-    if (unpaid.length === 0) {
-      setPaymentSuccess(true);
-      setShowPaymentForm(true);
-      return;
-    }
-
-    const newlyPaid = [...paidIntentIds];
-    setPayProgress({ current: unpaid[0].i, processing: true, error: null });
     try {
-      for (const { o, i } of unpaid) {
-        setPayProgress({ current: i, processing: true, error: null });
-
-        // Stripe allows a PaymentMethod to be used with only ONE
-        // PaymentIntent (unless attached to the Customer first), so we
-        // mint a fresh payment method from the card for every seller order.
-        let pmId = paymentMethodId;
-        if (unpaid.length > 1 && stripe && elements) {
-          const { error, paymentMethod } = await stripe.createPaymentMethod({
-            type: "card",
-            card: elements.getElement(CardElement),
-          });
-          if (error) throw error;
-          pmId = paymentMethod.id;
-        }
-
-        await confirmPayment.mutateAsync({
-          paymentIntentId: o.paymentIntentId,
-          paymentMethodId: pmId,
-        });
-        newlyPaid.push(o.paymentIntentId);
-        setPaidIntentIds(newlyPaid);
-      }
-      setPayProgress({
-        current: vendorOrders.length,
-        processing: false,
-        error: null,
+      await confirmPayment.mutateAsync({
+        paymentIntentId: placedOrder.paymentIntentId,
+        paymentMethodId,
       });
-      setPlacedOrderId(vendorOrders[0].orderId || null);
+
+      setPlacedOrderId(placedOrder.orderId);
       setPaymentSuccess(true);
       setShowPaymentForm(true);
       queryClient.invalidateQueries({ queryKey: ["cart"] });
       queryClient.invalidateQueries({ queryKey: ["cart-count"] });
-      toast.success(
-        vendorOrders.length > 1
-          ? "All orders paid successfully!"
-          : "Payment successful!",
-      );
+      queryClient.invalidateQueries({ queryKey: ["myOrders"] });
+      toast.success("Payment successful!");
     } catch (error) {
       toast.error(
         error.response?.data?.message || error.message || "Payment failed",
       );
-      setPayProgress((p) => ({ ...p, processing: false, error: true }));
     }
   };
 
@@ -451,16 +341,10 @@ const handlePaymentSuccess = async (paymentMethodId, paymentParams = {}) => {
     setPaymentIntentId(null);
     setPaymentSuccess(false);
     setPlacedOrderId(null);
-    setVendorOrders([]);
-    setPaidIntentIds([]);
-    setPayProgress({ current: 0, processing: false, error: null });
+    setPlacedOrder(null);
   };
 
   const handleViewOrder = () => {
-    if (vendorOrders.length > 1) {
-      navigate("/orders");
-      return;
-    }
     if (placedOrderId) {
       navigate(`/orders/${placedOrderId}`);
     } else {
@@ -471,16 +355,14 @@ const handlePaymentSuccess = async (paymentMethodId, paymentParams = {}) => {
   useEffect(() => {
     if (!paymentSuccess) return undefined;
     const timer = setTimeout(() => {
-      if (vendorOrders.length > 1) {
-        navigate("/orders");
-      } else if (placedOrderId) {
+      if (placedOrderId) {
         navigate(`/orders/${placedOrderId}`);
       } else {
         navigate("/orders");
       }
     }, 4000);
     return () => clearTimeout(timer);
-  }, [paymentSuccess, vendorOrders.length, placedOrderId, navigate]);
+  }, [paymentSuccess, placedOrderId, navigate]);
 
   const paymentSuccessPopup = (
     <Popup
@@ -489,17 +371,13 @@ const handlePaymentSuccess = async (paymentMethodId, paymentParams = {}) => {
       icon={<CheckCircle2 size={26} className="text-green-600" />}
       iconClassName="bg-green-100"
       title="Payment Successful!"
-      message={
-        vendorOrders.length > 1
-          ? `All ${vendorOrders.length} seller orders were paid successfully and your orders have been placed.`
-          : "Your payment has been processed successfully and your order has been placed."
-      }
+      message="Your payment has been processed successfully and your order has been placed."
     >
       <button
         onClick={handleViewOrder}
         className="flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-[#4c2ed8] to-[#368de8] px-6 py-3.5 text-sm font-bold text-white shadow-lg shadow-[#4c2ed8]/25 transition hover:shadow-xl"
       >
-        {vendorOrders.length > 1 ? "View My Orders" : "View Your Order"}
+        View Your Order
         <ArrowRight size={16} />
       </button>
       <p className="mt-3 text-[11px] text-gray-400">
@@ -877,11 +755,7 @@ const handlePaymentSuccess = async (paymentMethodId, paymentParams = {}) => {
                           {item.product.pro_name}
                         </p>
                         <p className="text-[11px] text-gray-400">
-                          ₹
-                          {item.discountPrice > 0
-                            ? item.discountPrice
-                            : item.price}{" "}
-                          × {item.quantity}
+                          ₹{item.unitPrice} × {item.quantity}
                         </p>
                       </div>
                       <span className="shrink-0 text-xs font-bold text-gray-900">
@@ -963,28 +837,40 @@ const handlePaymentSuccess = async (paymentMethodId, paymentParams = {}) => {
                           </p>
                         </div>
                         <p className="mt-1 text-[11px] leading-relaxed text-gray-500">
-                          Your order will be split into {vendorGroups.length}{" "}
-                          separate orders so every seller gets paid. Enter your
-                          card once and we settle each seller.
+                          This is one order and one payment. We pay each seller
+                          their share separately after your payment clears.
                         </p>
+                        <ul className="mt-2 space-y-1">
+                          {vendorGroups.map((group) => (
+                            <li
+                              key={group.vendorId}
+                              className="flex items-center justify-between text-[11px] text-gray-600"
+                            >
+                              <span className="truncate">
+                                {group.vendorName}
+                              </span>
+                              <span className="shrink-0 font-semibold text-gray-800">
+                                {formatINR(group.subtotal)}
+                              </span>
+                            </li>
+                          ))}
+                        </ul>
                       </div>
                     )}
 
                     <button
                       onClick={handlePlaceOrder}
-                      disabled={addresses.length === 0 || !effectiveSelectedId || placeOrder.isPending || placingOrders}
+                      disabled={addresses.length === 0 || !effectiveSelectedId || placeOrder.isPending}
                       className="mt-5 flex w-full items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-[#4c2ed8] to-[#368de8] px-6 py-4 text-sm font-bold text-white shadow-lg shadow-[#4c2ed8]/25 transition hover:shadow-xl hover:shadow-[#4c2ed8]/35 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50 disabled:shadow-none"
                     >
-                      {placeOrder.isPending || placingOrders ? (
+                      {placeOrder.isPending ? (
                         <>
                           <span className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
                           Placing Order...
                         </>
                       ) : (
                         <>
-                          {isMultiVendor
-                            ? `Place ${vendorGroups.length} Orders`
-                            : "Place Order"}
+                          Place Order
                           <ArrowRight size={16} />
                         </>
                       )}
@@ -1013,65 +899,25 @@ const handlePaymentSuccess = async (paymentMethodId, paymentParams = {}) => {
         onClose={handlePaymentCancel}
         icon={<Lock size={22} className="text-[#4c2ed8]" />}
         iconClassName="bg-[#f0edff]"
-        title={
-          vendorOrders.length > 1
-            ? `Pay ${vendorOrders.length} Seller Orders`
-            : "Enter Card Details"
-        }
+        title="Enter Card Details"
       >
-        {vendorOrders.length > 1 ? (
-          <>
-            <div className="mb-4 space-y-2 rounded-xl border border-gray-100 bg-gray-50 p-3">
-              {(() => {
-                const unpaidIndex = vendorOrders.findIndex(
-                  (oo) => !paidIntentIds.includes(oo.paymentIntentId),
-                );
-                return vendorOrders.map((o, i) => {
-                  const isPaid = paidIntentIds.includes(o.paymentIntentId);
-                  const isCurrent =
-                    i === unpaidIndex && payProgress.processing;
-                  const isError =
-                    i === unpaidIndex &&
-                    payProgress.error &&
-                    !payProgress.processing;
-                  return (
-                    <div
-                      key={o.paymentIntentId}
-                      className="flex items-center justify-between text-xs"
-                    >
-                      <span className="flex min-w-0 items-center gap-2 font-medium text-gray-700">
-                        {isPaid ? (
-                          <CheckCircle2 size={15} className="shrink-0 text-green-500" />
-                        ) : isCurrent ? (
-                          <span className="h-3.5 w-3.5 shrink-0 animate-spin rounded-full border-2 border-[#4c2ed8] border-t-transparent" />
-                        ) : isError ? (
-                          <AlertCircle size={15} className="shrink-0 text-red-500" />
-                        ) : (
-                          <span className="h-3.5 w-3.5 shrink-0 rounded-full border-2 border-gray-300" />
-                        )}
-                        <span className="truncate">
-                          {o.vendorName || `Seller ${i + 1}`}
-                        </span>
-                      </span>
-                      <span className="shrink-0 font-bold text-gray-800">
-                        {formatINR(o.amount)}
-                      </span>
-                    </div>
-                  );
-                });
-              })()}
-            </div>
-            {isMultiVendor && (
-              <p className="mb-4 text-xs text-gray-500">
-                Enter your card once — we will charge each seller separately.
-              </p>
-            )}
-          </>
-        ) : (
-          <p className="mb-4 text-sm text-gray-600">
-            Total: {formatINR(finalTotal)}
-          </p>
-        )}
+        <div className="mb-4 rounded-xl border border-gray-100 bg-gray-50 p-3">
+          <div className="flex items-center justify-between text-xs">
+            <span className="font-medium text-gray-700">
+              {isMultiVendor
+                ? `One payment for ${vendorGroups.length} sellers`
+                : "Order total"}
+            </span>
+            <span className="font-bold text-gray-800">
+              {formatINR(placedOrder?.amount ?? finalTotal)}
+            </span>
+          </div>
+          {isMultiVendor && (
+            <p className="mt-1.5 text-[11px] leading-relaxed text-gray-500">
+              Pay once — each seller is settled their share separately.
+            </p>
+          )}
+        </div>
         <PaymentForm
           paymentIntentId={paymentIntentId}
           onSuccess={handlePaymentSuccess}
@@ -1081,34 +927,16 @@ const handlePaymentSuccess = async (paymentMethodId, paymentParams = {}) => {
 
       {paymentSuccessPopup}
 
-      {placingOrders && (
+      {placeOrder.isPending && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-          <div className="w-full max-w-sm rounded-2xl bg-white p-6 text-center shadow-xl">
-            {placingProgress ? (
-              <>
-                <div className="mx-auto mb-4 h-11 w-11 animate-spin rounded-full border-[3px] border-[#4c2ed8] border-t-transparent" />
-                <h2 className="text-base font-bold text-gray-900">
-                  Creating your orders
-                </h2>
-                <p className="mt-1.5 text-sm text-gray-500">
-                  Order {placingProgress.current} of {placingProgress.total} —{" "}
-                  {placingProgress.label}
-                </p>
-                <div className="mt-4 h-2 w-full overflow-hidden rounded-full bg-gray-100">
-                  <div
-                    className="h-full rounded-full bg-gradient-to-r from-[#4c2ed8] to-[#368de8] transition-all duration-500"
-                    style={{
-                      width: `${(placingProgress.current / placingProgress.total) * 100}%`,
-                    }}
-                  />
-                </div>
-              </>
-            ) : (
-              <div className="flex items-center justify-center gap-3 text-sm text-gray-500">
-                <span className="h-8 w-8 animate-spin rounded-full border-2 border-[#4c2ed8] border-t-transparent" />
-                Please wait...
-              </div>
-            )}
+          <div className="w-full max-w-xs rounded-2xl bg-white p-6 text-center shadow-xl">
+            <div className="mx-auto mb-4 h-11 w-11 animate-spin rounded-full border-[3px] border-[#4c2ed8] border-t-transparent" />
+            <h2 className="text-base font-bold text-gray-900">
+              Creating your order
+            </h2>
+            <p className="mt-1.5 text-sm text-gray-500">
+              Please wait, do not refresh...
+            </p>
           </div>
         </div>
       )}

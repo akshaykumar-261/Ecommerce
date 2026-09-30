@@ -17,6 +17,7 @@ import {
 } from "./authApi";
 import { getGuestCart, clearGuestCart } from "./guestCart";
 import { MergeGuestCart } from "./cartApi";
+import { setPasswordResetToken } from "./passwordResetSession";
 
 const mergeGuestCartOnAuth = async () => {
   const guestItems = getGuestCart();
@@ -73,10 +74,9 @@ export const useForgetPassword = () => {
   return useMutation({
     mutationFn: ForgotPassword,
     onSuccess: (data) => {
-      const { accessToken, refreshToken } = data.data;
-      localStorage.setItem("accessToken", accessToken);
-      localStorage.setItem("refreshToken", refreshToken);
-      console.log("User registered successfully:", data);
+      // Reset-flow token only. Storing it as accessToken made a signed-out
+      // visitor look logged in to the navbar and to GuestRoute.
+      setPasswordResetToken(data.data?.accessToken);
     },
     onError: (error) => {
       console.error("STATUS:", error.response?.status);
@@ -119,14 +119,12 @@ export const useOtpVerifyForgotPassword = () => {
   return useMutation({
     mutationFn: OtpVerifyForgotPassword,
     onSuccess: (data) => {
-      const { accessToken, refreshToken } = data.data;
-      localStorage.setItem("accessToken", accessToken);
-      localStorage.setItem("refreshToken", refreshToken);
-      console.log("User registered successfully:", data);
+      // A fresh reset token replaces the one from the send-OTP step.
+      setPasswordResetToken(data.data?.accessToken);
     },
     onError: (error) => {
       console.error("STATUS:", error.response?.status);
-      console.error("BAVenderOnboardingLinkCKEND ERROR:", error.response?.data);
+      console.error("BACKEND ERROR:", error.response?.data);
       console.error("FULL ERROR:", error);
     },
   });
@@ -134,12 +132,8 @@ export const useOtpVerifyForgotPassword = () => {
 export const useOtpResendForgotPassword = () => {
   return useMutation({
     mutationFn: OtpResendForgotPassword,
-    onSuccess: async (data) => {
-      const { accessToken, refreshToken } = data.data;
-      localStorage.setItem("accessToken", accessToken);
-      localStorage.setItem("refreshToken", refreshToken);
-      await mergeGuestCartOnAuth();
-      console.log("User registered successfully:", data);
+    onSuccess: (data) => {
+      setPasswordResetToken(data.data?.accessToken);
     },
     onError: (error) => {
       console.error("STATUS:", error.response?.status);

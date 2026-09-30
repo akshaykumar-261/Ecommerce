@@ -431,6 +431,14 @@ function VendorPayouts() {
                           >
                             {payout.payout_status}
                           </span>
+                          {payout.failure_reason && (
+                            <p
+                              title={payout.failure_reason}
+                              className="mt-1.5 max-w-[20rem] cursor-help text-[11px] leading-snug text-red-500 line-clamp-2"
+                            >
+                              {payout.failure_reason}
+                            </p>
+                          )}
                         </td>
                         <td className="px-5 py-3.5 text-xs text-slate-500">
                           {payout.createdAt

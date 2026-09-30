@@ -1,31 +1,46 @@
-import React from "react";
+import { useState } from "react";
 import { LockKeyhole } from "lucide-react";
 import AuthLayout from "../../components/auth/AuthLayout";
 import authBanner from "../../assets/image copy 13.png";
+import leftArrow from "../../assets/left-arrow.png";
 import Button from "../../components/common/Button";
 import { Link } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../components/common/ AuthContext";
 import toast from "react-hot-toast";
+import OtpInput from "../../components/common/OtpInput";
 import {
   useOtpVerifyForgotPassword,
   useOtpResendForgotPassword,
 } from "../../api/useAuth";
 function OtpVerifyForgotPassword() {
   const { forgotPasswordEmail, setForgotPasswordOtpVerified } = useAuth();
-  const handleNumberChange = (e) => {
-    e.target.value = e.target.value.replace(/[^0-9]/g, "");
-  };
   const { mutate: otpResendForgotPassword } = useOtpResendForgotPassword();
   const navigate = useNavigate();
   const { mutate: otpVerifyForgotPassword } = useOtpVerifyForgotPassword();
+  const [otp, setOtp] = useState("");
   const {
     register,
+    setValue,
     reset,
     handleSubmit,
     formState: { errors },
   } = useForm();
+
+  // The six boxes are one value, so the form holds a single field instead of
+  // otp1..otp6. Reading six optional fields used to submit "12undefined456"
+  // whenever a box was left empty.
+  register("otp", {
+    required: "Enter the 6-digit code",
+    pattern: { value: /^\d{6}$/, message: "Enter all 6 digits" },
+  });
+
+  const handleOtpChange = (next) => {
+    setOtp(next);
+    setValue("otp", next);
+  };
+
   const maskedEmail = (email) => {
     if (!email) return "";
     const [name, domain] = email.split("@");
@@ -35,14 +50,13 @@ function OtpVerifyForgotPassword() {
     return `${name.slice(0, 2)}***@${domain}`;
   };
   const onSubmitData = (data) => {
-    const otp =
-      data.otp1 + data.otp2 + data.otp3 + data.otp4 + data.otp5 + data.otp6;
     otpVerifyForgotPassword(
-      { otp },
+      { otp: data.otp },
       {
         onSuccess: () => {
-           setForgotPasswordOtpVerified(true);
+          setForgotPasswordOtpVerified(true);
           toast.success("OTP Verify Successfully!");
+          setOtp("");
           reset();
           navigate("/resetPassword");
         },
@@ -68,6 +82,14 @@ function OtpVerifyForgotPassword() {
   };
   return (
     <AuthLayout image={authBanner}>
+      <Link
+        to="/forgot-password"
+        className="absolute left-5 top-5 flex w-fit items-center gap-2 text-xs font-medium text-gray-600 transition hover:text-violet-600 md:right-8 md:top-6"
+      >
+        <img src={leftArrow} alt="" aria-hidden="true" className="h-4 w-4" />
+        Back
+      </Link>
+
       {/* Icon */}
       <div>
         <LockKeyhole size={35} className="mt-10 text-violet-600" />
@@ -87,120 +109,16 @@ function OtpVerifyForgotPassword() {
       {/* Form */}
       <form onSubmit={handleSubmit(onSubmitData)} className="mt-7">
         {/* OTP */}
-        <div className="flex gap-2">
-          <input
-            type="text"
-            inputMode="numeric"
-            maxLength="1"
-            onChange={handleNumberChange}
-            {...register("otp1")}
-            className="
-              w-11 h-11
-              border
-              border-violet-600
-              rounded-lg
-              text-center
-              text-lg
-              outline-none
-              focus:border-violet-500
-            "
-          />
-
-          <input
-            type="text"
-            maxLength="1"
-            inputMode="numeric"
-            onChange={handleNumberChange}
-            {...register("otp2")}
-            className="
-              w-11 h-11
-              border
-              border-gray-300
-              rounded-lg
-              text-center
-              text-lg
-              outline-none
-              focus:border-violet-500
-            "
-          />
-
-          <input
-            type="text"
-            maxLength="1"
-            inputMode="numeric"
-            onChange={handleNumberChange}
-            {...register("otp3")}
-            className="
-              w-11 h-11
-              border
-              border-gray-300
-              rounded-lg
-              text-center
-              text-lg
-              outline-none
-              focus:border-violet-500
-            "
-          />
-
-          <input
-            type="text"
-            maxLength="1"
-            inputMode="numeric"
-            {...register("otp4")}
-            className="
-              w-11 h-11
-              border
-              border-gray-300
-              rounded-lg
-              text-center
-              text-lg
-              outline-none
-              focus:border-violet-500
-            "
-          />
-
-          <input
-            type="text"
-            maxLength="1"
-            inputMode="numeric"
-            onChange={handleNumberChange}
-            {...register("otp5")}
-            className="
-              w-11 h-11
-              border
-              border-gray-300
-              rounded-lg
-              text-center
-              text-lg
-              outline-none
-              focus:border-violet-500
-            "
-          />
-
-          <input
-            type="text"
-            maxLength="1"
-            inputMode="numeric"
-            onChange={handleNumberChange}
-            {...register("otp6")}
-            className="
-              w-11 h-11
-              border
-              border-gray-300
-              rounded-lg
-              text-center
-              text-lg
-              outline-none
-              focus:border-violet-500
-            "
-          />
-        </div>
+        <OtpInput value={otp} onChange={handleOtpChange} hasError={!!errors.otp} />
+        {errors.otp && (
+          <p className="mt-2 text-xs text-red-500">{errors.otp.message}</p>
+        )}
 
         {/* Resend OTP */}
         <button
           type="button"
           onClick={handleResendOtp}
-          className="text-sm text-violet-600"
+          className="mt-4 text-sm text-violet-600"
         >
           Resend OTP
         </button>
@@ -210,14 +128,6 @@ function OtpVerifyForgotPassword() {
           VERIFY OTP
         </Button>
       </form>
-
-      {/* Back */}
-      <Link
-        to="/forgot-password"
-        className="inline-block mt-7 text-sm text-violet-600"
-      >
-        ← Back
-      </Link>
     </AuthLayout>
   );
 }
